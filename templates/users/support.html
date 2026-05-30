@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Business Essential - Support</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/media/app logo.png"/>
+    <link rel="stylesheet" href="/static/css/support.css">
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    
+    <header class="dashboard-header">
+        <button class="icon-btn" id="backButton" aria-label="Back">
+            <svg viewBox="0 0 24 24">
+                <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+
+        <h2>Support Center</h2>
+
+        <button class="icon-btn" id="helpBtn" aria-label="Help">
+            <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <line x1="12" y1="17" x2="12.01" y2="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </button>
+    </header>
+
+    <main class="content support-page">
+        <div class="page-header">
+            <h1>How can we help you?</h1>
+            <p>Find answers, learn tips, or reach out to our team directly.</p>
+        </div>
+
+        <div class="search-container">
+            <svg viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <input type="text" id="faqSearch" placeholder="Search FAQs, tips, or topics...">
+        </div>
+
+        <!-- FAQ SECTION -->
+        <section class="faq-section">
+            <h2>Frequently Asked Questions</h2>
+            <div class="faq-list" id="faqList">
+                <div class="faq-item" data-search="how to reset password forgot login">
+                    <button class="faq-question">
+                        <span>How do I reset my password?</span>
+                        <svg class="faq-arrow" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Go to Settings > Security > Change Password. If you're locked out, use the "Forgot Password" link on the login screen to receive a secure reset link via email.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-search="how to add client customer new">
+                    <button class="faq-question">
+                        <span>How do I add a new client?</span>
+                        <svg class="faq-arrow" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Navigate to the Clients tab and click the "+" button. Fill in the client's name, email, phone, and address. Save to instantly link them to future invoices.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-search="payment received track mark paid">
+                    <button class="faq-question">
+                        <span>How do I mark an invoice as paid?</span>
+                        <svg class="faq-arrow" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Open the invoice, click "Record Payment", enter the amount and date. The status will automatically update, and you'll receive a confirmation receipt.</p>
+                    </div>
+                </div>
+
+                <div class="faq-item" data-search="export invoice pdf download print">
+                    <button class="faq-question">
+                        <span>Can I export invoices to PDF?</span>
+                        <svg class="faq-arrow" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Yes! Open any invoice and click the "Download PDF" button. You can also batch export multiple invoices from the Invoices dashboard using the "Export All" feature.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TIPS SECTION -->
+        <section class="tips-section">
+            <h2>💡 Pro Tips</h2>
+            <div class="tips-grid">
+                <div class="tip-card">
+                    <div class="tip-icon">📅</div>
+                    <h3>Use Due Dates</h3>
+                    <p>Set clear payment terms. Automatic reminders are sent 3 days before and on the due date.</p>
+                </div>
+                <div class="tip-card">
+                    <div class="tip-icon">🏷️</div>
+                    <h3>Invoice Prefixes</h3>
+                    <p>Customize your numbering (e.g., INV-2024-001) to stay organized and professional.</p>
+                </div>
+                <div class="tip-card">
+                    <div class="tip-icon">📊</div>
+                    <h3>Track Revenue</h3>
+                    <p>Use the Payments dashboard to monitor cash flow, overdue invoices, and monthly trends.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- INVOICE GUIDE -->
+        <section class="guide-section">
+            <h2>📘 How to Create an Invoice</h2>
+            <div class="guide-steps">
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <div class="step-content">
+                        <h4>Go to Invoices</h4>
+                        <p>Tap the "Invoices" tab and click the "Create New" button at the top right.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <div class="step-content">
+                        <h4>Select Client & Details</h4>
+                        <p>Choose an existing client or add a new one. Fill in items, quantities, and prices.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <div class="step-content">
+                        <h4>Review & Send</h4>
+                        <p>Preview the invoice, add notes, then click "Send Email" or "Download PDF".</p>
+                    </div>
+                </div>
+            </div>
+            <div class="screenshot-placeholder">
+                <div class="placeholder-content">
+                    <svg viewBox="0 0 24 24">
+                        <rect x="2" y="2" width="20" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="8" cy="8" r="2" fill="currentColor"/>
+                        <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <p>Invoice Creation Screenshot</p>
+                    <small>Drag & drop or click to upload a guide image</small>
+                </div>
+            </div>
+        </section>
+
+        <!-- TICKET FORM -->
+        <section class="ticket-section">
+            <h2>🎫 Submit a Ticket</h2>
+            <form id="ticketForm" class="ticket-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="ticketCategory">Category</label>
+                        <select id="ticketCategory" required>
+                            <option value="" disabled selected>Select a category</option>
+                            <option value="bug">🐛 Bug Report</option>
+                            <option value="feature">✨ Feature Request</option>
+                            <option value="billing">💳 Billing Issue</option>
+                            <option value="account">👤 Account Problem</option>
+                            <option value="other">📝 Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="ticketSubject">Subject</label>
+                        <input type="text" id="ticketSubject" placeholder="Brief description of the issue" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="ticketMessage">Message</label>
+                    <textarea id="ticketMessage" rows="5" placeholder="Please describe your issue in detail. Include steps to reproduce if applicable..." required></textarea>
+                </div>
+                <button type="submit" class="btn primary" id="submitTicket">
+                    <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><polygon points="22 2 15 22 11 13 2 9 22 2" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                    <span class="btn-text">Submit Ticket</span>
+                    <span class="btn-loader" style="display:none;"><svg viewBox="0 0 24 24"><path d="M12 2v6m0 10v6M4.93 4.93l4.24 4.24m8.49-8.49l4.24 4.24M1.5 12h6m10 0h6M4.93 19.07l4.24-4.24m8.49 8.49l4.24-4.24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+                </button>
+            </form>
+        <div class="tickets-list" id="ticketsList"></div>
+
+        </section>
+
+        <!-- CONTACTS -->
+        <section class="contact-section">
+            <h2>📞 Contact Support</h2>
+            <div class="contacts-grid">
+                <div class="contact-card">
+                    <div class="contact-icon">📧</div>
+                    <h3>Email Us</h3>
+                    <p>support@businesse.com</p>
+                    <small>Response within 24 hours</small>
+                </div>
+                <div class="contact-card">
+                    <div class="contact-icon">📱</div>
+                    <h3>Call Us</h3>
+                    <p>+1 (800) 555-0199</p>
+                    <small>Mon-Fri, 9AM - 6PM EST</small>
+                </div>
+                <div class="contact-card">
+                    <div class="contact-icon">💬</div>
+                    <h3>Live Chat</h3>
+                    <p>Available 24/7</p>
+                    <small>Tap the chat bubble below</small>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- LIVE CHAT WIDGET -->
+    <div class="chat-widget" id="chatWidget">
+        <button class="chat-toggle" id="chatToggle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <span class="chat-badge">1</span>
+        </button>
+        
+        <div class="chat-window" id="chatWindow">
+            <div class="chat-header">
+                <div class="chat-agent">
+                    <div class="agent-avatar">BE</div>
+                    <div>
+                        <h4>Support Agent</h4>
+                        <p class="online-status">● Online</p>
+                    </div>
+                </div>
+                <button class="close-chat" id="closeChat">&times;</button>
+            </div>
+            
+            <div class="chat-body" id="chatBody">
+                <div class="message system">
+                    <p>Welcome! How can we assist you today?</p>
+                    <span class="time">Just now</span>
+                </div>
+            </div>
+            
+            <div class="chat-input-area">
+                <input type="text" id="chatInput" placeholder="Type your message...">
+                <button id="sendMessage">
+                    <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><polygon points="22 2 15 22 11 13 2 9 22 2" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/support.js"></script>
+</body>
+</html>

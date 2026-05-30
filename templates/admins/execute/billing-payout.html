@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Business Essential - Billing & Payout Control</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/media/app logo.png"/>
+    <link rel="stylesheet" href="/static/css/execute-billing-payout.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="brand">
+                    <img src="/static/media/app logo.png" alt="Business Essential">
+                    <span>Business Essential</span>
+                </div>
+                <button class="sidebar-toggle" id="closeSidebar">&times;</button>
+            </div>
+            
+            <nav class="sidebar-nav">
+                               <a href="/admin/execute/super-admin-dashboard" class="nav-item ">
+                    <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" fill="currentColor"/></svg>
+                    Dashboard
+                </a>
+                <a href="/admin/execute/admin-management" class="nav-item">
+                    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 3.13a4 4 0 0 1 0 7.75" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                    Admin Management
+                </a>
+                <a href="/admin/execute/security-audit" class="nav-item">
+                    <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                    Security & Audit
+                </a>
+                <a href="/admin/execute/system-config" class="nav-item">
+                    <svg viewBox="0 0 24 24"><path d="M21 12.22C21 6.73 16.74 3 12 3c-4.69 0-9 3.73-9 9.22-.6 2.36 1.22 4.78 3.18 6.19C4.65 21.56 1 23 1 23h22s-3.65-1.44-5.18-4.59c1.96-1.41 3.78-3.83 3.18-6.19z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                    System Config
+                </a>
+                <a href="/admin/execute//billing-payout" class="nav-item active">
+                    <svg viewBox="0 0 24 24">
+                        <rect x="2" y="4" width="20" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <line x1="6" y1="8" x2="18" y2="8" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <line x1="6" y1="12" x2="18" y2="12" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <line x1="6" y1="16" x2="12" y2="16" fill="none" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    Billing & Payouts
+                </a>
+              <a href="/admin/execute/database-api" class="nav-item">
+                    <svg viewBox="0 0 24 24">
+                        <ellipse cx="12" cy="5" rx="9" ry="3" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" fill="none" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    Database & Access
+                </a>
+    
+                
+                <a href="/admin/execute/invite-keys" class="nav-item">
+                    <svg viewBox="0 0 24 24"><path d="M12 20h9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                    Invite Keys
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar"> {{ initials }} </div>
+                    <div class="user-details">
+                        <span class="user-name">{{ adminName }}</span>
+                        <span class="user-role">Super Admin</span>
+                    </div>
+                </div>
+                <a href="/admin/execute/logout" class="logout-link">
+                    <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" fill="none" stroke="currentColor" stroke-width="2"/><polyline points="16 17 21 12 16 7" fill="none" stroke="currentColor" stroke-width="2"/><line x1="21" y1="12" x2="9" y2="12" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                </a>
+            </div>
+        </aside>
+
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <button class="menu-toggle" id="openSidebar">
+                    <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12" fill="none" stroke="currentColor" stroke-width="2"/><line x1="3" y1="6" x2="21" y2="6" fill="none" stroke="currentColor" stroke-width="2"/><line x1="3" y1="18" x2="21" y2="18" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                </button>
+                
+                <div class="page-title">
+                    <h1>Billing & Payout Control</h1>
+                    <p>Manage platform revenue, process payouts, and oversee financial compliance</p>
+                </div>
+
+                <div class="header-actions">
+                    <button class="btn secondary" id="refreshBtn">
+                        <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 3v5h5" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                        Refresh
+                    </button>
+                    <button class="btn primary" id="exportReportBtn">
+                        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" fill="none" stroke="currentColor" stroke-width="2"/><polyline points="7 10 12 15 17 10" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12" y1="15" x2="12" y2="3" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                        Export Report
+                    </button>
+                </div>
+            </header>
+
+            <div class="content-area">
+                <!-- Gateway Health -->
+                <div class="status-bar">
+                    <div class="status-pill success"><span class="dot"></span> Stripe: Connected</div>
+                    <div class="status-pill success"><span class="dot"></span> PayPal: Active</div>
+                    <div class="status-pill warning"><span class="dot"></span> Payout Schedule: Due in 2 days</div>
+                    <div class="status-pill info"><span class="dot"></span> Tax Compliance: Verified</div>
+                </div>
+
+                <!-- Financial Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card revenue"><div class="stat-icon">💰</div><div class="stat-details"><span class="stat-value">$248,450.00</span><span class="stat-label">Total Revenue (30d)</span></div><span class="trend up">+12.4%</span></div>
+                    <div class="stat-card payouts"><div class="stat-icon">📤</div><div class="stat-details"><span class="stat-value">$142,300.00</span><span class="stat-label">Payouts Processed</span></div><span class="trend neutral">On track</span></div>
+                    <div class="stat-card pending"><div class="stat-icon">⏳</div><div class="stat-details"><span class="stat-value">$18,750.00</span><span class="stat-label">Pending Payouts</span></div><span class="trend warning">4 batches</span></div>
+                    <div class="stat-card failed"><div class="stat-icon">❌</div><div class="stat-details"><span class="stat-value">$1,240.00</span><span class="stat-label">Failed Transactions</span></div><span class="trend danger">3 issues</span></div>
+                    <div class="stat-card subscriptions"><div class="stat-icon">🔄</div><div class="stat-details"><span class="stat-value">1,248</span><span class="stat-label">Active Subscriptions</span></div><span class="trend up">+8</span></div>
+                    <div class="stat-card tax"><div class="stat-icon">📊</div><div class="stat-details"><span class="stat-value">$24,845.00</span><span class="stat-label">Tax Collected</span></div><span class="trend neutral">10% avg</span></div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tabs-container">
+                    <div class="tab-nav">
+                        <button class="tab-btn active" data-tab="transactions">Transactions</button>
+                        <button class="tab-btn" data-tab="payouts">Payout Control</button>
+                        <button class="tab-btn" data-tab="tax">Tax & Compliance</button>
+                        <button class="tab-btn" data-tab="gateway">Gateway Config</button>
+                    </div>
+
+                    <!-- Transactions Tab -->
+                    <div class="tab-content active" id="tab-transactions">
+                        <div class="card">
+                            <div class="card-header">
+                                <h2>Recent Transactions</h2>
+                                <div class="filters-row">
+                                    <div class="search-box">
+                                        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" fill="none" stroke="currentColor" stroke-width="2"/><line x1="21" y1="21" x2="16.65" y2="16.65" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                                        <input type="text" id="transSearch" placeholder="Search by customer or ID...">
+                                    </div>
+                                    <select id="transStatus"><option value="all">All Status</option><option value="completed">Completed</option><option value="pending">Pending</option><option value="failed">Failed</option><option value="refunded">Refunded</option></select>
+                                    <input type="date" id="transDate">
+                                </div>
+                            </div>
+                            <div class="table-wrapper">
+                                <table class="data-table" id="transTable">
+                                    <thead><tr><th>Transaction ID</th><th>Customer</th><th>Type</th><th>Amount</th><th>Gateway</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                            <div class="table-footer"><p>Showing <span id="transCount">0</span> records</p><div class="pagination"><button class="page-btn" id="transPrev" disabled>&larr;</button><span class="page-info">Page <span id="transPage">1</span></span><button class="page-btn" id="transNext">&rarr;</button></div></div>
+                        </div>
+                    </div>
+
+                    <!-- Payout Control Tab -->
+                    <div class="tab-content" id="tab-payouts">
+                        <div class="card">
+                            <div class="card-header">
+                                <h2>Payout Batches</h2>
+                                <div class="payout-actions">
+                                    <button class="btn secondary" id="runPayoutBtn">
+                                        <svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" fill="none" stroke="currentColor" stroke-width="2"/></svg> Run Batch
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="table-wrapper">
+                                <table class="data-table" id="payoutTable">
+                                    <thead><tr><th><input type="checkbox" id="payoutSelectAll"></th><th>Batch ID</th><th>Recipient</th><th>Amount</th><th>Method</th><th>Scheduled</th><th>Status</th><th>Action</th></tr></thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                            <div class="bulk-actions" id="bulkActions" style="display:none;">
+                                <span><span id="selectedCount">0</span> selected</span>
+                                <div><button class="btn secondary" id="bulkApprove">Approve</button><button class="btn danger" id="bulkReject">Reject</button></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tax & Compliance Tab -->
+                    <div class="tab-content" id="tab-tax">
+                        <div class="card">
+                            <div class="card-header"><h2>Tax Configuration & Compliance Logs</h2></div>
+                            <div class="tax-grid">
+                                <div class="tax-card">
+                                    <h3>Default Tax Rate</h3>
+                                    <div class="tax-input-wrapper">
+                                        <input type="number" id="taxRate" value="10" min="0" max="100" step="0.1"><span>%</span>
+                                    </div>
+                                    <button class="btn primary" id="saveTaxBtn">Update Rate</button>
+                                </div>
+                                <div class="tax-card">
+                                    <h3>Compliance Status</h3>
+                                    <div class="compliance-list">
+                                        <div class="compliance-item success"><span>✓</span> VAT Registration Verified</div>
+                                        <div class="compliance-item success"><span>✓</span> GDPR Data Handling</div>
+                                        <div class="compliance-item warning"><span>⚠</span> Annual Audit: Due in 45 days</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gateway Config Tab -->
+                    <div class="tab-content" id="tab-gateway">
+                        <div class="card">
+                            <div class="card-header"><h2>Payment Gateway Configuration</h2></div>
+                            <div class="gateway-grid">
+                                <div class="gateway-item">
+                                    <div class="gateway-header"><h3>Stripe</h3><span class="status-badge active">Active</span></div>
+                                    <div class="form-group"><label>Secret Key</label><div class="masked-wrapper"><input type="password" value="" readonly><button type="button" class="copy-btn" data-target="stripe-key">📋</button></div></div>
+                                    <div class="form-group"><label>Webhook Secret</label><div class="masked-wrapper"><input type="password" value="whsec_1a2b3c4d" readonly><button type="button" class="copy-btn" data-target="stripe-wh">📋</button></div></div>
+                                    <button class="btn secondary full-width">Test Connection</button>
+                                </div>
+                                <div class="gateway-item">
+                                    <div class="gateway-header"><h3>PayPal</h3><span class="status-badge active">Active</span></div>
+                                    <div class="form-group"><label>Client ID</label><div class="masked-wrapper"><input type="password" value="AbC123xYz" readonly><button type="button" class="copy-btn" data-target="paypal-id">📋</button></div></div>
+                                    <div class="form-group"><label>Client Secret</label><div class="masked-wrapper"><input type="password" value="EeD456uIo" readonly><button type="button" class="copy-btn" data-target="paypal-secret">📋</button></div></div>
+                                    <button class="btn secondary full-width">Test Connection</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal-overlay" id="refundModal"><div class="modal-card"><div class="modal-close" id="closeRefundModal">&times;</div><div class="modal-header"><h3>Process Refund</h3><p>Refund will be processed to the original payment method</p></div><form id="refundForm"><div class="form-group"><label>Transaction ID</label><input type="text" id="refundTxId" readonly></div><div class="form-group"><label>Refund Amount</label><input type="number" id="refundAmount" step="0.01" required></div><div class="form-group"><label>Reason</label><select id="refundReason"><option value="customer_request">Customer Request</option><option value="duplicate_charge">Duplicate Charge</option><option value="service_issue">Service Issue</option></select></div><div class="modal-actions"><button type="button" class="btn secondary" id="cancelRefund">Cancel</button><button type="submit" class="btn danger" id="submitRefund">Confirm Refund</button></div></form></div></div>
+    
+    <div class="modal-overlay" id="payoutConfirmModal"><div class="modal-card small"><div class="modal-close" id="closePayoutModal">&times;</div><div class="modal-icon warning"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12" y1="8" x2="12" y2="12" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12" y1="16" x2="12.01" y2="16" fill="none" stroke="currentColor" stroke-width="2"/></svg></div><h3 id="payoutModalTitle">Approve Payout?</h3><p id="payoutModalMessage">Review carefully. This action cannot be reversed.</p><div class="modal-actions"><button class="btn secondary" id="cancelPayoutAction">Cancel</button><button class="btn primary" id="confirmPayoutAction">Confirm</button></div></div></div>
+
+    <div id="toastContainer"></div>
+    <script src="/static/js/execute-blling-payout.js"></script>
+</body>
+</html>

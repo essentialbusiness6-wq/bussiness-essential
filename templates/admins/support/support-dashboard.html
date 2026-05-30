@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Business Essential - Support Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/media/app logo.png"/>
+    <link rel="stylesheet" href="/static/css/support-admin-dashboard.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="brand"><img src="/static/media/app logo.png" alt="Logo"><span>Business Essential</span></div>
+                <button class="sidebar-toggle" id="closeSidebar">&times;</button>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/admin/supprt/dashboard" class="nav-item active"><svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" fill="currentColor"/></svg><span>Support Dashboard</span></a>
+                <a href="/admin/support/feedback-center" class="nav-item"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" fill="none" stroke="currentColor" stroke-width="2"/></svg><span>Feedback Center</span></a>
+                <a href="/clients" class="nav-item"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="2"/></svg><span>Clients</span></a>
+                <a href="/settings" class="nav-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" fill="none" stroke="currentColor" stroke-width="2"/></svg><span>Settings</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                      <div class="user-info">
+                    <div class="user-avatar">{{ initials }}</div>
+                    <div class="user-details">
+                        <span class="user-name">{{ adminName }}</span>
+                        <span class="user-role">Super Admin</span>
+                    </div>
+                </div>
+                <a href="/logout" class="logout-link"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" fill="none" stroke="currentColor" stroke-width="2"/><polyline points="16 17 21 12 16 7" fill="none" stroke="currentColor" stroke-width="2"/><line x1="21" y1="12" x2="9" y2="12" fill="none" stroke="currentColor" stroke-width="2"/></svg></a>
+            </div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <main class="main-content">
+            <header class="top-header">
+                <button class="menu-toggle" id="openSidebar"><svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12" fill="none" stroke="currentColor" stroke-width="2"/><line x1="3" y1="6" x2="21" y2="6" fill="none" stroke="currentColor" stroke-width="2"/><line x1="3" y1="18" x2="21" y2="18" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+                <div class="page-title"><h1>Support Dashboard</h1><p>Real-time insights into user feedback & team performance</p></div>
+                <div class="header-actions">
+                    <button class="btn secondary" id="dateRangeBtn"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="16" y1="2" x2="16" y2="6" fill="none" stroke="currentColor" stroke-width="2"/><line x1="8" y1="2" x2="8" y2="6" fill="none" stroke="currentColor" stroke-width="2"/><line x1="3" y1="10" x2="21" y2="10" fill="none" stroke="currentColor" stroke-width="2"/></svg> Last 7 Days</button>
+                    <button class="btn primary" id="refreshDashboard"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 3v5h5" fill="none" stroke="currentColor" stroke-width="2"/></svg> Refresh</button>
+                </div>
+            </header>
+
+            <div class="content-area">
+                <!-- Stats Row -->
+                <div class="stats-grid">
+                    <div class="stat-card primary"><div class="stat-icon">📥</div><div class="stat-details"><span class="stat-value" id="statTotal">0</span><span class="stat-label">Total Feedback</span></div><span class="trend up">+12% vs last week</span></div>
+                    <div class="stat-card warning"><div class="stat-icon">🔍</div><div class="stat-details"><span class="stat-value" id="statReview">0</span><span class="stat-label">In Review</span></div><span class="trend neutral">4 need attention</span></div>
+                    <div class="stat-card success"><div class="stat-icon">✅</div><div class="stat-details"><span class="stat-value" id="statResolved">0</span><span class="stat-label">Resolved</span></div><span class="trend up">92% resolution rate</span></div>
+                    <div class="stat-card info"><div class="stat-icon">⏱️</div><div class="stat-details"><span class="stat-value" id="statResponse">0</span><span class="stat-label">Avg Response</span></div><span class="trend up">↓ 32 min</span></div>
+                    <div class="stat-card danger"><div class="stat-icon">🔥</div><div class="stat-details"><span class="stat-value" id="statBreach">0</span><span class="stat-label">SLA Breaches</span></div><span class="trend danger">2 critical</span></div>
+                </div>
+
+                <!-- Charts & Quick Actions -->
+                <div class="dashboard-grid">
+                    <!-- Volume Chart -->
+                    <div class="card chart-card">
+                        <div class="card-header"><h2>Feedback Volume (7 Days)</h2><div class="chart-legend"><span class="legend-dot bug"></span>Bugs <span class="legend-dot suggestion"></span>Suggestions</div></div>
+                        <div class="chart-container" id="volumeChart"></div>
+                    </div>
+
+                    <!-- Status Distribution -->
+                    <div class="card chart-card">
+                        <div class="card-header"><h2>Status Distribution</h2></div>
+                        <div class="donut-wrapper">
+                            <div class="donut-chart" id="statusDonut"></div>
+                            <div class="donut-legend" id="donutLegend"></div>
+                        </div>
+                    </div>
+
+                    <!-- Priority Queue -->
+                    <div class="card queue-card">
+                        <div class="card-header"><h2>🔥 Priority Queue</h2><span class="badge high" id="highCount">0 High</span></div>
+                        <ul class="priority-list" id="priorityList"></ul>
+                        <a href="/feedback-admin" class="card-footer-link">View All Feedback →</a>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="card activity-card">
+                        <div class="card-header"><h2>Recent Activity</h2><select id="activityFilter"><option value="all">All Actions</option><option value="new">New Feedback</option><option value="reply">Replies</option><option value="status">Status Changes</option></select></div>
+                        <div class="activity-feed" id="activityFeed"></div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions Bar -->
+                <div class="quick-actions">
+                    <button class="action-card" onclick="window.location.href='/feedback-admin'">
+                        <span class="icon">📝</span>
+                        <span class="label">Manage Feedback</span>
+                    </button>
+                    <button class="action-card" onclick="window.location.href='/canned-responses'">
+                        <span class="icon">💬</span>
+                        <span class="label">Canned Responses</span>
+                    </button>
+                    <button class="action-card" onclick="window.location.href='/support-analytics'">
+                        <span class="icon">📊</span>
+                        <span class="label">Analytics</span>
+                    </button>
+                    <button class="action-card" onclick="window.location.href='/support-settings'">
+                        <span class="icon">⚙️</span>
+                        <span class="label">Routing Rules</span>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toastContainer"></div>
+    <script src="/static/js/support-admin-dashboard.js"></script>
+</body>
+</html>

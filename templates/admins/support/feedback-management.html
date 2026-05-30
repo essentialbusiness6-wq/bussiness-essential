@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Business Essential - Feedback Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/media/app logo.png"/>
+    <link rel="stylesheet" href="/static/css/support-feedback-management.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="brand"><img src="/static/media/app logo.png" alt="Logo"><span>Business Essential</span></div>
+                <button class="sidebar-toggle" id="closeSidebar">&times;</button>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard" class="nav-item"><svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" fill="currentColor"/></svg><span>Dashboard</span></a>
+                <a href="/feedback-admin" class="nav-item active"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" fill="none" stroke="currentColor" stroke-width="2"/></svg><span>Feedback Center</span></a>
+                <a href="/clients" class="nav-item"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="2"/></svg><span>Clients</span></a>
+                <a href="/settings" class="nav-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" fill="none" stroke="currentColor" stroke-width="2"/></svg><span>Settings</span></a>
+            </nav>
+            <div class="sidebar-footer">
+                     <div class="user-info">
+                    <div class="user-avatar">{{ initials }}</div>
+                    <div class="user-details">
+                        <span class="user-name">{{ adminName }}</span>
+                        <span class="user-role">Super Admin</span>
+                    </div>
+                </div>
+                <a href="/logout" class="logout-link"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" fill="none" stroke="currentColor" stroke-width="2"/><polyline points="16 17 21 12 16 7" fill="none" stroke="currentColor" stroke-width="2"/><line x1="21" y1="12" x2="9" y2="12" fill="none" stroke="currentColor" stroke-width="2"/></svg></a>
+            </div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <main class="main-content">
+            <header class="top-header">
+                <button class="menu-toggle" id="openSidebar"><svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12" fill="none" stroke="currentColor" stroke-width="2"/><line x1="3" y1="6" x2="21" y2="6" fill="none" stroke="currentColor" stroke-width="2"/><line x1="3" y1="18" x2="21" y2="18" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+                <div class="page-title"><h1>Feedback Management</h1><p>Review, triage, and respond to user submissions</p></div>
+                <div class="header-actions">
+                    <button class="btn secondary" id="refreshBtn"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 3v5h5" fill="none" stroke="currentColor" stroke-width="2"/></svg> Refresh</button>
+                    <button class="btn primary" id="exportBtn"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" fill="none" stroke="currentColor" stroke-width="2"/><polyline points="7 10 12 15 17 10" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12" y1="15" x2="12" y2="3" fill="none" stroke="currentColor" stroke-width="2"/></svg> Export</button>
+                </div>
+            </header>
+
+            <div class="content-area">
+                <!-- Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card"><div class="stat-icon">📥</div><div class="stat-details"><span class="stat-value">142</span><span class="stat-label">Total Feedback</span></div></div>
+                    <div class="stat-card"><div class="stat-icon">🔍</div><div class="stat-details"><span class="stat-value">24</span><span class="stat-label">In Review</span></div></div>
+                    <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-details"><span class="stat-value">89</span><span class="stat-label">Resolved</span></div></div>
+                    <div class="stat-card"><div class="stat-icon">🔒</div><div class="stat-details"><span class="stat-value">29</span><span class="stat-label">Closed</span></div></div>
+                    <div class="stat-card"><div class="stat-icon">⏱️</div><div class="stat-details"><span class="stat-value">6.2h</span><span class="stat-label">Avg Response</span></div></div>
+                </div>
+
+                <!-- Filters & Search -->
+                <div class="card filters-card">
+                    <div class="filters-row">
+                        <div class="search-box"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" fill="none" stroke="currentColor" stroke-width="2"/><line x1="21" y1="21" x2="16.65" y2="16.65" fill="none" stroke="currentColor" stroke-width="2"/></svg><input type="text" id="feedbackSearch" placeholder="Search user, email or subject..."></div>
+                        <select id="typeFilter"><option value="all">All Types</option><option value="bug">🐛 Bugs</option><option value="suggestion">💡 Suggestions</option></select>
+                        <select id="statusFilter"><option value="all">All Status</option><option value="in_review">In Review</option><option value="resolved">Resolved</option><option value="closed">Closed</option></select>
+                        <select id="priorityFilter"><option value="all">All Priority</option><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select>
+                    </div>
+                </div>
+
+                <!-- Feedback Table -->
+                <div class="card table-card">
+                    <div class="table-wrapper"><table class="data-table" id="feedbackTable"><thead><tr><th>Feedback ID</th><th>User</th><th>Type</th><th>Status</th><th>Priority</th><th>Submitted</th><th>Actions</th></tr></thead><tbody></tbody></table></div>
+                    <div class="table-footer"><p>Showing <span id="fbCount">0</span> entries</p><div class="pagination"><button class="page-btn" id="fbPrev" disabled>&larr;</button><span class="page-info">Page <span id="fbPage">1</span></span><button class="page-btn" id="fbNext">&rarr;</button></div></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Feedback Detail & Reply Modal -->
+    <div class="modal-overlay" id="feedbackModal">
+        <div class="modal-card large">
+            <div class="modal-close" id="closeFeedbackModal">&times;</div>
+            <div class="modal-header">
+                <div class="modal-title-group"><span class="badge" id="modalType"></span><h3 id="modalId">FB-000</h3></div>
+                <p id="modalSubject">Loading...</p>
+            </div>
+            <div class="modal-body">
+                <div class="detail-grid">
+                    <div class="detail-item"><strong>User:</strong><span id="modalUser"></span></div>
+                    <div class="detail-item"><strong>Email:</strong><span id="modalEmail"></span></div>
+                    <div class="detail-item"><strong>Submitted:</strong><span id="modalDate"></span></div>
+                </div>
+                <div class="detail-section">
+                    <h4>Message</h4>
+                    <div class="message-box" id="modalMessage"></div>
+                </div>
+                <div class="detail-section" id="attachmentsSection">
+                    <h4>Attachments (<span id="attCount">0</span>)</h4>
+                    <div class="attachment-grid" id="attachmentGrid"></div>
+                </div>
+                <div class="detail-section">
+                    <h4>Update Status</h4>
+                    <div class="status-actions">
+                        <select id="statusSelect">
+                            <option value="in_review">In Review</option>
+                            <option value="resolved">Resolved</option>
+                            <option value="closed">Closed</option>
+                        </select>
+                        <button class="btn primary" id="updateStatusBtn">Save Status</button>
+                    </div>
+                </div>
+                <div class="detail-section reply-section">
+                    <h4>Reply to User</h4>
+                    <textarea id="replyText" placeholder="Type your response... (User will be notified via email)"></textarea>
+                    <div class="reply-actions">
+                        <span class="reply-hint">💡 Tip: Use {{user}} to personalize</span>
+                        <button class="btn primary" id="sendReplyBtn">Send Reply</button>
+                    </div>
+                    <div class="reply-history" id="replyHistory"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer"></div>
+    <script src="/static/js/support-feedback-management.js"></script>
+</body>
+</html>

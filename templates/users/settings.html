@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Business Essential - Settings</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/media/app logo.png"/>
+    <link rel="stylesheet" href="/static/css/settings.css">
+</head>
+<body data-role="user">
+    <div class="particles" id="particles"></div>
+    
+    <header class="dashboard-header">
+        <button class="icon-btn" id="backButton" aria-label="Back">
+            <svg viewBox="0 0 24 24">
+                <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+
+        <h2>Settings</h2>
+
+        <button class="icon-btn" id="helpBtn" aria-label="Help">
+            <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <line x1="12" y1="17" x2="12.01" y2="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </button>
+    </header>
+
+    <main class="content settings-page">
+        <p class="settings-subtitle">
+            Manage your invoice, system and security preferences
+        </p>
+
+        <!-- ================= INVOICE SETTINGS ================= -->
+        <section class="settings-card">
+            <div class="section-header">
+                <h3>
+                    <svg viewBox="0 0 24 24">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <polyline points="14 2 14 8 20 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <line x1="16" y1="13" x2="8" y2="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="16" y1="17" x2="8" y2="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <polyline points="10 9 9 9 8 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Invoice Settings
+                </h3>
+                <span class="section-badge">Core</span>
+            </div>
+
+            <div class="settings-grid">
+                <div class="field">
+                    <label for="invoice_prefix">
+                        <svg viewBox="0 0 24 24">
+                            <line x1="5" y1="12" x2="19" y2="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <line x1="12" y1="5" x2="12" y2="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        Invoice Prefix
+                    </label>
+                    <input type="text" id="invoice_prefix" value="{{ invoice_prefix }}" data-setting="invoice_prefix" placeholder="e.g., INV, BILL">
+                    <p class="field-hint">Prefix for all invoice numbers</p>
+                </div>
+
+                <div class="field">
+                    <label for="next_invoice_number">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <polyline points="22 6 12 13 2 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Next Invoice Number
+                    </label>
+                    <input type="number" id="next_invoice_number" value="{{ next_invoice_number }}" data-setting="next_invoice_number" min="1">
+                    <p class="field-hint">Starting number for next invoice</p>
+                </div>
+
+                <div class="field">
+                    <label for="default_due_date">
+                        <svg viewBox="0 0 24 24">
+                            <rect x="3" y="4" width="18" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <line x1="16" y1="2" x2="16" y2="6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <line x1="8" y1="2" x2="8" y2="6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <line x1="3" y1="10" x2="21" y2="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Default Due Date (days)
+                    </label>
+                    <input type="number" id="default_due_date" value="{{ default_due_date }}" data-setting="default_due_date" min="1" max="365">
+                    <p class="field-hint">Days until invoice is due</p>
+                </div>
+
+                <div class="field">
+                    <label for="default_tax_rate">
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <line x1="12" y1="16" x2="12" y2="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <line x1="12" y1="8" x2="12.01" y2="8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        Default Tax Rate (%)
+                    </label>
+                    <input type="number" step="0.01" id="default_tax_rate" value="{{ default_tax_rate }}" data-setting="default_tax_rate" min="0" max="100">
+                    <p class="field-hint">Tax percentage applied to invoices</p>
+                </div>
+
+                <div class="toggle">
+                    <span>
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        Show Tax on Invoice
+                    </span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="show_tax" {{ 'checked' if show_tax else '' }} data-setting="show_tax">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle">
+                    <span>
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        Enable Discounts
+                    </span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="show_discount" {{ 'checked' if show_discount else '' }} data-setting="show_discount">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="field full">
+                <label for="footer_note">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <polyline points="14 2 14 8 20 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <line x1="16" y1="13" x2="8" y2="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="16" y1="17" x2="8" y2="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <polyline points="10 9 9 9 8 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Invoice Footer Note
+                </label>
+                <textarea id="footer_note" data-setting="footer_note" placeholder="{{ footer_note }}">{{ footer_note }}</textarea>
+                <p class="field-hint">Text displayed at the bottom of all invoices</p>
+            </div>
+        </section>
+
+        <!-- ================= LOCALIZATION ================= -->
+        <section class="settings-card">
+            <div class="section-header">
+                <h3>
+                    <svg viewBox="0 0 24 24">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="12" cy="10" r="3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Localization
+                </h3>
+                <span class="section-badge">Regional</span>
+            </div>
+
+            <div class="settings-grid">
+                <div class="field">
+                    <label for="currency">
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <path d="M12 16v-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M12 8h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        Currency
+                    </label>
+                    <select id="currency" data-setting="currency">
+                        <option value="NGN" {{ 'selected' if currency == 'NGN' else '' }}>NGN - Nigerian Naira</option>
+                        <option value="USD" {{ 'selected' if currency == 'USD' else '' }}>USD - US Dollar</option>
+                        <option value="EUR" {{ 'selected' if currency == 'EUR' else '' }}>EUR - Euro</option>
+                        <option value="GBP" {{ 'selected' if currency == 'GBP' else '' }}>GBP - British Pound</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="currency_symbol">
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <path d="M12 16v-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M12 8h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        Currency Symbol
+                    </label>
+                    <input type="text" id="currency_symbol" value="{{ currency_symbol }}" data-setting="currency_symbol" maxlength="3">
+                    <p class="field-hint">Symbol displayed with amounts</p>
+                </div>
+
+                <div class="field">
+                    <label for="timezone">
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <polyline points="12 6 12 12 16 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Timezone
+                    </label>
+                    <select id="timezone" data-setting="timezone">
+                        <option value="Africa/Lagos" {{ 'selected' if timezone == 'Africa/Lagos' else '' }}>Africa/Lagos (WAT)</option>
+                        <option value="America/New_York" {{ 'selected' if timezone == 'America/New_York' else '' }}>America/New_York (EST)</option>
+                        <option value="Europe/London" {{ 'selected' if timezone == 'Europe/London' else '' }}>Europe/London (GMT)</option>
+                        <option value="Asia/Tokyo" {{ 'selected' if timezone == 'Asia/Tokyo' else '' }}>Asia/Tokyo (JST)</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="date_format">
+                        <svg viewBox="0 0 24 24">
+                            <rect x="3" y="4" width="18" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <line x1="16" y1="2" x2="16" y2="6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <line x1="8" y1="2" x2="8" y2="6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <line x1="3" y1="10" x2="21" y2="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Date Format
+                    </label>
+                    <select id="date_format" data-setting="date_format">
+                        <option value="DD/MM/YYYY" {{ 'selected' if date_format == 'DD/MM/YYYY' else '' }}>DD/MM/YYYY (25/12/2024)</option>
+                        <option value="MM/DD/YYYY" {{ 'selected' if date_format == 'MM/DD/YYYY' else '' }}>MM/DD/YYYY (12/25/2024)</option>
+                        <option value="YYYY-MM-DD" {{ 'selected' if date_format == 'YYYY-MM-DD' else '' }}>YYYY-MM-DD (2024-12-25)</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= NOTIFICATIONS ================= -->
+        <section class="settings-card">
+            <div class="section-header">
+                <h3>
+                    <svg viewBox="0 0 24 24">
+                        <path d="M18 8a6 6 0 0 0-12 0v7a4 4 0 0 0 8 0v-1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M14 16a2 2 0 0 1-4 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M2 15a10 10 0 0 0 20 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    Notifications
+                </h3>
+                <span class="section-badge">Alerts</span>
+            </div>
+
+            <div class="settings-grid">
+                <div class="toggle">
+                    <span>
+                        <svg viewBox="0 0 24 24">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <polyline points="22 6 12 13 2 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Email Notifications
+                    </span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="email_notifications" {{ 'checked' if email_notifications else '' }} data-setting="email_notifications">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle">
+                    <span>
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <polyline points="12 6 12 12 16 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Due Date Reminder
+                    </span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="due_date_reminder" {{ 'checked' if due_date_reminder else '' }} data-setting="due_date_reminder">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="field">
+                    <label for="reminder_days_before">
+                        <svg viewBox="0 0 24 24">
+                            <rect x="3" y="4" width="18" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <line x1="16" y1="2" x2="16" y2="6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <line x1="8" y1="2" x2="8" y2="6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <line x1="3" y1="10" x2="21" y2="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Reminder Days Before
+                    </label>
+                    <input type="number" id="reminder_days_before" value="{{ reminder_days_before }}" data-setting="reminder_days_before" min="1" max="30">
+                    <p class="field-hint">Days before due date to send reminder</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= SECURITY ================= -->
+        <section class="settings-card">
+            <div class="section-header">
+                <h3>
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Security
+                </h3>
+                <span class="section-badge warning">Important</span>
+            </div>
+
+            <div class="settings-grid">
+                         <div class="toggle danger">
+                    <span>
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M8 12l4-4 4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12 16V8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                       Auto Logout on Inactivity
+                    </span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="auto_logout_on_inactivity" {{ 'checked' if auto_logout_on_inactivity else '' }} data-setting="auto_logout_on_inactivity  ">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="field">
+                    <label for="auto_logout_minutes">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Auto Logout (minutes)
+                    </label>
+                    <input type="number" id="auto_logout_minutes" value="{{ auto_logout_minutes }}" data-setting="auto_logout_minutes" min="5" max="1440">
+                    <p class="field-hint">Minutes of inactivity before auto logout</p>
+                </div>
+
+                <div class="toggle danger">
+                    <span>
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M8 12l4-4 4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12 16V8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Require PIN to Delete
+                    </span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="require_pin_for_delete" {{ 'checked' if require_pin_for_delete else '' }} data-setting="require_pin_for_delete">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= ACTIONS ================= -->
+        <div class="help">
+            <a href="/security" class="btn security-center" id="securityCenterBtn">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M8 12l4-4 4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 16V8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <h4>Security Center</h4>
+                <svg viewBox="0 0 24 24">
+                    <path d="M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="m12 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </a>
+
+            <a href="/support" class="btn contact-support" id="contactSupportBtn">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <h4>Contact Support</h4>
+                <svg viewBox="0 0 24 24">
+                    <path d="M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="m12 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </a>
+
+            <a href="/support" class="btn feedback-and-suggestions" id="feedbackBtn">
+                <svg viewBox="0 0 24 24">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <h4>Feedback & Suggestions</h4>
+                <svg viewBox="0 0 24 24">
+                    <path d="M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="m12 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </a>
+        </div>
+
+        <a href="/account/close" class="btn close-account" id="closeAccountBtn">
+            <svg viewBox="0 0 24 24">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <polyline points="16 11 8 11 8 5 16 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M8 11v10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M3 19h18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <h4>Close Account</h4>
+            <svg viewBox="0 0 24 24">
+                <path d="M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="m12 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </a>
+
+        <a href="/about" class="btn about" id="aboutBtn">
+            <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                <line x1="12" y1="16" x2="12" y2="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <line x1="12" y1="8" x2="12.01" y2="8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <h4>About</h4>
+            <svg viewBox="0 0 24 24">
+                <path d="M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="m12 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </a>
+
+        <div class="settings-actions">
+            <button id="resetSettings" class="btn danger">
+                <svg viewBox="0 0 24 24">
+                    <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12s4.477 10 10 10 10-4.477 10-10z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M16 8 12 12 8 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Reset to Default
+            </button>
+        </div>
+
+        <div class="logout">
+            <a href="/logout" id="logoutBtn">
+                <svg viewBox="0 0 24 24">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <polyline points="16 17 21 12 16 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <line x1="21" y1="12" x2="9" y2="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Logout</span>
+            </a>
+        </div>
+    </main>
+
+    <div id="confirmModal" class="confirm-modal">
+        <div class="confirm-content">
+            <div class="modal-icon warning">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" fill="currentColor"/>
+                    <line x1="12" y1="8" x2="12" y2="12" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <h3>Reset Settings?</h3>
+            <p>Are you sure you want to reset all settings to their default values? This action cannot be undone.</p>
+            <div class="confirm-buttons">
+                <button class="btn secondary" id="cancelReset">Cancel</button>
+                <button class="btn danger" id="confirmReset">Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/settings.js"></script>
+</body>
+</html>

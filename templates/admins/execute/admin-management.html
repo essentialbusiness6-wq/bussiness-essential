@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Business Essential - Admin Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/media/app logo.png"/>
+    <link rel="stylesheet" href="/static/css/execute-admin-mangement.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="brand">
+                    <img src="/static/media/app logo.png" alt="Business Essential">
+                    <span>Business Essential</span>
+                </div>
+                <button class="sidebar-toggle" id="closeSidebar">&times;</button>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="/admin/execute/super-admin-dashboard" class="nav-item ">
+                    <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" fill="currentColor"/></svg>
+                    Dashboard
+                </a>
+                <a href="/admin/execute/admin-management" class="nav-item active">
+                    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 3.13a4 4 0 0 1 0 7.75" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                    Admin Management
+                </a>
+                <a href="/admin/execute/security-audit" class="nav-item">
+                    <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                    Security & Audit
+                </a>
+                <a href="/admin/execute/system-config" class="nav-item">
+                    <svg viewBox="0 0 24 24"><path d="M21 12.22C21 6.73 16.74 3 12 3c-4.69 0-9 3.73-9 9.22-.6 2.36 1.22 4.78 3.18 6.19C4.65 21.56 1 23 1 23h22s-3.65-1.44-5.18-4.59c1.96-1.41 3.78-3.83 3.18-6.19z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                    System Config
+                </a>
+                <a href="/admin/execute/billing-payout" class="nav-item">
+                    <svg viewBox="0 0 24 24">
+                        <rect x="2" y="4" width="20" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <line x1="6" y1="8" x2="18" y2="8" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <line x1="6" y1="12" x2="18" y2="12" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <line x1="6" y1="16" x2="12" y2="16" fill="none" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    Billing & Payouts
+                </a>
+                <a href="/admin/execute/database-api" class="nav-item">
+                    <svg viewBox="0 0 24 24">
+                        <ellipse cx="12" cy="5" rx="9" ry="3" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" fill="none" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    Database & Access
+                </a>
+                
+                <a href="/admin/execute/invite-keys" class="nav-item">
+                    <svg viewBox="0 0 24 24"><path d="M12 20h9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                    Invite Keys
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar"> {{ initials }} </div>
+                    <div class="user-details">
+                        <span class="user-name">{{ adminName }}</span>
+                        <span class="user-role">Super Admin</span>
+                    </div>
+                </div>
+                <a href="/admin/execute/logout" class="logout-link">
+                    <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" fill="none" stroke="currentColor" stroke-width="2"/><polyline points="16 17 21 12 16 7" fill="none" stroke="currentColor" stroke-width="2"/><line x1="21" y1="12" x2="9" y2="12" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Overlay for mobile sidebar -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <button class="menu-toggle" id="openSidebar">
+                    <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12" fill="none" stroke="currentColor" stroke-width="2"/><line x1="3" y1="6" x2="21" y2="6" fill="none" stroke="currentColor" stroke-width="2"/><line x1="3" y1="18" x2="21" y2="18" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                </button>
+                
+                <div class="page-title">
+                    <h1>Admin Management</h1>
+                    <p>Manage system administrators and access controls</p>
+                </div>
+
+                <div class="header-actions">
+                    <button class="btn primary" id="addAdminBtn">
+                        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19" fill="none" stroke="currentColor" stroke-width="2"/><line x1="5" y1="12" x2="19" y2="12" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                        Add Admin
+                    </button>
+                </div>
+            </header>
+
+            <div class="content-area">
+                <!-- Filters & Search -->
+                <div class="filters-bar">
+                    <div class="search-box">
+                        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" fill="none" stroke="currentColor" stroke-width="2"/><line x1="21" y1="21" x2="16.65" y2="16.65" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                        <input type="text" id="adminSearch" placeholder="Search admins by name, email or role...">
+                    </div>
+                    <div class="filter-group">
+                        <select id="roleFilter">
+                            <option value="all">All Roles</option>
+                            <option value="super-admin">Super Admin</option>
+                            <option value="admin">Admin</option>
+                            <option value="support">Support Admin</option>
+                            <option value="finance">Finance Admin</option>
+                        </select>
+                        <select id="statusFilter">
+                            <option value="all">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="suspended">Suspended</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Stats Row -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <span class="stat-value">{{ total_admins }}</span>
+                        <span class="stat-label">Total Admins</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value">{{ active_admins }}</span>
+                        <span class="stat-label">Active</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value">{{ suspended_admins }}</span>
+                        <span class="stat-label">Suspended</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value">{{ pending_setup }}</span>
+                        <span class="stat-label">Pending Setup</span>
+                    </div>
+                </div>
+
+                <!-- Admin Table -->
+                <div class="card table-card">
+                    <div class="table-wrapper">
+                        <table class="data-table" id="adminTable">
+                            <thead>
+                                <tr>
+                                    <th>Administrator</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Department</th>
+                                    <th>Status</th>
+                                    <th>Last Login</th>
+                                    <th>2FA</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Admin rows populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="table-footer">
+                        <p>Showing <span id="visibleCount">0</span> of <span id="totalCount">0</span> admins</p>
+                        <div class="pagination">
+                            <button class="page-btn" id="prevPage" disabled>&larr; Previous</button>
+                            <span class="page-info">Page <span id="currentPage">1</span> of <span id="totalPages">1</span></span>
+                            <button class="page-btn" id="nextPage">Next &rarr;</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Admin Modal -->
+    <div class="modal-overlay" id="adminModal">
+        <div class="modal-card">
+            <button class="modal-close" id="closeModal">&times;</button>
+            <div class="modal-header">
+                <h3 id="modalTitle">Add New Administrator</h3>
+                <p id="modalSubtitle">Fill in the details to create a new admin account</p>
+            </div>
+            
+            <form id="adminForm">
+                <input type="hidden" id="adminId">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="adminName">Full Name *</label>
+                        <input type="text" id="adminName" placeholder="Jane Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="adminEmail">Email Address *</label>
+                        <input type="email" id="adminEmail" placeholder="jane@businesse.com" required>
+                        <p class="field-hint">Must be a <strong>@businesse.com</strong> email</p>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="adminRole">Role *</label>
+                        <select id="adminRole" required>
+                            <option value="" disabled selected>Select role</option>
+                            <option value="super-admin">Super Administrator</option>
+                            <option value="admin">Administrator</option>
+                            <option value="support">Support Admin</option>
+                            <option value="finance">Finance Admin</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="adminDepartment">Department</label>
+                        <select id="adminDepartment">
+                            <option value="engineering">Engineering</option>
+                            <option value="support">Support</option>
+                            <option value="finance">Finance</option>
+                            <option value="operations">Operations</option>
+                            <option value="executive">Executive</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="adminStatus">Status *</label>
+                    <select id="adminStatus" required>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="suspended">Suspended</option>
+                    </select>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn secondary" id="cancelModal">Cancel</button>
+                    <button type="submit" class="btn primary" id="submitModal">
+                        <span class="btn-text">Save Administrator</span>
+                        <span class="btn-loader" style="display:none;">
+                            <svg viewBox="0 0 24 24"><path d="M12 2v6m0 10v6M4.93 4.93l4.24 4.24m8.49-8.49l4.24 4.24M1.5 12h6m10 0h6M4.93 19.07l4.24-4.24m8.49 8.49l4.24-4.24" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                        </span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Action Menu Modal (Suspend/Remove) -->
+    <div class="modal-overlay" id="actionModal">
+        <div class="modal-card small">
+            <div class="modal-icon" id="actionIcon"></div>
+            <h3 id="actionTitle">Action Confirmation</h3>
+            <p id="actionMessage">Are you sure you want to proceed?</p>
+            <div class="modal-actions">
+                <button class="btn secondary" id="cancelAction">Cancel</button>
+                <button class="btn danger" id="confirmAction">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+
+    <script src="/static/js/execute-admin-management.js"></script>
+</body>
+</html>

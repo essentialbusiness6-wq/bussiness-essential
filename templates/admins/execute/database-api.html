@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Business Essential - Database & Data Access</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/media/app logo.png"/>
+    <link rel="stylesheet" href="/static/css/execute-database-api.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="brand"><img src="/static/media/app logo.png" alt="Logo"><span>Business Essential</span></div>
+                <button class="sidebar-toggle" id="closeSidebar">&times;</button>
+            </div>
+            <nav class="sidebar-nav">
+                                       <a href="/admin/execute/super-admin-dashboard" class="nav-item ">
+                    <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" fill="currentColor"/></svg>
+                    Dashboard
+                </a>
+                <a href="/admin/execute/admin-management" class="nav-item">
+                    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 3.13a4 4 0 0 1 0 7.75" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                    Admin Management
+                </a>
+                <a href="/admin/execute/security-audit" class="nav-item">
+                    <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                    Security & Audit
+                </a>
+                <a href="/admin/execute/system-config" class="nav-item">
+                    <svg viewBox="0 0 24 24"><path d="M21 12.22C21 6.73 16.74 3 12 3c-4.69 0-9 3.73-9 9.22-.6 2.36 1.22 4.78 3.18 6.19C4.65 21.56 1 23 1 23h22s-3.65-1.44-5.18-4.59c1.96-1.41 3.78-3.83 3.18-6.19z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                    System Config
+                </a>
+                <a href="/admin/execute//billing-payout" class="nav-item">
+                    <svg viewBox="0 0 24 24">
+                        <rect x="2" y="4" width="20" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <line x1="6" y1="8" x2="18" y2="8" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <line x1="6" y1="12" x2="18" y2="12" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <line x1="6" y1="16" x2="12" y2="16" fill="none" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    Billing & Payouts
+                </a>
+              <a href="/admin/execute/database-api" class="nav-item active">
+                    <svg viewBox="0 0 24 24">
+                        <ellipse cx="12" cy="5" rx="9" ry="3" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" fill="none" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    Database & Access
+                </a>
+    
+                
+                <a href="/admin/execute/invite-keys" class="nav-item">
+                    <svg viewBox="0 0 24 24"><path d="M12 20h9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                    Invite Keys
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                              <div class="user-info">
+                    <div class="user-avatar"> {{ initials }} </div>
+                    <div class="user-details">
+                        <span class="user-name">{{ adminName }}</span>
+                        <span class="user-role">Super Admin</span>
+                    </div>
+                </div>
+                <a href="/admin/execute/logout" class="logout-link"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" fill="none" stroke="currentColor" stroke-width="2"/><polyline points="16 17 21 12 16 7" fill="none" stroke="currentColor" stroke-width="2"/><line x1="21" y1="12" x2="9" y2="12" fill="none" stroke="currentColor" stroke-width="2"/></svg></a>
+            </div>
+        </aside>
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <main class="main-content">
+            <header class="top-header">
+                <button class="menu-toggle" id="openSidebar"><svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12" fill="none" stroke="currentColor" stroke-width="2"/><line x1="3" y1="6" x2="21" y2="6" fill="none" stroke="currentColor" stroke-width="2"/><line x1="3" y1="18" x2="21" y2="18" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+                <div class="page-title"><h1>Database & Data Access</h1><p>Manage storage, backups, exports, and external integrations</p></div>
+                <div class="header-actions">
+                    <button class="btn secondary" id="refreshDbBtn"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 3v5h5" fill="none" stroke="currentColor" stroke-width="2"/></svg> Refresh</button>
+                </div>
+            </header>
+
+            <div class="content-area">
+                <!-- Health & Status -->
+                <div class="status-bar">
+                    <div class="status-pill success"><span class="dot"></span> PostgreSQL: Connected</div>
+                    <div class="status-pill success"><span class="dot"></span> Redis Cache: Active</div>
+                    <div class="status-pill info"><span class="dot"></span> Schema: v2.4.1</div>
+                    <div class="status-pill warning"><span class="dot"></span> Public API: Not Exposed</div>
+                </div>
+
+                <!-- Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card"><div class="stat-icon">📊</div><div class="stat-details"><span class="stat-value">2.4 GB</span><span class="stat-label">Database Size</span></div></div>
+                    <div class="stat-card"><div class="stat-icon">💾</div><div class="stat-details"><span class="stat-value">142.8 GB</span><span class="stat-label">Available Storage</span></div></div>
+                    <div class="stat-card"><div class="stat-icon">🔄</div><div class="stat-details"><span class="stat-value">Daily</span><span class="stat-label">Backup Schedule</span></div></div>
+                    <div class="stat-card"><div class="stat-icon">🔗</div><div class="stat-details"><span class="stat-value">3 Active</span><span class="stat-label">Webhooks</span></div></div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tabs-container">
+                    <div class="tab-nav">
+                        <button class="tab-btn active" data-tab="tables">Database Tables</button>
+                        <button class="tab-btn" data-tab="exports">Data Export/Import</button>
+                        <button class="tab-btn" data-tab="webhooks">External Webhooks</button>
+                        <button class="tab-btn" data-tab="access">Access & Logs</button>
+                    </div>
+
+                    <!-- Tables Tab -->
+                    <div class="tab-content active" id="tab-tables">
+                        <div class="card">
+                            <div class="card-header"><h2>Core Tables Overview</h2><button class="btn secondary" id="optimizeDbBtn">Optimize Tables</button></div>
+                            <div class="table-wrapper"><table class="data-table" id="dbTablesTable"><thead><tr><th>Table Name</th><th>Records</th><th>Size</th><th>Last Updated</th><th>Status</th><th>Action</th></tr></thead><tbody></tbody></table></div>
+                        </div>
+                    </div>
+
+                    <!-- Exports Tab -->
+                    <div class="tab-content" id="tab-exports">
+                        <div class="card">
+                            <div class="card-header"><h2>Data Export & Import</h2></div>
+                            <div class="export-grid">
+                                <div class="export-card">
+                                    <h3>📤 Export Data</h3>
+                                    <p>Generate secure backups or CSV dumps for reporting</p>
+                                    <form id="exportForm">
+                                        <div class="form-group"><label>Scope</label><select id="exportScope"><option value="all">All Tables</option><option value="invoices">Invoices Only</option><option value="clients">Clients Only</option><option value="payments">Payments Only</option></select></div>
+                                        <div class="form-group"><label>Format</label><select id="exportFormat"><option value="csv">CSV (Spreadsheet)</option><option value="json">JSON (API/Dev)</option><option value="sql">SQL Dump (Full)</option></select></div>
+                                        <button type="submit" class="btn primary full-width">Generate Export</button>
+                                    </form>
+                                    <div class="export-history" id="exportHistory"><h4>Recent Exports</h4><ul class="history-list"></ul></div>
+                                </div>
+                                <div class="export-card">
+                                    <h3>📥 Import Data</h3>
+                                    <p>Restore backups or migrate from legacy systems</p>
+                                    <div class="upload-zone" id="uploadZone"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" fill="none" stroke="currentColor" stroke-width="2"/><polyline points="17 8 12 3 7 8" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12" y1="3" x2="12" y2="15" fill="none" stroke="currentColor" stroke-width="2"/></svg><p>Drag & drop or <span class="link">browse files</span></p><small>SQL, CSV, JSON (Max 50MB)</small><input type="file" id="importFile" hidden accept=".sql,.csv,.json"></div>
+                                    <button class="btn secondary full-width" id="startImportBtn" disabled>Start Import</button>
+                                    <p class="warning-note">⚠️ Imports overwrite existing data. Always run a backup first.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Webhooks Tab -->
+                    <div class="tab-content" id="tab-webhooks">
+                        <div class="card">
+                            <div class="card-header"><h2>External Webhook Integrations</h2><button class="btn primary" id="addWebhookBtn">+ Add Endpoint</button></div>
+                            <div class="webhook-list" id="webhookList"></div>
+                            <p class="info-note">ℹ️ Webhooks send real-time JSON payloads for invoices, payments, and client updates. No public REST API is currently exposed.</p>
+                        </div>
+                    </div>
+
+                    <!-- Access & Logs Tab -->
+                    <div class="tab-content" id="tab-access">
+                        <div class="card">
+                            <div class="card-header"><h2>Connection & Access Audit</h2><div class="filters-row"><input type="text" id="accessSearch" placeholder="Filter by IP, user or action..."><select id="accessType"><option value="all">All Types</option><option value="query">Query</option><option value="export">Export</option><option value="login">Admin Login</option></select></div></div>
+                            <div class="table-wrapper"><table class="data-table" id="accessLogsTable"><thead><tr><th>Timestamp</th><th>Admin / Service</th><th>Source IP</th><th>Action</th><th>Details</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal-overlay" id="addWebhookModal"><div class="modal-card"><div class="modal-close" id="closeWebhookModal">&times;</div><div class="modal-header"><h3>Add New Webhook</h3><p>Endpoint will receive POST requests for platform events</p></div><form id="webhookForm"><div class="form-group"><label>Endpoint URL</label><input type="url" id="whUrl" placeholder="https://hooks.example.com/receive" required></div><div class="form-group"><label>Secret Token (for verification)</label><input type="password" id="whSecret" placeholder="whsec_xxxxxxxxxxxx" required></div><div class="form-group"><label>Events</label><div class="event-toggles"><label><input type="checkbox" checked value="invoice"> Invoice Created/Updated</label><label><input type="checkbox" checked value="payment"> Payment Received</label><label><input type="checkbox" value="client"> Client Changes</label></div></div><div class="modal-actions"><button type="button" class="btn secondary" id="cancelWh">Cancel</button><button type="submit" class="btn primary" id="submitWh">Create Webhook</button></div></form></div></div>
+
+    <div class="modal-overlay" id="restoreModal"><div class="modal-card small"><div class="modal-icon warning"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12" y1="8" x2="12" y2="12" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12" y1="16" x2="12.01" y2="16" fill="none" stroke="currentColor" stroke-width="2"/></svg></div><h3>Restore Database?</h3><p>This will replace the current database with the selected backup. The operation cannot be undone.</p><div class="modal-actions"><button class="btn secondary" id="cancelRestore">Cancel</button><button class="btn danger" id="confirmRestore">Proceed with Restore</button></div></div></div>
+
+    <div id="toastContainer"></div>
+    <script src="/static/js/execute-database-api.js"></script>
+</body>
+</html>

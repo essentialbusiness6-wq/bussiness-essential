@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Business Essential - System Configuration</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/media/app logo.png"/>
+    <link rel="stylesheet" href="/static/css/execute-system-config.css">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="brand">
+                    <img src="/static/media/app logo.png" alt="Business Essential">
+                    <span>Business Essential</span>
+                </div>
+                <button class="sidebar-toggle" id="closeSidebar">&times;</button>
+            </div>
+            
+            <nav class="sidebar-nav">
+               <a href="/admin/execute/super-admin-dashboard" class="nav-item">
+                    <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" fill="currentColor"/></svg>
+                    Dashboard
+                </a>
+                <a href="/admin/execute/admin-management" class="nav-item">
+                    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 3.13a4 4 0 0 1 0 7.75" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                    Admin Management
+                </a>
+                <a href="/admin/execute/security-audit" class="nav-item ">
+                    <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                    Security & Audit
+                </a>
+                <a href="/admin/execute/system-config" class="nav-item active">
+                    <svg viewBox="0 0 24 24"><path d="M21 12.22C21 6.73 16.74 3 12 3c-4.69 0-9 3.73-9 9.22-.6 2.36 1.22 4.78 3.18 6.19C4.65 21.56 1 23 1 23h22s-3.65-1.44-5.18-4.59c1.96-1.41 3.78-3.83 3.18-6.19z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                    System Config
+                </a>
+                      <a href="/admin/execute//billing-payout" class="nav-item">
+                    <svg viewBox="0 0 24 24">
+                        <rect x="2" y="4" width="20" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <line x1="6" y1="8" x2="18" y2="8" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <line x1="6" y1="12" x2="18" y2="12" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <line x1="6" y1="16" x2="12" y2="16" fill="none" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    Billing & Payouts
+                </a>
+                           <a href="/admin/execute/database-api" class="nav-item">
+                    <svg viewBox="0 0 24 24">
+                        <ellipse cx="12" cy="5" rx="9" ry="3" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" fill="none" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    Database & Access
+                </a>
+                
+                <a href="/admin/execute/invite-keys" class="nav-item">
+                    <svg viewBox="0 0 24 24"><path d="M12 20h9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                    Invite Keys
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                 <div class="user-info">
+                    <div class="user-avatar"> {{ initials }} </div>
+                    <div class="user-details">
+                        <span class="user-name">{{ adminName }}</span>
+                        <span class="user-role">Super Admin</span>
+                    </div>
+                </div>
+                <a href="/admin/execute/logout" class="logout-link">
+                    <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" fill="none" stroke="currentColor" stroke-width="2"/><polyline points="16 17 21 12 16 7" fill="none" stroke="currentColor" stroke-width="2"/><line x1="21" y1="12" x2="9" y2="12" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Overlay for mobile sidebar -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <button class="menu-toggle" id="openSidebar">
+                    <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12" fill="none" stroke="currentColor" stroke-width="2"/><line x1="3" y1="6" x2="21" y2="6" fill="none" stroke="currentColor" stroke-width="2"/><line x1="3" y1="18" x2="21" y2="18" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                </button>
+                
+                <div class="page-title">
+                    <h1>System Configuration</h1>
+                    <p>Manage platform settings, integrations, and environment variables</p>
+                </div>
+
+                <div class="header-actions">
+                    <button class="btn secondary" id="importConfigBtn">
+                        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" fill="none" stroke="currentColor" stroke-width="2"/><polyline points="7 10 12 15 17 10" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12" y1="15" x2="12" y2="3" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                        Import
+                    </button>
+                    <button class="btn primary" id="saveConfigBtn" disabled>
+                        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                        <span class="btn-text">Save Changes</span>
+                        <span class="btn-loader" style="display:none;">
+                            <svg viewBox="0 0 24 24"><path d="M12 2v6m0 10v6M4.93 4.93l4.24 4.24m8.49-8.49l4.24 4.24M1.5 12h6m10 0h6M4.93 19.07l4.24-4.24m8.49 8.49l4.24-4.24" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                        </span>
+                    </button>
+                </div>
+            </header>
+
+            <div class="content-area">
+                <!-- System Health Status -->
+                <div class="health-bar">
+                    <div class="health-item">
+                        <span class="health-dot success"></span>
+                        <span class="health-label">Database</span>
+                        <span class="health-value">Connected</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-dot success"></span>
+                        <span class="health-label">Redis Cache</span>
+                        <span class="health-value">Active</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-dot warning"></span>
+                        <span class="health-label">Storage</span>
+                        <span class="health-value">78% Used</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-dot success"></span>
+                        <span class="health-label">Email Service</span>
+                        <span class="health-value">Healthy</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-dot success"></span>
+                        <span class="health-label">Config Version</span>
+                        <span class="health-value">v2.4.1</span>
+                    </div>
+                </div>
+
+                <!-- Config Form -->
+                <form id="systemConfigForm" class="config-form">
+                    <!-- General Settings -->
+                    <div class="config-section" id="section-general">
+                        <h2 class="section-title">General Settings</h2>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="appName">Application Name</label>
+                                <input type="text" id="appName" value="Business Essential" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="appUrl">Base URL</label>
+                                <input type="url" id="appUrl" value="https://app.businesse.com" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="timezone">Default Timezone</label>
+                                <select id="timezone">
+                                    <option value="UTC" selected>UTC</option>
+                                    <option value="America/New_York">EST (New York)</option>
+                                    <option value="Europe/London">GMT (London)</option>
+                                    <option value="Asia/Tokyo">JST (Tokyo)</option>
+                                    <option value="Africa/Lagos">WAT (Lagos)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="locale">Default Language</label>
+                                <select id="locale">
+                                    <option value="en" selected>English</option>
+                                    <option value="es">Spanish</option>
+                                    <option value="fr">French</option>
+                                    <option value="de">German</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Email & Communication -->
+                    <div class="config-section" id="section-email">
+                        <h2 class="section-title">Email & Communication</h2>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="smtpHost">SMTP Host</label>
+                                <input type="text" id="smtpHost" value="smtp.sendgrid.net" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="smtpPort">SMTP Port</label>
+                                <input type="number" id="smtpPort" value="587" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="smtpUser">SMTP Username</label>
+                                <input type="text" id="smtpUser" value="apikey" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="smtpPass">SMTP Password / API Key</label>
+                                <div class="masked-input-wrapper">
+                                    <input type="password" id="smtpPass" value="SG.xxxxxxxxxxxxxxxxxxxxxxxx" required>
+                                    <button type="button" class="reveal-toggle" aria-label="Reveal password">👁️</button>
+                                </div>
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="fromEmail">Default From Address</label>
+                                <input type="email" id="fromEmail" value="noreply@businesse.com" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Storage & Performance -->
+                    <div class="config-section" id="section-storage">
+                        <h2 class="section-title">Storage & Performance</h2>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="maxFileSize">Max File Upload Size (MB)</label>
+                                <input type="number" id="maxFileSize" value="10" min="1" max="50">
+                            </div>
+                            <div class="form-group">
+                                <label for="cacheTTL">Cache TTL (seconds)</label>
+                                <input type="number" id="cacheTTL" value="3600" min="60">
+                            </div>
+                            <div class="form-group">
+                                <label for="cdnUrl">CDN Base URL</label>
+                                <input type="url" id="cdnUrl" placeholder="https://cdn.example.com">
+                            </div>
+                            <div class="form-group">
+                                <label for="backupFrequency">Backup Frequency</label>
+                                <select id="backupFrequency">
+                                    <option value="daily" selected>Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="monthly">Monthly</option>
+                                    <option value="disabled">Disabled</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Feature Flags -->
+                    <div class="config-section" id="section-flags">
+                        <h2 class="section-title">Feature Flags</h2>
+                        <div class="flags-grid">
+                            <div class="flag-item">
+                                <div class="flag-info">
+                                    <h3>Multi-Currency Support</h3>
+                                    <p>Allow invoices in multiple currencies</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" checked name="feature_multi_currency">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="flag-item">
+                                <div class="flag-info">
+                                    <h3>Advanced Analytics</h3>
+                                    <p>Enable dashboard charts and reports</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" checked name="feature_analytics">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="flag-item">
+                                <div class="flag-info">
+                                    <h3>Public API Access</h3>
+                                    <p>Allow third-party integrations</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" name="feature_public_api">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="flag-item warning">
+                                <div class="flag-info">
+                                    <h3>Maintenance Mode</h3>
+                                    <p>Restrict access to admins only</p>
+                                </div>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" name="feature_maintenance">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- API & Integrations -->
+                    <div class="config-section" id="section-api">
+                        <h2 class="section-title">API & Integrations</h2>
+                        <div class="form-grid">
+                            <div class="form-group full-width">
+                                <label for="apiKey">Platform API Key</label>
+                                <div class="masked-input-wrapper">
+                                    <input type="password" id="apiKey" value="live_sk_3f8a9b2c1d4e5f6g7h8i9j0k" readonly>
+                                    <button type="button" class="copy-btn" data-target="apiKey">📋</button>
+                                </div>
+                                <p class="field-hint">Used for third-party webhooks and automation</p>
+                            </div>
+                            <div class="form-group full-width">
+                                <label>Webhook Endpoints</label>
+                                <div class="webhook-list" id="webhookList">
+                                    <div class="webhook-item">
+                                        <input type="text" value="https://hooks.zapier.com/v1/example" class="webhook-url">
+                                        <button type="button" class="remove-webhook" title="Remove">✕</button>
+                                    </div>
+                                    <div class="webhook-item">
+                                        <input type="text" value="https://api.slack.com/services/webhooks/..." class="webhook-url">
+                                        <button type="button" class="remove-webhook" title="Remove">✕</button>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn secondary" id="addWebhookBtn">+ Add Webhook URL</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Sticky Action Bar -->
+                <div class="sticky-actions" id="stickyActions">
+                    <div class="change-indicator">
+                        <span class="dot"></span>
+                        <span id="changesText">No unsaved changes</span>
+                    </div>
+                    <div class="action-buttons">
+                        <button type="button" class="btn secondary" id="resetConfigBtn">Discard Changes</button>
+                        <button type="button" class="btn primary" id="saveStickyBtn" disabled>Save Configuration</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Reset Confirmation Modal -->
+    <div class="modal-overlay" id="resetModal">
+        <div class="modal-card small">
+            <div class="modal-icon warning">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12" y1="8" x2="12" y2="12" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12" y1="16" x2="12.01" y2="16" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+            </div>
+            <h3>Discard All Changes?</h3>
+            <p>This will revert the form to the last saved configuration. Unsaved changes cannot be recovered.</p>
+            <div class="modal-actions">
+                <button class="btn secondary" id="cancelReset">Cancel</button>
+                <button class="btn danger" id="confirmReset">Discard</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal-overlay" id="successModal">
+        <div class="modal-card">
+            <div class="modal-icon success">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="currentColor"/><polyline points="20 6 9 17 4 12" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <h3>Configuration Saved</h3>
+            <p>All changes have been applied successfully. System services will update within 30 seconds.</p>
+            <button class="btn primary full-width" id="closeSuccess">Done</button>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+
+    <script src="/static/js/execute-system-config.js"></script>
+</body>
+</html>

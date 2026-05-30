@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Business Essential - Transactions</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/media/app logo.png"/>
+    <link rel="stylesheet" href="/static/css/transaction.css">
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    
+    <header class="dashboard-header">
+        <div class="first">
+            <button class="icon-btn" id="backButton" aria-label="Back">
+                <svg viewBox="0 0 24 24">
+                    <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+
+            <h2>Transactions</h2>
+
+            <button class="icon-btn" id="downloadBtn" aria-label="Download">
+                <svg viewBox="0 0 24 24">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <polyline points="17 8 12 3 7 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <line x1="12" y1="3" x2="12" y2="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span class="desktop-only">Download</span>
+            </button>
+        </div>
+
+        <!-- Month / Year Selector -->
+        <div class="date-selector">
+            <select id="monthSelect">
+                <option value="0">January</option>
+                <option value="1">February</option>
+                <option value="2" selected>March</option>
+                <option value="3">April</option>
+                <option value="4">May</option>
+                <option value="5">June</option>
+                <option value="6">July</option>
+                <option value="7">August</option>
+                <option value="8">September</option>
+                <option value="9">October</option>
+                <option value="10">November</option>
+                <option value="11">December</option>
+            </select>
+
+            <select id="yearSelect">
+                <option>2024</option>
+                <option selected>2025</option>
+                <option>2026</option>
+            </select>
+        </div>
+
+        <!-- Status Filters -->
+        <div class="invoice-filters">
+            <button class="filter active" data-status="all">All</button>
+            <button class="filter" data-status="pending">Pending</button>
+            <button class="filter" data-status="paid">Paid</button>
+            <button class="filter" data-status="overdue">Overdue</button>
+        </div>
+    </header>
+
+    <main class="content">
+        <!-- Summary Section -->
+        <section class="summary-section">
+            <h3 class="summary-title">
+                <svg viewBox="0 0 24 24">
+                    <rect x="2" y="4" width="20" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <line x1="6" y1="8" x2="18" y2="8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="6" y1="12" x2="18" y2="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="6" y1="16" x2="14" y2="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Transaction Summary
+            </h3>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <span class="summary-label">Total Transactions</span>
+                    <span class="summary-value total" id="totalTransactions">0</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Paid</span>
+                    <span class="summary-value paid" id="paidCount">0</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Pending</span>
+                    <span class="summary-value pending" id="pendingCount">0</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Overdue</span>
+                    <span class="summary-value overdue" id="overdueCount">0</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Transactions Container -->
+        <div id="transactionsContainer">
+            <!-- Transactions will be populated by JavaScript -->
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <svg viewBox="0 0 24 24">
+                <rect x="2" y="4" width="20" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <line x1="6" y1="8" x2="18" y2="8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <line x1="6" y1="12" x2="18" y2="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <line x1="6" y1="16" x2="14" y2="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <h3>No transactions yet</h3>
+            <p>Create your first invoice to start tracking payments</p>
+            <button class="btn primary" id="createFirstInvoice">
+                <svg viewBox="0 0 24 24">
+                    <line x1="12" y1="5" x2="12" y2="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="5" y1="12" x2="19" y2="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Create Invoice
+            </button>
+        </div>
+    </main>
+
+  
+
+    <!-- Transaction Detail Modal -->
+    <div class="modal-overlay" id="transactionModal">
+        <div class="modal-card">
+            <div class="close" id="closeTransactionModal">&times;</div>
+            <div class="modal-icon">
+                <svg viewBox="0 0 24 24">
+                    <rect x="2" y="4" width="20" height="16" rx="2" fill="currentColor"/>
+                    <line x1="6" y1="8" x2="18" y2="8" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="6" y1="12" x2="18" y2="12" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="6" y1="16" x2="14" y2="16" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <h2 id="modalInvoiceTitle">Transaction Details</h2>
+            <div id="modalTransactionDetails" class="modal-details">
+                <p>Loading transaction details...</p>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn secondary" id="modalClose">Close</button>
+                <button class="modal-btn" id="modalViewInvoice">View Details</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/transactions.js"></script>
+</body>
+</html>

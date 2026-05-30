@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Business Essential - Create Invoice</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/media/app logo.png"/>
+    <link href="/static/css/create-invoice.css" rel="stylesheet">
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    
+    <header class="dashboard-header">
+        <button class="icon-btn" id="backButton" aria-label="Back">
+            <svg viewBox="0 0 24 24">
+                <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+
+        <h2>Create Invoice</h2>
+
+        <button class="icon-btn" id="helpBtn" aria-label="Help">
+            <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <line x1="12" y1="17" x2="12.01" y2="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </button>
+    </header>
+
+    <div class="dashboard">
+        <main class="content">
+            <section class="create-invoice">
+                <div class="container">
+                    <h2>Create New Invoice</h2>
+
+                    <form id="invoiceForm">
+                        <!-- Hidden User -->
+                        <input type="hidden" name="user_id" value="user_12345">
+
+                        <!-- Invoice Number -->
+                        <div class="form-group">
+                            <label>Invoice Number</label>
+                            <input type="text" name="invoice_number" value="INV-2024-001" readonly>
+                        </div>
+
+                        <!-- Client Info -->
+                        <div class="form-group">
+                            <label>Client Name</label>
+                            <input type="text" name="client_name" placeholder="John Doe" required value="TechSolutions Inc.">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Client Email</label>
+                            <input type="email" name="client_email" placeholder="client@example.com" required value="billing@techsolutions.com">
+                        </div>
+
+                        <!-- Dates -->
+                        <div class="form-group">
+                            <label>Invoice Date</label>
+                            <input type="date" name="invoice_date" required value="2024-02-02">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Due Date</label>
+                            <input type="date" name="due_date" required value="2024-03-02">
+                        </div>
+
+                        <!-- Currency -->
+                        <div class="form-group">
+                            <label>Currency</label>
+                            <select id="currency" name="currency">
+                                <option value="NGN">₦ NGN</option>
+                                <option value="USD" selected>$ USD</option>
+                                <option value="EUR">€ EUR</option>
+                                <option value="GBP">£ GBP</option>
+                            </select>
+                        </div>
+
+                        <!-- Items -->
+                        <div class="items-section">
+                            <h3>
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <polyline points="14 2 14 8 20 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <line x1="16" y1="13" x2="8" y2="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    <line x1="16" y1="17" x2="8" y2="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    <polyline points="10 9 9 9 8 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Invoice Items
+                            </h3>
+
+                            <div id="items-container">
+                                <div class="item-row">
+                                    <input type="text" name="item_desc[]" placeholder="Item description" required value="Website Development">
+                                    <input type="number" name="item_qty[]" placeholder="Qty" min="1" required value="1">
+                                    <input type="number" name="item_price[]" placeholder="Price" min="0" step="0.01" required value="1250.00">
+                                    <button type="button" class="remove-item-btn">
+                                        <svg viewBox="0 0 24 24">
+                                            <line x1="18" y1="6" x2="6" y2="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                            <line x1="6" y1="6" x2="18" y2="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="item-row">
+                                    <input type="text" name="item_desc[]" placeholder="Item description" required value="UI/UX Design">
+                                    <input type="number" name="item_qty[]" placeholder="Qty" min="1" required value="1">
+                                    <input type="number" name="item_price[]" placeholder="Price" min="0" step="0.01" required value="750.00">
+                                    <button type="button" class="remove-item-btn">
+                                        <svg viewBox="0 0 24 24">
+                                            <line x1="18" y1="6" x2="6" y2="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                            <line x1="6" y1="6" x2="18" y2="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button type="button" id="add-item-btn">
+                                <svg viewBox="0 0 24 24">
+                                    <line x1="12" y1="5" x2="12" y2="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    <line x1="5" y1="12" x2="19" y2="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                                Add Item
+                            </button>
+                        </div>
+
+                        <!-- Summary -->
+                        <div class="invoice-summary">
+                            <div class="summary-row">
+                                <span>Subtotal</span>
+                                <span id="subtotal">$2,000.00</span>
+                            </div>
+
+                            <div class="summary-row">
+                                <span>Tax (%)</span>
+                                <input type="number" id="tax" name="tax" min="0" value="5">
+                            </div>
+
+                            <div class="summary-row total">
+                                <span>Total</span>
+                                <span id="total">$2,100.00</span>
+                            </div>
+                        </div>
+
+                        <!-- Payments -->
+                        <div class="invoice-summary">
+                            <div class="summary-row">
+                                <span>Amount Paid</span>
+                                <input type="number" id="amount_paid" name="amount_paid" min="0" step="0.01" value="0">
+                            </div>
+
+                            <div class="summary-row balance">
+                                <span>Balance</span>
+                                <span id="balance">$2,100.00</span>
+                            </div>
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="form-group">
+                            <label>Notes</label>
+                            <textarea name="notes" placeholder="Optional notes...">Thank you for your business! Payment is due within 30 days.</textarea>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="form-actions">
+                            <button type="submit" class="btn primary">
+                                <svg viewBox="0 0 24 24">
+                                    <polyline points="20 6 9 17 4 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Create Invoice
+                            </button>
+
+                            <button type="button" class="btn secondary" id="save-draft">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <polyline points="17 21 17 13 7 13 7 21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <polyline points="7 3 7 8 15 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Save as Draft
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal Overlay -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-card">
+            <div class="close" id="closeModal">&times;</div>
+            <div class="modal-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" fill="currentColor"/>
+                    <path d="M12 16v-4" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="12" cy="8" r="0.5" fill="white"/>
+                </svg>
+            </div>
+            <h2 id="modalTitle">Notification</h2>
+            <p id="modalMessage">This is a modal message.</p>
+            <button class="modal-btn" id="modalActionBtn">OK</button>
+        </div>
+    </div>
+
+    <script src="/static/js/create-invoice.js"></script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Business Essential - Draft Invoices</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/media/app logo.png"/>
+    <link href="/static/css/invoice-drafts.css" rel="stylesheet">
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    
+    <header class="dashboard-header">
+        <button class="icon-btn" id="goBack" aria-label="Back">
+            <svg viewBox="0 0 24 24">
+                <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+
+        <h2>Your Drafts</h2>
+
+        <button class="icon-btn" id="helpBtn" aria-label="Help">
+            <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <line x1="12" y1="17" x2="12.01" y2="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </button>
+    </header>
+
+    <div class="dashboard">
+        <main class="content">
+            <div class="top-actions">
+                <button class="btn primary" id="show-invoice-btn">
+                    <svg viewBox="0 0 24 24">
+                        <line x1="12" y1="5" x2="12" y2="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="5" y1="12" x2="19" y2="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    Create Invoice
+                </button>
+            </div>
+            
+            <div class="invoice-filters">
+                <button class="filter active" data-status="all">All Drafts</button>
+                <button class="filter" data-status="recent">Recent</button>
+                <button class="filter" data-status="client">By Client</button>
+                <button class="filter" data-status="date">By Date</button>
+            </div>
+
+            <div class="invoices-grid" id="draftsGrid">
+                <!-- Drafts will be populated by JavaScript -->
+            </div>
+        </main>
+        
+        <nav class="bottom-nav">
+            <a href="/dashboard" class="nav-item">
+                <svg viewBox="0 0 24 24">
+                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <polyline points="9 22 9 12 15 12 15 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Home</span>
+            </a>
+            <a href="/dashboard/invoices/list" class="nav-item">
+                <svg viewBox="0 0 24 24">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <polyline points="14 2 14 8 20 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <line x1="16" y1="13" x2="8" y2="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="16" y1="17" x2="8" y2="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <polyline points="10 9 9 9 8 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Invoices</span>
+            </a>
+            <a href="/invoice/drafts/list" class="nav-item active">
+                <svg viewBox="0 0 24 24">
+                    <rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <line x1="9" y1="9" x2="15" y2="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <line x1="15" y1="9" x2="9" y2="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Drafts</span>
+            </a>
+            <a href="/dashboard/clients" class="nav-item">
+                <svg viewBox="0 0 24 24">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="9" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Clients</span>
+            </a>
+            <a href="/dashboard/payment" class="nav-item">
+                <svg viewBox="0 0 24 24">
+                    <rect x="2" y="4" width="20" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <line x1="6" y1="8" x2="18" y2="8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="6" y1="12" x2="18" y2="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="6" y1="16" x2="14" y2="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <span>Payments</span>
+            </a>
+            <a href="/dashboard/me" class="nav-item">
+                <svg viewBox="0 0 24 24">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="12" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Me</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Draft Preview Modal -->
+    <div id="draftModal" class="invoice-modal">
+        <div class="invoice-paper">
+            <button class="close-modal">&times;</button>
+            <div class="invoice-top">
+                <div>
+                    <h2>Invoice Draft</h2>
+                    <p id="draft-number">INV-2024-001</p>
+                </div>
+            </div>
+            
+            <div class="status">
+                <h3>Draft</h3>
+            </div>
+            
+            <div class="invoice-meta">
+                <div>
+                    <h4>Billed To</h4>
+                    <p id="draft-client">TechSolutions Inc.</p>
+                    <p id="draft-email">billing@techsolutions.com</p>
+                    <p>123 Tech Avenue, San Francisco, CA 94107</p>
+                </div>
+                <div>
+                    <p><strong>Date:</strong> <span id="draft-date">Feb 1, 2024</span></p>
+                    <p><strong>Due:</strong> <span id="draft-due">Mar 1, 2024</span></p>
+                    <p><strong>Invoice #:</strong> <span id="draft-id">INV-2024-001</span></p>
+                </div>
+            </div>
+
+            <table class="invoice-items">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Qty</th>
+                        <th>Price</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="draft-items">
+                    <!-- Items will be populated by JavaScript -->
+                </tbody>
+            </table>
+
+            <div class="invoice-summary">
+                <p>Subtotal: <span id="draft-subtotal">$1,250.00</span></p>
+                <p>Tax (5%): <span id="draft-tax">$62.50</span></p>
+                <h3>Total: <span id="draft-total">$1,312.50</span></h3>
+            </div>
+
+            <p class="invoice-notes" id="draft-notes">Thank you for your business! Payment is due within 30 days of invoice date.</p>
+
+            <div class="invoice-actions">
+                <button class="btn primary" id="saveInvoice">
+                    <svg viewBox="0 0 24 24">
+                        <polyline points="20 6 9 17 4 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Save as Invoice
+                </button>
+                <button class="btn" id="editDraft">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 20h9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Edit Draft
+                </button>
+                <button class="btn danger" id="deleteDraft">
+                    <svg viewBox="0 0 24 24">
+                        <polyline points="3 6 5 6 21 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Delete Draft
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="confirmModal" class="confirm-modal">
+        <div class="confirm-content">
+            <h3>Delete Draft?</h3>
+            <p>Are you sure you want to delete this draft? This action cannot be undone.</p>
+            <div class="confirm-buttons">
+                <button class="btn secondary" id="cancelDelete">Cancel</button>
+                <button class="btn danger" id="confirmDelete">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/invoice-drafts.js"></script>
+</body>
+</html>

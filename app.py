@@ -1,0 +1,4638 @@
+import traceback
+
+from flask import (
+    Flask, request, jsonify, make_response, render_template,session,redirect, Blueprint,
+)
+from flask_cors import CORS
+from flask_socketio import SocketIO, emit, join_room
+import time
+from apscheduler.schedulers.background import BackgroundScheduler
+from backend.extentions import socketio
+from backend.socket_events import register_socket_events
+from werkzeug import Client
+from backend.utils import (
+    send_email,
+    save_security_activity,
+    get_client_ip,
+    get_location_from_ip,
+    parse_user_agent,
+    get_location,
+    log_session,
+    get_db,
+    token_required,
+    generate_invoice_number,
+    generate_reference,
+    send_basic_plan_invoice_email,
+    send_pro_plan_invoice_email,
+    save_log_activity,
+    update_session_activity,
+    parse_user_agent1,
+    get_user_from_token_cookie,
+    send_notification
+)
+from backend.admin import admin_bp
+import hashlib
+from datetime import datetime,timedelta
+import secrets
+import requests
+import os
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+import jwt
+from dotenv import load_dotenv
+
+
+load_dotenv()
+
+SECRET_KEY = os.getenv("SECRET_KEY")
+app = Flask(__name__)
+app.register_blueprint(admin_bp)
+app.secret_key = os.getenv("SECRET_KEY")
+
+
+CORS(app, supports_credentials=True)
+
+app.config.update(
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax"
+)
+
+
+
+
+@app.before_request
+def refresh_activity():
+    token = session.get("session_token")
+
+    if token:
+        update_session_activity(token)
+
+cloudinary.config(
+    cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME"),
+    api_key =  os.getenv("CLOUDINARY_API_KEY"),
+    api_secret = os.getenv("CLOUDINARY_API_SECRET")
+)
+
+
+
+socketio.init_app(app)
+
+@app.route("/test-notification")
+def test_notification():
+
+    send_notification(
+        user_id=1,
+        type_="payment",
+        title="Payment Received",
+        description="Invoice #INV-001 was paid",
+        amount=500,
+        status="paid"
+    )
+
+    return "Notification sent"
+
+register_socket_events(socketio)
+
+@socketio.on("connect")
+def handle_connect():
+
+    auth_data = get_user_from_token_cookie(request)
+
+    if not auth_data["success"]:
+        return False
+     
+        
+     
+    current_user_id = auth_data["user_id"]
+    current_user_role = auth_data["role"]
+
+    if not current_user_id:
+        return False
+
+    join_room(f"user_{current_user_id}")
+
+    print(f"User {current_user_id} connected")
+
+
+
+
+APP_LOGO_URL = "https://res.cloudinary.com/dkb987i8w/image/upload/v1772108684/app_logo_ky1yis.png"
+DASHBOARD_URL ='https:/business-essentia.net/dashboard'
+SECURITY_URL= 'https:/business-essentia.net/dashboard'
+SECRET_KEY = os.getenv("SECRET_KEY")
+
+
+# ==========================
+# PAGE ROUTES
+# ==========================
+@app.route("/")
+def home():
+    return render_template("index.html")
+
+@app.route("/about")
+def about():
+    return render_template("about.html")
+
+@app.route("/contact")
+def contact():
+    return render_template("contact.html")
+
+@app.route("/privacy-policy")
+def privacy_policy():
+    return render_template("privacy-policy.html")
+
+
+@app.route("/entry")
+def entry():
+    return render_template("users/index.html")
+
+
+@app.route("/register")
+def register_page():
+    return render_template("users/auth/register.html")
+
+
+@app.route("/login")
+def login_page():
+    return render_template("users/auth/login.html")
+
+@app.after_request
+def add_no_cache_headers(response):
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
+
+
+
+@app.route("/dashboard")
+def dashboard():
+    return render_template("users/dashboard.html")
+
+@app.route("/dashboard/create-invoice")
+def create_invoice_page():
+    return render_template("users/create-invoice.html")
+
+@app.route("/invoice/edit/<int:invoiceId>")
+@token_required
+def edit_invoice_page(current_user_id,current_user_role,invoiceId):
+    conn = get_db()
+    cursor = conn.cursor(buffered=True, dictionary=True)
+
+    cursor.execute(
+    "SELECT role FROM user_base WHERE user_id=%s",
+    (current_user_id,)
+)
+
+    user = cursor.fetchone()
+
+    if not user:
+        return jsonify({
+        "status": "error",
+        "message": "User not found"
+    }), 401
+
+    cursor.execute(
+        """
+        SELECT 
+            invoices.id,
+            invoices.client_id,
+            invoices.invoice_number,
+            invoices.invoice_date,
+            invoices.due_date,
+            invoices.total AS amount,
+            invoices.status,
+            invoices.subtotal,
+            invoices.tax,
+            invoices.amount_paid,
+            invoices.balance,
+            invoices.note,
+            clients.client_name AS clientName,
+            clients.client_email AS clientEmail
+        FROM invoices
+        JOIN clients ON clients.id = invoices.client_id
+        WHERE invoices.user_id=%s AND invoices.id=%s
+        """,
+        (current_user_id,invoiceId)
+    )
+    invoice = cursor.fetchone()
+    if not invoice:
+        return jsonify({
+            "status": "error",
+            "message": "Invoice not found"
+        }), 404
+    
+    cursor.execute("""
+        SELECT description, quantity, price
+        FROM invoice_items
+        WHERE invoice_id=%s
+    """, (invoiceId,))
+    items = cursor.fetchall()
+    items_list = [{"desc": i['description'], "qty": i['quantity'], "price": i['price']} for i in items]
+    
+
+
+
+    return render_template(
+        "users/edit-invoice.html", 
+        invoiceId=invoiceId,
+        invoiceNumber= invoice['invoice_number'],
+        invoiceDate= invoice['invoice_date'].strftime("%Y-%m-%d"),
+        dueDate= invoice['due_date'].strftime("%Y-%m-%d"),
+        amount= float(invoice['amount']),
+        status= invoice['status'],
+        note= invoice['note'],
+        subtotal= float(invoice['subtotal']),
+        tax= float(invoice['tax']),
+        amountPaid= float(invoice['amount_paid']),
+        balance= float(invoice['balance']),
+        clientId= invoice['client_id'],
+        clientName=invoice['clientName'],
+        clientEmail=invoice['clientEmail'],
+        items=items_list,
+    )
+
+@app.route("/dashboard/view-invoices/full/<int:invoiceId>")
+@token_required
+def view_invoices_page(current_user_id,current_user_role,invoiceId):
+    conn = get_db()
+    cursor = conn.cursor(buffered=True, dictionary=True)
+
+    cursor.execute(
+    "SELECT role FROM user_base WHERE user_id=%s",
+    (current_user_id,)
+)
+
+    user = cursor.fetchone()
+
+    if not user:
+        return jsonify({
+        "status": "error",
+        "message": "User not found"
+    }), 401
+
+    cursor.execute(
+        """
+        SELECT 
+            invoices.id,
+            invoices.client_id,
+            invoices.invoice_number,
+            invoices.invoice_date,
+            invoices.due_date,
+            invoices.total AS amount,
+            invoices.status,
+            invoices.subtotal,
+            invoices.tax,
+            invoices.amount_paid,
+            invoices.balance,
+            invoices.note
+        FROM invoices
+        WHERE invoices.user_id=%s AND invoices.id=%s
+        """,
+        (current_user_id,invoiceId)
+    )
+
+    invoice = cursor.fetchone()
+    if not invoice:
+        return jsonify({
+            "status": "error",
+            "message": "Invoice not found"
+        }), 404
+    
+    cursor.execute("""
+        SELECT description, quantity, price
+        FROM invoice_items
+        WHERE invoice_id=%s
+    """, (invoiceId,))
+    items = cursor.fetchall()
+    items_list = [{"desc": i['description'], "qty": i['quantity'], "price": i['price'], "total": i['quantity'] * i['price']} for i in items]
+
+    cursor.execute(
+        """
+        SELECT client_name, client_email, client_address
+        FROM clients
+        WHERE user_id=%s AND id=%s
+        """,
+        (current_user_id, invoice['client_id'])
+    )
+    client = cursor.fetchone()
+    if not client:
+        return jsonify({"error": "Client not found"}), 404
+    
+    cursor.execute(
+        """
+        SELECT currency, currency_symbol
+        FROM user_settings
+        WHERE user_id=%s
+        """,
+        (current_user_id,)
+    )
+    settings = cursor.fetchone()
+    if not settings:
+        return jsonify({"error": "Settings not found"}), 404
+
+    cursor.execute(
+        """
+        SELECT profilename, address, alternateemail, phone, website
+        FROM cust_base
+        WHERE user_id=%s
+        """,
+        (current_user_id,)
+    )
+    profile = cursor.fetchone()
+    if not profile:
+        return jsonify({"error": "Profile not found"}), 404
+
+   
+
+    invoice_date =invoice["invoice_date"]
+    due_date = invoice["due_date"]
+
+    days = (due_date - invoice_date).days
+
+    if days <= 0:
+        payment_term = "Due on Receipt"
+    elif days == 7:
+        payment_term = "Net 7"
+    elif days == 15:
+        payment_term = "Net 15"
+    elif days == 30:
+        payment_term = "Net 30"
+    elif days == 60:
+        payment_term = "Net 60"
+    elif days == 90:
+        payment_term = "Net 90"
+    else:
+        payment_term = f"Net {days}"
+
+    taxAmount = float(invoice['subtotal']) * float(invoice['tax']) / 100
+
+
+    return render_template(
+        "users/view-full-invoice.html", 
+        invoiceId=invoiceId,
+        invoiceNumber= invoice['invoice_number'],
+        invoiceDate= invoice['invoice_date'].strftime("%Y-%m-%d"),
+        dueDate= invoice['due_date'].strftime("%Y-%m-%d"),
+        totalAmount = float(invoice['amount']),
+        status= invoice['status'],
+        note= invoice['note'],
+        subtotal= float(invoice['subtotal']),
+        tax= float(invoice['tax']),
+        taxAmount= taxAmount,
+        amountPaid= float(invoice['amount_paid']),
+        balance= float(invoice['balance']),
+        clientId= invoice['client_id'],
+        clientName=client['client_name'],
+        clientEmail=client['client_email'],
+        clientAddress=client['client_address'],
+        currencySymbol=settings['currency_symbol'],
+        companyName = profile['profilename'],
+        companyAddress = profile['address'],
+        companyEmail = profile['alternateemail'],
+        companyWebsite = profile['website'],
+        companyPhone = profile['phone'],
+        paymentTerms = payment_term,
+        items=items_list,
+    )
+
+@app.route("/dashboard/invoices/list")
+def view_invoices_list_page():
+    return render_template("users/invoice-list.html")
+
+@app.route("/invoice/drafts/list")
+def view_drafts_list_page():
+    return render_template("users/invoice-drafts.html")
+
+@app.route("/invoice/draft/edit/<int:draftId>")
+@token_required
+def edit_draft_page(current_user_id,current_user_role,draftId):
+    conn = get_db()
+    cursor = conn.cursor(buffered=True, dictionary=True)
+    cursor.execute(
+    "SELECT role FROM user_base WHERE user_id=%s",
+    (current_user_id,)
+)
+
+    user = cursor.fetchone()
+
+    if not user:
+        return jsonify({
+        "status": "error",
+        "message": "User not found"
+    }), 401
+
+    cursor.execute(
+        """
+        SELECT 
+            invoice_drafts.id,
+            invoice_drafts.client_name,
+            invoice_drafts.client_email,
+            invoice_drafts.invoice_date,
+            invoice_drafts.due_date,
+            invoice_drafts.total AS total,
+            invoice_drafts.status,
+            invoice_drafts.subtotal,
+            invoice_drafts.tax,
+            invoice_drafts.description,
+            invoice_drafts.quantity,
+            invoice_drafts.price,
+            invoice_drafts.note
+        FROM invoice_drafts
+        WHERE invoice_drafts.user_id=%s AND invoice_drafts.id=%s
+        """,
+        (current_user_id,draftId)
+    )
+    draft = cursor.fetchone()
+
+    cursor.execute(
+        """
+        SELECT currency_symbol
+        FROM  user_settings
+        WHERE user_id=%s
+        """,
+        (current_user_id,)
+    )
+    currency_symbol = cursor.fetchone()["currency_symbol"]
+    cursor.close()
+    conn.close()
+
+    return render_template(
+        "users/edit-draft.html",
+        draftId = draft['id'],
+        clientName = draft['client_name'],
+        clientEmail = draft['client_email'],
+        invoiceDate = draft['invoice_date'],
+        dueDate = draft['due_date'],
+        totalAmount = draft['total'],
+        status = draft['status'],
+        subTotal = draft['subtotal'],
+        tax = draft['tax'],
+        taxAmount = draft['tax'] * draft['subtotal'] / 100,
+        items = [{"desc": draft['description'], "qty": draft['quantity'], "price": float(draft['price'])}],
+        note = draft['note'],
+        currencySymbol = currency_symbol
+    )
+
+
+@app.route("/dashboard/clients")
+def view_clients_page():  
+    return render_template("users/clients.html")
+
+
+@app.route("/clients/edit/<int:clientId>")
+@token_required
+def edit_client_page(current_user_id,current_user_role,clientId):
+    conn = get_db()
+    cursor = conn.cursor(buffered=True, dictionary=True)
+
+    cursor.execute(
+        """
+        SELECT 
+            id,
+            client_name,
+            client_email,
+            client_address,
+            client_phone,
+            client_company,
+            client_notes
+        FROM clients
+        WHERE user_id =%s AND id=%s
+        ORDER BY client_name ASC
+        """,
+        (current_user_id, clientId)
+    )
+    client = cursor.fetchone()
+
+    if not client:
+        return jsonify({
+            "status": "error",
+            "message": "Client not found."
+        }), 401 
+
+    parts = client['client_name'].split()
+    intials = parts[0][0] + parts[1][0]
+
+    cursor.close()
+    conn.close()
+    return render_template(
+        "users/edit-client.html", 
+        clientId=clientId,
+        name = client['client_name'],
+        email = client['client_email'],
+        address = client['client_address'],
+        phone = client['client_phone'],
+        company= client['client_company'],
+        notes = client['client_notes'],
+        intials=intials
+    )
+
+@app.route("/dashboard/payment")
+@token_required
+def payment_page(current_user_id,current_user_role):
+    return render_template("users/payments.html")
+
+@app.route("/transactions")
+@token_required
+def transaction_page(current_user_id, current_user_role):
+    return render_template("users/transaction.html")
+
+@app.route("/dashboard/me")
+def me_page():
+    return render_template("users/me.html")
+
+@app.route("/security-center")
+def security_center_page():
+    return render_template("users/security.html")
+
+@app.route("/rate-us")
+def rate_us_page():
+    return render_template("users/rate.html")
+
+@app.route("/share")
+@token_required
+def share_page(current_user_id, current_user_role):
+
+    conn = get_db()
+    cursor = conn.cursor(buffered=True, dictionary=True)
+
+    cursor.execute(
+        """
+        SELECT referral_code,invite_sent, signups, earned
+        FROM referrals
+        WHERE user_id=%s
+        """,
+        (current_user_id,)
+    )
+    referral = cursor.fetchone()
+    return render_template("users/share.html",referralCode = referral['referral_code'], inviteSent = referral['invite_sent'], signups = referral['signups'], earned = referral['earned'])
+
+
+
+
+@app.route("/billing")
+@token_required
+def billing_share(current_user_id,current_user_role):
+    conn = get_db()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT *
+        FROM user_subscriptions
+        WHERE user_id = %s
+        ORDER BY id DESC
+        LIMIT 1
+    """, (current_user_id,))
+
+    subscription = cursor.fetchone()
+
+
+    # Default trial if user has no subscription yet
+    if not subscription:
+
+        trial_days = 7
+
+        subscription = {
+            "plan": "trial",
+            "billing_cycle": "monthly",
+            "status": "active",
+            "expires_at": None
+        }
+
+        days_left = trial_days
+        hours_left = 0
+        minutes_left = 0
+
+    else:
+
+        days_left = 0
+        hours_left = 0
+        minutes_left = 0
+
+        expires_at = subscription.get("expires_at")
+
+        if expires_at:
+
+            now = datetime.utcnow()
+
+            remaining = expires_at - now
+
+            total_seconds = int(remaining.total_seconds())
+
+            if total_seconds > 0:
+
+                days_left = total_seconds // 86400
+                hours_left = (total_seconds % 86400) // 3600
+                minutes_left = (total_seconds % 3600) // 60
+
+    return render_template(
+        "users/billing.html",
+        subscription=subscription,
+        days_left=days_left,
+        hours_left=hours_left,
+        minutes_left=minutes_left,
+        user_id=current_user_id
+    )
+
+@app.route("/settings")
+@token_required
+def settings_page(current_user_id, current_user_role):
+    conn  = get_db()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+    cursor.execute(
+        """
+        SELECT 
+            invoice_prefix, next_invoice_number, default_due_date, default_tax_rate, show_tax, show_discount, footer_note,
+            currency, currency_symbol, timezone, date_format, email_notifications, due_date_reminder, reminder_days_before,
+            theme, language, auto_logout_minutes, require_pin_for_delete, auto_logout_on_inactivity
+        FROM user_settings
+        WHERE user_id=%s
+        """,
+        (current_user_id,)
+    )
+    settings = cursor.fetchone()
+    if not settings:
+        return jsonify({
+            "status": "error",
+            "message": "An error occured while trying to fetch settings"
+        }), 400
+
+    cursor.close()
+    conn.close()
+    return render_template(
+        "users/settings.html",
+        invoice_prefix=settings['invoice_prefix'],
+        next_invoice_number=settings['next_invoice_number'],
+        default_due_date=settings['default_due_date'],
+        default_tax_rate=settings['default_tax_rate'],
+        show_tax=settings['show_tax'],
+        show_discount=settings['show_discount'],
+        footer_note=settings['footer_note'],
+        currency=settings['currency'],
+        currency_symbol=settings['currency_symbol'],
+        timezone=settings['timezone'],
+        date_format=settings['date_format'],
+        email_notifications=settings['email_notifications'],
+        due_date_reminder=settings['due_date_reminder'],
+        reminder_days_before=settings['reminder_days_before'],
+        theme=settings['theme'],
+        language=settings['language'],
+        auto_logout_minutes=settings['auto_logout_minutes'],
+        require_pin_for_delete=settings['require_pin_for_delete'],
+        auto_logout_on_inactivity=settings['auto_logout_on_inactivity']
+    )
+
+@app.route("/feedback")
+def feedback_page():
+    return render_template("users/feedback.html")
+
+@app.route("/api/my-feedback")
+@token_required
+def my_feedback(current_user_id, current_user_role):
+    conn = get_db()
+    cursor = conn.cursor(dictionary=True, buffered=True)
+
+    cursor.execute("""
+        SELECT *
+        FROM feedback
+        WHERE user_id = %s
+        ORDER BY created_at DESC
+    """, (current_user_id,))
+
+    feedbacks = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+
+    return jsonify(feedbacks)
+
+@app.route("/support")
+def support_page():
+    return render_template("users/support.html")
+
+@app.route("/api/support/my-tickets")
+@token_required
+def get_my_tickets(current_user_id, current_user_role):
+
+    conn = get_db()
+    cursor = conn.cursor(buffered=True,dictionary=True)
+
+    cursor.execute("""
+        SELECT *
+        FROM support_tickets
+        WHERE user_id = %s
+        ORDER BY created_at DESC
+    """, (current_user_id,))
+
+    tickets = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return jsonify(tickets)
+
+@app.route("/close-account")
+def close_account_page():
+    return render_template("users/close-account.html")
+
+@app.route("/app/about")
+@token_required
+def app_about(current_user_id,current_user_role):
+    return render_template("users/about.html")
+
+@app.route("/dashboard/notifications")
+def notifications_page():
+    return render_template("users/notifications.html")
+
+@app.route("/logout", methods=["POST"])
+@token_required
+def logout(current_user_id,current_user_role):
+
+    token = session.get("session_token")
+
+    if token:
+        update_session_activity(token)
+        session.pop("session_token", None)
+        response = jsonify({
+            "status": "success",
+            "message": "Logged out successfully"
+        })
+
+        # REMOVE AUTH COOKIE
+        response.delete_cookie("access_token")
+        return response 
+    else:
+        return jsonify({"message": "No active session found"}), 400
+
+@app.route("/api/notifications")
+@token_required
+def get_notifications(current_user_id,current_user_role):
+
+
+    if not current_user_id:
+        return jsonify({"error": "Invalid token"}), 401
+
+    conn = get_db()
+    cursor = conn.cursor(buffered=True, dictionary=True)
+
+    cursor.execute("""
+        SELECT *
+        FROM log_activity
+        WHERE user_id=%s
+        ORDER BY created_at DESC
+    """, (current_user_id,))
+
+    notifications = cursor.fetchall()
+
+    conn.close()
+
+    return jsonify(notifications)
+
+@app.route("/profile")
+@token_required
+def profile_page(current_user_id,current_user_role):
+    conn = get_db()
+    cursor = conn.cursor(buffered=True, dictionary=True)
+    cursor.execute("""
+        SELECT
+            user_base.username, 
+            cust_base.fullname,
+            cust_base.profilename, 
+            cust_base.profilepicurl AS profile_pic, 
+            cust_base.address, 
+            cust_base.alternateemail, 
+            cust_base.phone, 
+            cust_base.website,
+            cust_base.bio,
+            cust_base.country
+        FROM cust_base
+        JOIN user_base ON user_base.user_id = cust_base.user_id
+        WHERE cust_base.user_id=%s
+    """, (current_user_id,))
+    profile_data = cursor.fetchone()
+
+    return render_template("users/profile.html", profile_data=profile_data)
+
+# ========================= DATA ROUTES =========================
+@app.route("/dashboard/data")
+@token_required
+def dashboard_data(current_user_id, current_user_role):
+
+    conn = get_db()
+    cursor = conn.cursor(buffered=True)
+
+    cursor.execute(
+    "SELECT role FROM user_base WHERE user_id=%s",
+    (current_user_id,)
+)
+
+    user = cursor.fetchone()
+
+    if not user:
+        return jsonify({
+        "status": "error",
+        "message": "User not found"
+    }), 401
+
+    cursor.execute(
+        """
+        SELECT 
+            user_base.username,
+            user_base.plan,
+            cust_base.profilepicurl,
+            cust_base.profilename
+        FROM user_base
+        JOIN cust_base ON cust_base.user_id = user_base.user_id
+        WHERE user_base.user_id=%s
+        """,
+        (current_user_id,)
+    )
+    user_data = cursor.fetchone()
+
+
+    # Feth total invoice
+    cursor.execute("""
+        SELECT COUNT(*)
+        FROM invoices
+        WHERE user_id=%s
+    """, (current_user_id,))
+    total_invoices = cursor.fetchone()[0]
+
+
+    # Fetch paid invoice
+    cursor.execute("""
+        SELECT COUNT(*)
+        FROM invoices
+        WHERE user_id=%s AND status=%s
+    """, (current_user_id,"paid"))
+    paid_invoices = cursor.fetchone()[0]
+
+
+    # Fetch pending invoice
+    cursor.execute("""
+        SELECT COUNT(*)
+        FROM invoices
+        WHERE user_id=%s AND status=%s
+    """, (current_user_id,"pending"))
+    pending_invoices = cursor.fetchone()[0]
+
+    # Fetch total revenues
+    cursor.execute(
+        """
+        SELECT  COALESCE(SUM(total), 0) 
+        FROM invoices
+        WHERE user_id=%s AND status=%s
+    """, (current_user_id,"paid")
+    )
+    total_revenue = cursor.fetchone()[0]
+
+    # Fetch currency
+    cursor.execute(
+        """
+        SELECT currency, currency_symbol
+        FROM user_settings
+        WHERE user_id=%s
+        """,
+        (current_user_id,)
+    )
+    settings = cursor.fetchone()
+    if not settings:
+        return jsonify({"error": "Settings not found"}), 404
+    currency, currency_symbol = settings
+
+    # Fetch wallet balance
+    cursor.execute(
+        """
+        SELECT wallet_balance 
+        FROM wallet_base
+        WHERE user_id=%s
+        """,
+        (current_user_id,)
+    )
+    wallet = cursor.fetchone()
+    if not wallet:
+        return jsonify({"error": "Wallet not found"}), 404
+    
+    wallet_balance = wallet[0]
+
+    cursor.execute("""
+        SELECT COUNT(*) AS unread
+        FROM log_activity
+        WHERE user_id=%s AND is_read=%s
+    """, (current_user_id, False))
+    unread_count = cursor.fetchone()[0]
+
+    # Get activity
+    cursor.execute(
+        """
+        SELECT type,title,description, amount
+        FROM log_activity
+        WHERE user_id=%s  AND  created_at>=%s
+        ORDER BY created_at DESC
+        """,
+        (current_user_id, datetime.now() - timedelta(days=1))
+    )
+    activities = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+    return jsonify({
+    "status": "success",
+
+    "username": user_data[0],
+    "plan": user_data[1].capitalize(),
+    "profilepicurl": user_data[2],
+    "profilename": user_data[3],
+
+    "total_invoices": total_invoices,
+    "paid_invoices": paid_invoices,
+    "pending_invoices": pending_invoices,
+
+    "total_revenue": float(total_revenue),
+    "currency": currency,
+    "currency_symbol": currency_symbol,
+
+    "balance": float(wallet_balance),
+
+    "unread_count": unread_count,
+    "activities": activities,
+
+    "user": {
+        "id": current_user_id,
+        "role": current_user_role
+    }
+})
+
+@app.route("/dashboard/invoices/list/data")
+@token_required
+def invoice_list_data(current_user_id,current_user_role):
+    conn = get_db()
+    cursor = conn.cursor(buffered=True)
+    cursor.execute(
+    "SELECT role FROM user_base WHERE user_id=%s",
+    (current_user_id,)
+)
+
+    user = cursor.fetchone()
+
+    if not user:
+        return jsonify({
+        "status": "error",
+        "message": "User not found"
+    }), 401
+
+    cursor.execute(
+        """
+        SELECT 
+            invoices.id,
+            invoices.client_id,
+            invoices.invoice_number,
+            invoices.invoice_date,
+            invoices.due_date,
+            invoices.total AS amount,
+            invoices.status,
+            clients.client_name AS client
+        FROM invoices
+        JOIN clients ON clients.id = invoices.client_id
+        WHERE invoices.user_id=%s
+        """,
+        (current_user_id,)
+    )
+    invoices = cursor.fetchall()
+    invoice_list = []
+    for invoice in invoices:
+        invoice_list.append({
+            "id": invoice[0],
+            "client_id": invoice[1],
+            "invoice_number": invoice[2],
+            "invoice_date": invoice[3].strftime("%Y-%m-%d"),
+            "due_date": invoice[4].strftime("%Y-%m-%d"),
+            "amount": float(invoice[5]),
+            "status": invoice[6],
+            "client": invoice[7]
+        })
+
+    cursor.execute(
+        """
+        SELECT currency_symbol
+        FROM  user_settings
+        WHERE user_id=%s
+        """,
+        (current_user_id,)
+    )
+    currency_symbol = cursor.fetchone()[0]
+    cursor.close()
+    conn.close()
+    return jsonify({
+        "status":"success",
+        "invoices": invoice_list,
+        "currency_symbol": currency_symbol,
+        "user":{
+            "user_id": current_user_id,
+            "role": current_user_role
+        }
+    })
+
+
+@app.route("/invoice/drafts/list/data")
+@token_required
+def invoice_drafts_list_data(current_user_id,current_user_role):
+    conn = get_db()
+    cursor = conn.cursor(buffered=True)
+    cursor.execute(
+    "SELECT role FROM user_base WHERE user_id=%s",
+    (current_user_id,)
+)
+
+    user = cursor.fetchone()
+
+    if not user:
+        return jsonify({
+        "status": "error",
+        "message": "User not found"
+    }), 401
+
+    cursor.execute(
+        """
+        SELECT 
+            invoice_drafts.id,
+            invoice_drafts.client_name,
+            invoice_drafts.client_email,
+            invoice_drafts.invoice_date,
+            invoice_drafts.due_date,
+            invoice_drafts.total AS total,
+            invoice_drafts.status,
+            invoice_drafts.subtotal,
+            invoice_drafts.tax,
+            invoice_drafts.description,
+            invoice_drafts.quantity,
+            invoice_drafts.price,
+            invoice_drafts.note
+        FROM invoice_drafts
+        WHERE invoice_drafts.user_id=%s
+        """,
+        (current_user_id,)
+    )
+    drafts = cursor.fetchall()
+    draft_list = []
+    for draft in drafts:
+        draft_list.append({
+            "id": draft[0],
+            "client_name": draft[1],
+            "client_email": draft[2],
+            "invoice_date": draft[3].strftime("%Y-%m-%d"),
+            "due_date": draft[4].strftime("%Y-%m-%d"),
+            "total": float(draft[5]),
+            "status": draft[6],
+            "subtotal": float(draft[7]),
+            "tax": float(draft[8]),
+            "taxAmount": float(draft[7]) * float(draft[8]) / 100,
+            "items": {"desc": draft[9], "qty": draft[10], "price": float(draft[11])},
+            "note": draft[12],
+        })
+
+    cursor.execute(
+        """
+        SELECT currency_symbol
+        FROM  user_settings
+        WHERE user_id=%s
+        """,
+        (current_user_id,)
+    )
+    currency_symbol = cursor.fetchone()[0]
+    cursor.close()
+    conn.close()
+    return jsonify({
+        "status":"success",
+        "drafts": draft_list,
+        "currency_symbol": currency_symbol,
+        "user":{
+            "user_id": current_user_id,
+            "role": current_user_role
+        }
+    })
+
+
+@app.route("/dashboard/clients/data")
+@token_required
+def clients_page_data(current_user_id, current_user_role):
+    conn = get_db()
+    cursor = conn.cursor(buffered=True)
+
+    cursor.execute(
+    """
+    SELECT 
+        id,
+        client_name,
+        client_email,
+        client_address,
+        client_phone,
+        client_company,
+        client_notes
+    FROM clients
+    WHERE user_id = %s
+    ORDER BY client_name ASC
+    """,
+    (current_user_id,)
+    )
+
+    clients_raw = cursor.fetchall()
+
+
+    cursor.execute(
+    """
+    SELECT
+        client_id,
+        COUNT(*) AS total_invoices,
+        COALESCE(
+            SUM(
+                CASE 
+                    WHEN status != 'paid' THEN total
+                    ELSE 0
+                END
+            ), 0
+        ) AS outstanding_amount
+    FROM invoices
+    WHERE user_id = %s
+    GROUP BY client_id
+    """,
+    (current_user_id,)
+    )
+
+    invoice_aggregates_raw = cursor.fetchall()
+
+    invoice_map = {
+    row[0]: {
+        "total_invoices": row[1],
+        "outstanding": row[2]
+    }
+    for row in invoice_aggregates_raw
+    }
+
+    clients = []
+
+    for c in clients_raw:
+        client_id, name, email, address, phone, company, notes = c
+
+        invoice_data = invoice_map.get(client_id, {
+            "total_invoices": 0,
+            "outstanding": 0
+        })
+        s_name = name[:2].upper()
+
+        clients.append({
+            "id": client_id,
+            "name": name,
+            "initials": s_name,
+            "email": email,
+            "address": address,
+            "totalInvoices": invoice_data["total_invoices"],
+            "outstanding": invoice_data["outstanding"],
+            "status": "paid" if invoice_data["outstanding"] == 0 else "unpaid" ,
+            "company": company,
+            "note": notes,
+            "phone": phone
+        })
+
+    cursor.execute(
+        """
+        SELECT currency, currency_symbol
+        FROM user_settings
+        WHERE user_id=%s
+        """,
+        (current_user_id,)
+    )
+    settings = cursor.fetchone()
+    if not settings:
+        return jsonify({"error": "Settings not found"}), 404
+    currency, currency_symbol = settings
+
+    cursor.close()
+    conn.close()
+
+    print(clients)
+
+    return jsonify({
+        "status": "success",
+        "clients": clients,
+        "currencySymbol": currency_symbol,
+        "user": {
+            "user_id": current_user_id,
+            "role": current_user_role
+        }
+    })
+
+@app.route("/dashboard/payment/data")
+@token_required
+def payment_page_data(current_user_id,current_user_role):
+    conn = get_db()
+    cursor = conn.cursor(buffered=True, dictionary=True)
+
+    # Total recieved
+    cursor.execute(
+        """
+        SELECT COALESCE(SUM(total), 0) AS total_received
+        FROM invoices
+        WHERE user_id=%s AND status=%s
+        """,
+        (current_user_id, "paid")
+    )
+    total_received = cursor.fetchone()["total_received"]
+
+    # total outstanding
+    cursor.execute(
+        """
+        SELECT COALESCE(SUM(total), 0) AS total_pending
+        FROM invoices
+        WHERE user_id=%s AND status=%s
+        """,
+        (current_user_id, "pending")
+    )
+    total_pending = cursor.fetchone()["total_pending"]
+
+    cursor.execute(
+        """
+        SELECT COALESCE(SUM(total), 0) AS total_unpaid
+        FROM invoices
+        WHERE user_id=%s AND status=%s
+        """,
+        (current_user_id, "unpaid")
+    )
+    total_unpaid = cursor.fetchone()["total_unpaid"]
+
+    total_outstanding = total_pending + total_unpaid
+
+    # total overdue
+    cursor.execute(
+        """
+        SELECT COALESCE(SUM(total), 0) AS total_overdue
+        FROM invoices
+        WHERE user_id=%s AND due_date < %s AND status IN (%s, %s, %s)
+        """,
+        (current_user_id, datetime.now(), "pending", "unpaid", "overdue")
+    )
+    total_overdue = cursor.fetchone()["total_overdue"]
+
+    cursor.execute(
+        """
+        SELECT 
+            invoices.id,
+            invoices.invoice_number ,
+            invoices.client_id,
+            invoices.invoice_date,
+            invoices.total AS amount,
+            invoices.status,
+            invoices.due_date,
+            invoices.note,
+            clients.client_name AS clientName,
+            clients.client_email AS clientEmail
+        FROM invoices
+        JOIN clients ON clients.id = invoices.client_id
+        WHERE invoices.user_id=%s 
+        """,
+        (current_user_id,)
+    )
+    payments_raw = cursor.fetchall()
+    payments = []
+    for p in payments_raw:
+        cursor.execute(
+            """
+            SELECT description, quantity, price
+            FROM invoice_items
+            WHERE invoice_id=%s
+            """,
+            (p['id'])
+        )
+        items = cursor.fetchall()
+        
+        payments.append({
+            "id": p['invoice_number'],
+            "client": p['clientName'],
+            "email": p['clientEmail'],
+            "date": p['invoice_date'].strftime("%Y-%m-%d"),
+            "amount": float(p['amount']),
+            "status": p['status'],
+            "dueDate": p['due_date'].strftime("%Y-%m-%d"),
+            "items": [{"desc": i['description'], "qty": i['quantity'], "price": float(i['price'])} for i in items],
+            "notes": p['note']
+
+        })
+
+    cursor.execute(
+        """
+        SELECT currency, currency_symbol
+        FROM user_settings
+        WHERE user_id=%s
+        """,
+        (current_user_id,)
+    
+    )
+    currency_info = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    return jsonify({
+        "status": "success",
+        "total_received": float(total_received),
+        "total_outstanding": float(total_outstanding),
+        "total_overdue": float(total_overdue),
+        "payments": payments,
+        "currency": currency_info["currency"] if currency_info else "USD",
+        "currencySymbol": currency_info["currency_symbol"] if currency_info else "$"
+    })
+
+
+@app.route("/dashboard/me/data")
+@token_required
+def me_page_data(current_user_id,current_user_role):
+    conn = get_db()
+    cursor = conn.cursor(buffered=True, dictionary=True)
+
+    cursor.execute(
+        """
+        SELECT 
+            fullname,
+            profilepicurl
+        FROM cust_base
+        WHERE user_id=%s
+        """,
+        (current_user_id,)
+    )
+    user_data = cursor.fetchone()
+
+    cursor.execute(
+        """ 
+        SELECT wallet_balance
+        FROM wallet_base 
+        WHERE user_id=%s
+        """,
+        (current_user_id,)
+    )
+    balance = cursor.fetchone()['wallet_balance']
+
+    cursor.execute(
+        """
+        SELECT currency_symbol
+        FROM user_settings
+        WHERE user_id=%s
+        """,
+        (current_user_id,)
+    )
+    currencySymbol = cursor.fetchone()['currency_symbol']
+
+    return jsonify({
+        "status": "success",
+        "user": {
+            "name": user_data['fullname'],
+            "profilePic": user_data['profilepicurl'],
+            "balance": balance 
+        },
+        "currency_symbol": currencySymbol    
+    })
+
+@app.route("/transactions/data")
+@token_required
+def transactions_page_data(current_user_id, current_user_role):
+    conn = get_db()
+    cursor = conn.cursor(buffered=True, dictionary=True)
+
+
+    # total transactions 
+    cursor.execute(
+        """
+        SELECT COUNT(*) AS total_transactions
+        FROM transactions
+        WHERE user_id=%s
+        """,
+        (current_user_id,)
+    )
+    totalTransactions = cursor.fetchone()['total_transactions']
+
+    # paid 
+    cursor.execute(
+        """
+        SELECT COUNT(*) AS paid_transactions
+        FROM transactions
+        WHERE user_id=%s AND status=%s
+        """,
+        (current_user_id, "paid")
+    )
+    paid_transactions = cursor.fetchone()['paid_transactions']
+
+    # pending 
+    cursor.execute(
+        """
+        SELECT COUNT(*) AS pending_transactions
+        FROM transactions
+        WHERE user_id=%s AND status in (%s, %s)
+        """,
+        (current_user_id, "pending", "unpaid")
+    )
+    pending_transactions = cursor.fetchone()['pending_transactions']
+
+    # overdue
+    cursor.execute(
+        """
+        SELECT COUNT(*) AS overdue_transactions
+        FROM transactions
+        WHERE user_id=%s AND status=%s
+        """,
+        (current_user_id, "overdue")
+    )
+    overdue_transactions = cursor.fetchone()['overdue_transactions']
+
+    cursor.execute("""
+    SELECT
+        t.id,
+        t.reference,
+        t.amount,
+        t.status,
+        t.transaction_type,
+        t.paid_at,
+        t.created_at,
+        t.note,
+
+        c.client_company AS client,
+        c.client_email AS email,
+
+        i.due_date
+
+    FROM transactions t
+    LEFT JOIN invoices i
+        ON t.invoice_id = i.id
+    LEFT JOIN clients c
+        ON i.client_id = c.id
+
+    WHERE t.user_id = %s
+    ORDER BY t.created_at DESC
+    """, (current_user_id,))
+    transactions_raw = cursor.fetchall()
+    transactions = []
+
+    for tx in transactions_raw:
+        transactions.append({
+            "id": tx["reference"],
+            "client": tx["client"],
+            "email": tx["email"],
+            "date": tx["created_at"].strftime("%b %d, %Y"),
+            "dueDate": (
+                tx["due_date"].strftime("%b %d, %Y")
+                if tx.get("due_date")
+                else "N/A"
+            ),
+            "amount": float(tx["amount"]),
+            "status": tx["status"],
+            "type": tx["transaction_type"],
+            "notes": tx.get("notes") or ""
+    })
+
+    from collections import defaultdict
+
+    grouped_transactions = defaultdict(list)
+
+    for tx in transactions_raw:
+
+        month_key = tx["created_at"].strftime("%B %Y")
+
+        grouped_transactions[month_key].append({
+            "id": tx["reference"],
+            "client": tx["client"],
+            "date": tx["created_at"].strftime("%b %d, %Y"),
+            "amount": float(tx["amount"]),
+            "status": tx["status"],
+            "type": tx["transaction_type"]
+        })
+
+    transactions_by_month = dict(grouped_transactions)
+    
+    cursor.execute(
+        """
+        SELECT currency_symbol
+        FROM user_settings
+        WHERE user_id=%s
+        """,
+        (current_user_id,)
+    )
+    currencySymbol = cursor.fetchone()['currency_symbol']
+
+    return jsonify({
+        "status": "success",
+        "total_transactions": totalTransactions,
+        "paid_transactions": paid_transactions,
+        "pending_transactions": pending_transactions,
+        "overdue_transactions": overdue_transactions,
+        "transactions": transactions,
+        "transactions_by_month": transactions_by_month,
+        "currencySymbol": currencySymbol
+    })
+
+@app.route("/api/sessions")
+@token_required
+def get_sessions(current_user_id, current_user_role):
+    conn = get_db()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+        cursor.execute("""
+            SELECT
+                id,
+                device_type,
+                browser,
+                os,
+                location,
+                session_token,
+                created_at,
+                last_active
+            FROM user_sessions
+            WHERE user_id=%s
+            ORDER BY last_active DESC
+        """, (current_user_id,))
+
+        sessions = cursor.fetchall()
+
+        current_token = session.get("session_token")
+
+        for s in sessions:
+            s["is_current"] = (
+                s["session_token"] == current_token
+            )
+
+        return jsonify({
+            "status": "success",
+            "sessions": sessions
+        })
+
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/security-status", methods=["GET"])
+@token_required
+def security_status(current_user_id, current_user_role):
+
+    conn = get_db()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT
+            two_factor_enabled,
+            biometric_enabled,
+            is_email_verified AS email_verified,
+            pin,
+            last_password_change
+        FROM user_base
+        WHERE user_id=%s
+    """, (current_user_id,))
+
+    user = cursor.fetchone()
+
+    score = 0
+
+    if user["two_factor_enabled"]:
+        score += 30
+
+    if user["email_verified"]:
+        score += 20
+
+    if user["pin"]:
+        score += 20
+
+    if user["biometric_enabled"]:
+        score += 15
+
+    score += 15
+
+    return jsonify({
+        "status": "success",
+        "security_score": score,
+        "settings": user
+    })
+# =================  FUNCTIONS =====================
+
+
+@app.route("/cust", methods=["POST"])
+def create_profile():
+    data = request.get_json()
+
+    if not data:
+        return jsonify({
+            "status": "error",
+            "message": "Invalid or missing JSON"
+        }), 400
+
+    required_fields = [
+        "username",
+        "profile_name",
+        "full_name",
+        "address",
+        "country",
+        "currency",
+        "dob"
+    ]
+
+    # GET USER ID FOR INDEXING
+    user_id = get_user_id(data['username'])
+
+
+    # lOAD DATA FROM DATABASE TO ENSURE NO DUPLICATES
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT profilename FROM cust_base")
+    existing_profiles = {row[0] for row in cursor.fetchall()}
+    if data["profile_name"] in existing_profiles:
+        return jsonify({
+            "status": "error",
+            "message": "Profile name already exists"
+        }), 400
+    
+    # Validate required fields
+    for field in required_fields:
+        if not data.get(field):
+            return jsonify({
+                "status": "error",
+                "message": f"Missing field: {field}"
+            }), 400
+
+    try:
+        cursor.execute("""
+            INSERT INTO cust_base
+            (user_id,profilename, fullname, address, country, currency, dob)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (
+            user_id,
+            data["profile_name"],
+            data["full_name"],
+            data["address"],
+            data["country"],
+            data["currency"],
+            data["dob"]
+        ))
+
+        conn.commit()
+        
+        save_security_activity(
+            user_id=user_id,
+            type_="Profile",
+            title="Profile Creation",
+            description= f"Profile {data["profile_name"]} created fsuccessfully",
+            severity="LOW",
+            ip_address=get_client_ip(request)
+        )
+
+        return jsonify({
+            "status": "success",
+            "message": "Profile created successfully"
+        }), 201
+
+    except Exception as e:
+        traceback.print_exc()
+        conn.rollback()
+        return jsonify({
+            "status": "error",
+            "message": "Database error",
+            "details": str(e)
+        }), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/user", methods=["POST"])
+def create_user():
+    data = request.get_json()
+
+    if not data:
+        return jsonify({
+            "status": "error",
+            "message": "Invalid or missing JSON"
+        }), 400
+
+    required_fields = [
+        "username",
+        "email",
+        "password",
+        "security_question",
+        "security_answer",
+        "app_pin",
+        "verification_code"
+    ]
+    conn = get_db()
+    cursor = conn.cursor()
+
+    # Check for duplicate usernames
+    cursor.execute("SELECT username FROM user_base")
+    existing_usernames = {row[0] for row in cursor.fetchall()}
+    if data["username"] in existing_usernames:
+        return jsonify({
+            "status": "error",
+            "message": "Username already exists"
+        }), 400
+    
+
+    # Validate required fields
+    for field in required_fields:
+        if not data.get(field):
+            return jsonify({
+                "status": "error",
+                "message": f"Missing field: {field}"
+            }), 400
+
+    try:
+        cursor.execute("""
+            INSERT INTO user_base
+            (username, email, password_hash, security_question, security_answer ,failed_attempts, last_login, last_failed_login, trials_ends_at, locked, lock_reason, active, pin)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (
+            data["username"],
+            data["email"],
+            hashlib.sha256(data["password"].encode()).hexdigest(),
+            hashlib.sha256(data["security_question"].encode()).hexdigest(),
+            hashlib.sha256(data["security_answer"].encode()).hexdigest(),
+            0, None, None, (datetime.now() + timedelta(days=30)).strftime("%Y-%m-%d %H:%M:%S"),
+            False, "", True,
+            hashlib.sha256(data['app_pin'].encode()).hexdigest()
+        ))
+        user_id = cursor.lastrowid
+
+        conn.commit()
+
+        send_email(
+            recipient=data["email"],
+            subject="Verification of Account Creation",
+            body=f"Here is your verification code: {data['verification_code']}",
+            html=False
+        )
+
+        save_security_activity(
+            user_id=user_id,
+            type_="User",
+            title="New User",
+            description="User created successfully",
+            severity="LOW",
+            ip_address=get_client_ip(request)
+        )
+
+        return jsonify({
+            "status": "success",
+            "message": "User created successfully"
+        }), 201
+
+    except Exception as e:
+        print(e)
+        conn.rollback()
+        return jsonify({
+            "status": "error",
+            "message": "Database error",
+            "details": str(e)
+    
+        }), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/verify", methods=["POST"])
+def verify_user():
+    data = request.get_json()
+
+    if not data:
+        return jsonify({
+            "status": "error",
+            "message": "Invalid or missing JSON"
+        }), 400
+
+    required_fields = [
+        "generated_code",
+        "verification_code",
+        "username"
+    ]
+
+    # Validate required fields
+    for field in required_fields:
+        if not data.get(field):
+            return jsonify({
+                "status": "error",
+                "message": f"Missing field: {field}"
+            }), 400
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    # Here you would normally check the verification code against what was sent/stored
+    if data["generated_code"] != data["verification_code"]:
+        save_security_activity(
+            user_id= get_user_id(data['username']),
+            type_="Verification",
+            title="Email verification",
+            description="Email verification failed",
+            severity="MEDIUM",
+            ip_address=get_client_ip(request)
+        )
+    
+        return jsonify({
+            "status": "error",
+            "message": "Invalid verification code"
+        }), 400
+
+    save_security_activity(
+        user_id= get_user_id(data['username']),
+        type_="Verification",
+        title="Email verification",
+        description="Email verified successfully",
+        severity="LOW",
+        ip_address=get_client_ip(request)
+    )
+
+    cursor.execute(
+        """
+        UPDATE user_base 
+        SET is_email_verified=%s
+        WHERE user_id=%s
+        """,
+        (True, get_user_id(data['username']))
+    )
+
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+    return jsonify({
+        "status": "success",
+        "message": "User verified successfully"
+    }), 200
+
+
+@app.route("/completecust", methods=["POST"])
+def complete_cust():
+    # Since we are sending FormData, use request.form and request.files
+    form = request.form
+    file = request.files.get("profile_picture")
+
+    # Required fields
+    required_fields = [
+        "username",
+        "email",
+        "profile_name",
+        "phone_number",
+        "alternate_email",
+        "website",
+        "bio"
+    ]
+
+    # Validate required fields
+    for field in required_fields:
+        if not form.get(field):
+            return jsonify({
+                "status": "error",
+                "message": f"Missing field: {field}"
+            }), 400
+
+    username = form.get("username")
+    user_id = get_user_id(username) 
+
+
+    # Example saving file
+    file = request.files.get("profile_picture")  # Make sure your input type="file"
+    if file:
+        try:
+            result = cloudinary.uploader.upload(
+            file,
+            folder="profile_images",
+            transformation = [
+                {"width":300, "height":300, "crop":"fill"}
+            ],
+            public_id = f"user_{user_id}",
+            overwrite= True
+         )
+            save_path = result['secure_url']
+        except Exception as e:
+            print("Cloudinary upload error:", str(e))
+
+            return jsonify({
+            "success": False,
+            "message": "Unable to upload file. Please try again."
+        }), 500
+
+
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            UPDATE cust_base
+            SET phone=%s,
+                alternateemail=%s,
+                website=%s,
+                profilepicurl=%s,
+                bio=%s
+            WHERE profilename=%s AND user_id=%s
+        """, (
+            form.get("phone_number"),
+            form.get("alternate_email"),
+            form.get("website"),
+            save_path,
+            form.get("bio"),
+            form.get("profile_name"),
+            user_id
+        ))
+
+        cursor.execute(
+            """
+            INSERT INTO user_settings (user_id, footer_note
+            )
+            VALUES (%s, %s)
+            """,
+            (
+                user_id,
+                "Thanks for doing business with us."
+            )
+        )
+
+        cursor.execute(
+            """
+            INSERT INTO wallet_base (user_id)
+            VALUES(%s)
+            """,
+            (user_id,)
+        )
+
+        conn.commit()
+
+        # welcome html
+        first_name = form['profile_name']
+        year = datetime.now().year
+        welcome_html = f"""
+
+<body style="margin:0; padding:0; background-color:#f4f6f8; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;">
+    <tr>
+      <td align="center">
+
+
+    <!-- Card -->
+    <table width="100%" cellpadding="0" cellspacing="0"
+      style="max-width:600px; background:#ffffff; border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,0.08); overflow:hidden;">
+
+      <!-- Header -->
+      <tr>
+        <td style="background:linear-gradient(135deg, #2563eb, #1e40af); padding:28px; text-align:center;">
+          <img src="{APP_LOGO_URL}" alt="Business Essential Logo" width="56" height="56"
+            style="display:block; margin:0 auto 10px;" />
+          <h1 style="margin:0; font-size:22px; color:#ffffff;">Welcome to Business Essential 🎉</h1>
+          <p style="margin:6px 0 0; font-size:14px; color:#dbeafe;">
+            Simple • Secure • Professional Invoicing
+          </p>
+        </td>
+      </tr>
+
+      <!-- Body -->
+      <tr>
+        <td style="padding:36px; color:#111827;">
+          <h2 style="margin-top:0; font-size:24px;">
+            Hi {first_name},
+          </h2>
+
+          <p style="font-size:15px; line-height:1.7;">
+            Welcome aboard! We’re excited to have you join <strong>Business Essential</strong>.
+            Your account has been successfully created, and you’re now ready to start managing
+            invoices, customers, and payments with ease.
+          </p>
+
+          <!-- Feature List -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;">
+            <tr>
+              <td style="font-size:15px; line-height:1.8;">
+                ✅ Create and manage professional invoices<br />
+                ✅ Track payments and customer activity<br />
+                ✅ Secure your account with built-in protections<br />
+                ✅ Access your data anytime, anywhere
+              </td>
+            </tr>
+          </table>
+
+          <!-- CTA -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin:32px 0;">
+            <tr>
+              <td align="center">
+                <a href="{DASHBOARD_URL}"
+                  style="background:#2563eb; color:#ffffff; text-decoration:none;
+                         padding:14px 26px; border-radius:10px;
+                         font-size:15px; font-weight:600; display:inline-block;">
+                  Go to Dashboard
+                </a>
+              </td>
+            </tr>
+          </table>
+
+          <p style="font-size:15px; line-height:1.7;">
+            If you ever need help, our support team is always here to assist you.
+            We recommend starting by completing your profile and creating your first invoice.
+          </p>
+
+          <p style="font-size:15px; line-height:1.7;">
+            We’re glad you’re here — let’s build something great together 🚀
+          </p>
+
+          <p style="margin-top:32px; font-size:14px; color:#374151;">
+            Warm regards,<br />
+            <strong>The Business Essential Team</strong>
+          </p>
+        </td>
+      </tr>
+
+      <!-- Footer -->
+      <tr>
+        <td style="background:#f9fafb; padding:18px; text-align:center; font-size:12px; color:#6b7280;">
+          You’re receiving this email because you created an Business Essential account.<br />
+          © {year} Business Essential. All rights reserved.
+        </td>
+      </tr>
+
+    </table>
+
+  </td>
+</tr>
+
+
+  </table>
+
+</body>
+
+"""
+        send_email(
+            recipient=form["email"],
+            subject="Welcome to Business Essential 🎉",
+            body=welcome_html,
+            html=True
+        )
+        _ip = get_client_ip(request)
+   
+        save_security_activity(
+            user_id=user_id,
+            type_="Profile",
+            title="Profile Created",
+            description=f"New profile for {form.get("profile_name")} completed successfully",
+            severity= "LOW",
+            ip_address= _ip
+         
+        )
+
+        return jsonify({
+            "status": "success",
+            "message": "Customer profile completed successfully"
+        }), 200
+
+    except Exception as e:
+        conn.rollback()
+        print(e)
+        return jsonify({
+            "status": "error",
+            "message": "Database error",
+            "details": str(e)
+        }), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
+
+
+    
+@app.route("/resend", methods=["POST"])
+def resend_verification():
+    data = request.get_json()
+
+    if not data:
+        return jsonify({
+            "status": "error",
+            "message": "Invalid or missing JSON"
+        }), 400
+
+    required_fields = [
+        "email",
+        "verification_code"
+    ]
+
+    for field in required_fields:
+        if not data.get(field):
+            return jsonify({
+                "status": "error",
+                "message": f"Missing field: {field}"
+            }), 400
+
+    send_email(
+        recipient=data["email"],
+        subject="Verification Code Resent",
+        body=f"Here is your verification code: {data['verification_code']}",
+        html=False
+    )
+
+    return jsonify({
+        "status": "success",
+        "message": "Verification code resent successfully"
+    }), 200
+
+
+@app.route("/loginp", methods=["POST"])
+def verifylogin():
+    data = request.get_json()
+
+    if not data:
+        return jsonify({
+            "status": "error",
+            "message": "Invalid or missing JSON"
+        }), 400
+    
+    required_fields = [
+        'username',
+        'password'
+    ]
+
+    # Validate required fields
+    for field in required_fields:
+        if not data.get(field):
+            return jsonify({
+                "status": "error",
+                "message": f"Missing field: {field}"
+            }), 400
+        
+    user_agent = data.get("user_agent")
+
+    latitude = data.get("lat")
+    longitude = data.get("lng")
+
+    ip_address = get_client_ip()
+
+    conn = get_db()
+    cursor = conn.cursor(buffered=True)
+    try:
+        cursor.execute(
+            """
+            SELECT password_hash, locked, failed_attempts, last_failed_login,email,lock_reason, user_id,role
+            FROM user_base
+            WHERE username=%s
+            """,
+            (data['username'],)
+        )
+        user = cursor.fetchone()
+
+        if not user:
+            return jsonify({
+                "status": "error",
+                "message":"User not found"
+            }),400
+        
+
+        current_password = user[0]
+        password = data['password']
+        hashed = hashlib.sha256(password.encode()).hexdigest()
+        user_id = user[6]
+
+        if user[1]:
+            save_security_activity(
+                user_id=user_id,
+                type_="Login",
+                title="Login Failed",
+                description="Login failed. Account locked!",
+                severity="MEDIUM",
+                ip_address=get_client_ip()
+            )
+            return jsonify({
+                "status": "error",
+                "message":  f"Account locked! Reason: {user[5]}" 
+            }), 400
+     
+        
+
+
+   
+        if hashed != current_password:
+            # Failed attempt
+            new_attempts = user[2] + 1  
+            cursor.execute(
+                "UPDATE user_base SET failed_attempts=%s, last_failed_login=NOW() WHERE username=%s",
+                (new_attempts, data['username']),
+            )
+            conn.commit()
+
+            if new_attempts >= 3:
+                cursor.execute(
+                    "UPDATE user_base SET locked=1, lock_reason=%s WHERE username=%s",
+                    ("Too many failed login attempts", data['username']),
+                )
+                conn.commit()
+                save_security_activity(
+                    user_id=user_id,
+                    type_="Login",
+                    title="Login Failed",
+                    description=f"Login failed. Account locked,Too many failed login attempts",
+                    severity="HIGH",
+                    ip_address=get_client_ip()
+                )
+
+
+            save_security_activity(
+                user_id=user_id,
+                type_="Login",
+                title="Login Failed",
+                description=f"Login failed. Incorrect Password, attempts({new_attempts})",
+                severity="MEDIUM",
+                ip_address=get_client_ip()
+            )
+            return jsonify({
+                "status": "error",
+                "message": "Incorrect Password"
+            }), 400
+        
+
+        # --- Successful login ---
+
+        cursor.execute(
+            "UPDATE user_base SET failed_attempts=0, last_login= NOW() WHERE username=%s",
+            (data['username'],)
+        )
+
+
+        cursor.execute(
+    """
+    SELECT 1
+    FROM wallet_base
+    WHERE user_id=%s
+    LIMIT 1
+    """,
+    (user_id,)
+)
+
+        w = cursor.fetchone()
+        if not w :
+            cursor.execute(
+                """
+                INSERT INTO wallet_base (user_id)
+                VALUES(%s)
+                """,
+                (user_id,)
+            )
+
+
+        lat = data['lat']
+        lng = data['lng']
+        login_ip = get_client_ip()
+        city, region, country = get_location_from_ip(login_ip)
+        citys,state,counts = get_location(lat=lat,lng=lng)
+        device_model, client_type, os_name, os_version  = parse_user_agent1(data['user_agent'])
+
+        location = None
+
+        if latitude and longitude:
+            location = f"{latitude}, {longitude}"
+
+        session_token = log_session(
+            user_id=user_id,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            location=location,
+            latitude=latitude,
+            longitude=longitude
+        )
+
+
+        session["session_token"] = session_token
+
+
+        conn.commit()
+        
+        referral_code = f"REF{user_id}{int(datetime.now().timestamp())}"
+        cursor.execute(
+            """
+            INSERT INTO referrals (user_id,referral_code)
+            VALUES(%s,%s)  
+            """,
+            (user_id,referral_code)
+        )
+
+        conn.commit()
+  
+    
+        # --- Send login notification ---
+        email = str(user[4]) if user[4] else None # type: ignore
+        # Build login HTML
+
+
+
+
+
+     
+        year = datetime.now().year
+
+        login_html = f"""
+
+<body style="margin:0; padding:0; background-color:#f4f6f8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;">
+    <tr>
+      <td align="center">
+
+
+    <!-- Main Card -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; background:#ffffff; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.08); overflow:hidden;">
+
+      <!-- Header -->
+      <tr>
+        <td style="background:#111827; padding:24px; text-align:center;">
+          <img src="{APP_LOGO_URL}" alt="Business Essential Logo" width="48" height="48" style="display:block; margin:0 auto 8px;" />
+          <h1 style="color:#ffffff; font-size:20px; margin:0;">Business Essential</h1>
+          <p style="color:#9ca3af; margin:4px 0 0; font-size:14px;">Security Notification</p>
+        </td>
+      </tr>
+
+      <!-- Content -->
+      <tr>
+        <td style="padding:32px; color:#111827;">
+          <h2 style="margin-top:0; font-size:22px;">New Sign-In Detected</h2>
+
+          <p style="font-size:15px; line-height:1.6;">
+            We noticed a new sign-in to your Invoice App account.  
+            For your security, we’re letting you know whenever your account is accessed from a new device or location.
+          </p>
+
+          <!-- Details Box -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0; background:#f9fafb; border-radius:8px; padding:16px;">
+            <tr>
+              <td style="font-size:14px; line-height:1.8;">
+                <strong>Login details</strong><br />
+                <strong>IP Address:</strong> {login_ip}<br />
+                <strong>Location:</strong> {citys}, {state}, {counts}<br />
+                <strong>Date & Time:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}<br />
+                <strong>Device:</strong> New or unrecognized device
+              </td>
+            </tr>
+          </table>
+
+          <p style="font-size:15px; line-height:1.6;">
+            <strong>Was this you?</strong><br />
+            If you recognize this activity, no action is required. You can safely ignore this message.
+          </p>
+
+          <p style="font-size:15px; line-height:1.6;">
+            <strong>Was this not you?</strong><br />
+            If you do not recognize this sign-in, we strongly recommend taking action immediately to protect your account:
+          </p>
+
+          <ul style="font-size:15px; line-height:1.6; padding-left:20px;">
+            <li>Change your account password</li>
+            <li>Review recent account activity</li>
+            <li>Update your security questions or recovery details</li>
+          </ul>
+
+          <!-- CTA Button -->
+          <table cellpadding="0" cellspacing="0" style="margin:28px 0;">
+            <tr>
+              <td align="center">
+                <a href="{SECURITY_URL}" style="background:#2563eb; color:#ffffff; text-decoration:none; padding:12px 20px; border-radius:8px; font-weight:600; display:inline-block;">
+                  Secure My Account
+                </a>
+              </td>
+            </tr>
+          </table>
+
+          <p style="font-size:14px; color:#374151; line-height:1.6;">
+            If you believe your account has been compromised or need assistance, please contact our support team immediately.
+          </p>
+
+          <p style="font-size:14px; color:#6b7280; margin-top:32px;">
+            Thank you for helping us keep your account secure,<br />
+            <strong>The Business Essential Security Team</strong>
+          </p>
+        </td>
+      </tr>
+
+      <!-- Footer -->
+      <tr>
+        <td style="background:#f9fafb; padding:16px; text-align:center; font-size:12px; color:#6b7280;">
+          This is an automated security message. Please do not reply.<br />
+          © {year} Business Essential. All rights reserved.
+        </td>
+      </tr>
+
+    </table>
+
+  </td>
+</tr>
+```
+
+  </table>
+
+</body>
+
+
+        """
+        
+
+        send_email(
+            recipient=email,
+            subject="New Sign-In Detected — Business Essential",
+            body=login_html,
+            html=True
+        )
+
+
+
+        payload = {
+            "user_id": user[6],
+            "role": user[7],
+            "exp": datetime.utcnow() + timedelta(hours=24)
+        }
+
+        token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
+
+
+
+   
+
+        save_security_activity(
+            user_id=user_id,
+            type_="account",
+            title="User Login",
+            description=f"A login into this app was noticed on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}.",
+            severity="LOW",
+            ip_address=login_ip
+        )
+
+
+        response = make_response(jsonify({
+            "status": "success",
+            "message": "Login successful"
+        }))
+        response.set_cookie(
+            "access_token",
+            token,
+            httponly=True,
+            secure=False,  # True when using HTTPS
+            samesite="Lax",
+            max_age=60 * 60 * 24 * 7
+        )
+        return response, 201
+
+    except Exception as e:
+        conn.rollback()
+        print(e)
+
+        return jsonify({
+            "status": "error",
+            "message": "Database error",
+            "details": str(e)
+        }), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/resetpass", methods=["POST"])
+def reset():
+    data = request.get_json()
+    print("RESET PASS HIT")
+
+    required_fields = ["username", "security_question", "security_answer"]
+    for field in required_fields:
+        if not data.get(field):
+            return jsonify({"status": "error", "message": f"Missing {field}"}), 400
+
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            """
+            SELECT user_id, sequrity_question, sequrity_answer_hash, email
+            FROM user_base
+            WHERE username=%s
+            """,
+            (data['username'],)
+        )
+        user = cursor.fetchone()
+
+        if not user:
+            return jsonify({"status": "error", "message": "User not found"}), 404
+
+        user_id, question, answer_hash, email = user
+        incoming_answer_hash = hashlib.sha256(
+            data['security_answer'].encode()
+        ).hexdigest()
+        incoming_question_hash = hashlib.sha256(
+            data['security_question'].encode()
+        ).hexdigest()
+
+        if incoming_question_hash != question or incoming_answer_hash != answer_hash:
+            save_security_activity(
+                user_id=user_id,
+                type_="Password",
+                title="Password Reset",
+                description="Failed. Invalid security details",
+                severity= "MEDIUM",
+                ip_address=get_client_ip(request)
+            )
+
+            return jsonify({"status": "error", "message": "Invalid security details"}), 400
+         
+        reset_code = secrets.token_hex(3)
+        reset_code_hash = hashlib.sha256(reset_code.encode()).hexdigest()
+
+        reset_code_expires = datetime.utcnow() + timedelta(minutes=10)
+
+        cursor.execute(
+            "UPDATE user_base SET reset_code_hash=%s, reset_code_expires=%s WHERE username=%s",
+            (reset_code_hash,reset_code_expires, data['username'])
+        )
+        conn.commit()
+        reset_password_html = f"""
+<body style="margin:0; padding:0; background-color:#f4f6f8; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;">
+        <tr>
+            <td align="center">
+                <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px; background:#ffffff; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.08); overflow:hidden;">
+                    
+                    <!-- Header -->
+                    <tr>
+                        <td style="background:#1558B0; padding:20px; text-align:center;">
+                            <h2 style="margin:0; color:#ffffff; font-weight:600;">
+                                Business Essential
+                            </h2>
+                        </td>
+                    </tr>
+
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding:30px;">
+                            <h3 style="margin-top:0; color:#333333;">
+                                Reset Your Password
+                            </h3>
+
+                            <p style="color:#555555; font-size:15px; line-height:1.6;">
+                                We received a request to reset your password.  
+                                If you didn’t make this request, you can safely ignore this email.
+                            </p>
+
+                            <p style="color:#555555; font-size:15px; line-height:1.6;">
+                                Use the verification code below to reset your password:
+                            </p>
+
+                            <!-- Code box -->
+                            <div style="text-align:center; margin:25px 0;">
+                                <span style="display:inline-block; padding:14px 24px; font-size:20px; letter-spacing:3px; background:#f1f5ff; color:#1558B0; border-radius:6px; font-weight:600;">
+                                    {reset_code}
+                                </span>
+                            </div>
+
+                            <p style="color:#777777; font-size:14px; line-height:1.6;">
+                                This code will expire in 10 minutes.
+                            </p>
+
+                            <p style="color:#555555; font-size:14px; line-height:1.6;">
+                                Need help? Contact our support team.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background:#f4f6f8; padding:16px; text-align:center;">
+                            <p style="margin:0; color:#888888; font-size:13px;">
+                                © {datetime.now().year} Business Essential. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+"""
+
+
+        send_email(
+            recipient=email,
+            subject="Business Essential - Password Reset Code",
+            body=reset_password_html,
+            html=True
+        )
+
+        return jsonify({
+            "status": "success",
+            "message": "Reset code sent to email"
+        }), 200
+
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": "Server error",
+            "details": str(e)
+        }), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+    
+@app.route("/save-password", methods=["POST"])
+def savepassword():
+    data = request.get_json()
+
+    if not data:
+        return jsonify({
+            "status": "error",
+            "message": "Invalid or missing JSON"
+        }), 400
+
+    required_fields = ["username", "reset_code", "new_password"]
+    for field in required_fields:
+        if not data.get(field):
+            return jsonify({
+                "status": "error",
+                "message": f"Missing field: {field}"
+            }), 400
+
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            """
+            SELECT user_id reset_code_hash, reset_code_expires, email
+            FROM user_base
+            WHERE username=%s
+            """,
+            (data["username"],)
+        )
+        user = cursor.fetchone()
+
+        if not user:
+            return jsonify({
+                "status": "error",
+                "message": "User not found"
+            }), 404
+
+        user_id, stored_hash, expires_at, email = user
+
+        if not stored_hash or not expires_at:
+            save_security_activity(
+                user_id=user_id,
+                type_="Password",
+                title="Password Reset",
+                description="Failed.No active reset request ",
+                severity= "MEDIUM",
+                ip_address=get_client_ip(request)
+            )
+
+            return jsonify({
+                "status": "error",
+                "message": "No active reset request"
+            }), 400
+        
+
+
+        if isinstance(expires_at, str):
+            expires_at = datetime.fromisoformat(expires_at)
+
+
+
+        if datetime.utcnow() > expires_at:
+            return jsonify({
+                "status": "error",
+                "message": "Reset code expired"
+            }), 400
+
+        entered_hash = hashlib.sha256(
+            data["reset_code"].encode()
+        ).hexdigest()
+        if entered_hash != stored_hash:
+            return jsonify({
+                "status": "error",
+                "message": "Invalid reset code"
+            }), 400
+
+        new_password_hash = hashlib.sha256(
+            data["new_password"].encode()
+        ).hexdigest()
+
+        cursor.execute(
+            """
+            UPDATE user_base
+            SET password_hash=%s,
+                reset_code_hash=NULL,
+                reset_code_expires=NULL,
+                locked=0
+            WHERE username=%s
+            """,
+            (new_password_hash, data["username"])
+        )
+        conn.commit()
+
+        # Email Notification
+        password_reset_success_html = f"""
+<body style="margin:0; padding:0; background-color:#f4f6f8; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;">
+        <tr>
+            <td align="center">
+                <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px; background:#ffffff; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.08); overflow:hidden;">
+                    
+                    <!-- Header -->
+                    <tr>
+                        <td style="background:#1aa251; padding:20px; text-align:center;">
+                            <h2 style="margin:0; color:#ffffff; font-weight:600;">
+                                Business Essential
+                            </h2>
+                        </td>
+                    </tr>
+
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding:30px;">
+                            <h3 style="margin-top:0; color:#333333;">
+                                Password Reset Successful 🎉
+                            </h3>
+
+                            <p style="color:#555555; font-size:15px; line-height:1.6;">
+                                Your password has been successfully reset.
+                            </p>
+
+                            <p style="color:#555555; font-size:15px; line-height:1.6;">
+                                You can now log in to your account using your new password.
+                            </p>
+
+                            <!-- Login Button -->
+                            <div style="text-align:center; margin:30px 0;">
+                                <a href="{{LOGIN_URL}}"
+                                   style="display:inline-block; padding:12px 26px; background:#1558B0; color:#ffffff; text-decoration:none; border-radius:6px; font-weight:500; font-size:15px;">
+                                    Go to Login
+                                </a>
+                            </div>
+
+                            <p style="color:#777777; font-size:14px; line-height:1.6;">
+                                If you did not perform this action, please contact support immediately.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background:#f4f6f8; padding:16px; text-align:center;">
+                            <p style="margin:0; color:#888888; font-size:13px;">
+                                © {datetime.now().year} Business Essential. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+"""
+        send_email(
+            recipient=email,
+            subject="Business Essential - Password Reset Successful",
+            body=password_reset_success_html,
+            html=True
+        )
+
+        save_security_activity(
+            user_id=user_id,
+            type_="Password",
+            title="Password Reset",
+            description="Password updated successfully.",
+            severity= "LOW",
+            ip_address=get_client_ip(request)
+        )
+
+        return jsonify({
+            "status": "success",
+            "message": "Password updated successfully"
+        }), 200
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify({
+            "status": "error",
+            "message": "Database error",
+            "details": str(e)
+        }), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/change-password", methods=["POST"])
+@token_required
+def changepassword(current_user_id, current_user_role):
+    data = request.get_json()
+
+    if not data:
+        return jsonify({
+            "status": "error",
+            "message": "Invalid or missing JSON"
+        }), 400
+
+    required_fields = ["current_password", "new_password"]
+    for field in required_fields:
+        if not data.get(field):
+            return jsonify({
+                "status": "error",
+                "message": f"Missing field: {field}"
+            }), 400
+
+    conn = get_db()
+    cursor = conn.cursor()
+    try:
+        cursor.execute(
+            """
+            SELECT password_hash, email
+            FROM user_base
+            WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+        user = cursor.fetchone()
+
+        if not user:
+            return jsonify({
+                "status": "error",
+                "message": "User not found"
+            }), 404
+
+        current_password_hash, email = user
+        incoming_current_hash = hashlib.sha256(
+            data["current_password"].encode()
+        ).hexdigest()
+
+        if incoming_current_hash != current_password_hash:
+            save_security_activity(
+                user_id=current_user_id,
+                type_="Password",
+                title="Change Password",
+                description="Failed. Incorrect current password",
+                severity= "MEDIUM",
+                ip_address=get_client_ip(request)
+            )
+
+            return jsonify({
+                "status": "error",
+                "message": "Incorrect current password"
+            }), 400
+
+        new_password_hash = hashlib.sha256(
+            data["new_password"].encode()
+        ).hexdigest()
+
+        cursor.execute(
+            """
+            UPDATE user_base
+            SET password_hash=%s
+            WHERE user_id=%s
+            """,
+            (new_password_hash, current_user_id)
+        )
+        conn.commit()
+
+        # Email Notification
+        password_change_html = f"""
+<body style="margin:0;padding:0;background:#f4f6f8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;">
+<tr>
+<td align="center">
+
+<table width="100%" cellpadding="0" cellspacing="0"
+       style="max-width:600px;background:#ffffff;border-radius:12px;
+       overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.08);">
+
+    <!-- Header -->
+    <tr>
+        <td style="background:#111827;padding:24px;text-align:center;">
+            <img src="{APP_LOGO_URL}" width="48" height="48"
+                 style="display:block;margin:0 auto 8px;">
+            <h1 style="margin:0;color:#ffffff;font-size:20px;">
+                Business Essential
+            </h1>
+            <p style="margin:4px 0 0;color:#9ca3af;font-size:14px;">
+                Security Notification
+            </p>
+        </td>
+    </tr>
+
+    <!-- Content -->
+    <tr>
+        <td style="padding:32px;color:#111827;">
+
+            <h2 style="margin-top:0;font-size:22px;">
+                Password Changed Successfully
+            </h2>
+
+            <p style="font-size:15px;line-height:1.7;">
+                Hello <strong>{user[1]}</strong>,
+            </p>
+
+            <p style="font-size:15px;line-height:1.7;">
+                This email confirms that the password for your
+                Business Essential account was successfully changed.
+            </p>
+
+            <table width="100%" cellpadding="0" cellspacing="0"
+                   style="margin:24px 0;background:#f9fafb;
+                   border-radius:8px;padding:16px;">
+                <tr>
+                    <td style="font-size:14px;line-height:1.8;">
+                        <strong>Change Details</strong><br>
+                        <strong>Date & Time:</strong>
+                        {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}<br>
+                        <strong>IP Address:</strong>
+                        {get_client_ip()}
+                    </td>
+                </tr>
+            </table>
+
+            <div style="
+                background:#fef2f2;
+                border-left:4px solid #dc2626;
+                padding:16px;
+                border-radius:6px;
+                margin:24px 0;
+            ">
+                <p style="margin:0;font-size:14px;color:#991b1b;">
+                    <strong>Didn't make this change?</strong><br>
+                    If you did not change your password, your account
+                    may have been compromised. Secure your account
+                    immediately and contact support.
+                </p>
+            </div>
+
+            <table cellpadding="0" cellspacing="0" style="margin:28px 0;">
+                <tr>
+                    <td align="center">
+                        <a href="{SECURITY_URL}"
+                           style="
+                           background:#2563eb;
+                           color:#ffffff;
+                           text-decoration:none;
+                           padding:12px 20px;
+                           border-radius:8px;
+                           font-weight:600;
+                           display:inline-block;">
+                            Review Security Settings
+                        </a>
+                    </td>
+                </tr>
+            </table>
+
+            <p style="font-size:14px;color:#6b7280;line-height:1.6;">
+                If you have any questions or concerns, please contact
+                our support team.
+            </p>
+
+            <p style="font-size:14px;color:#6b7280;margin-top:32px;">
+                Regards,<br>
+                <strong>Business Essential Security Team</strong>
+            </p>
+
+        </td>
+    </tr>
+
+    <!-- Footer -->
+    <tr>
+        <td style="
+            background:#f9fafb;
+            padding:16px;
+            text-align:center;
+            font-size:12px;
+            color:#6b7280;">
+            This is an automated security notification.<br>
+            © {datetime.now().year} Business Essential.
+            All rights reserved.
+        </td>
+    </tr>
+
+</table>
+
+</td>
+</tr>
+</table>
+
+</body>
+"""
+        send_email(
+            recipient=email,
+            subject="Business Essential - Password Changed Successfully",
+            body=password_change_html,
+            html=True
+        )
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify({
+            "status": "error",
+            "message": "Database error",
+            "details": str(e)
+        }), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/create_invoice", methods=["POST"])
+@token_required
+def create_invoice(current_user_id, current_user_role):
+    data = request.get_json(force=True) 
+    if not data:
+        return jsonify({"status": "error", "message": "Invalid JSON"}), 400
+    
+
+
+    conn = get_db()
+    cursor = conn.cursor(buffered=True)
+
+
+    try:
+        # Verify user
+        cursor.execute(
+            "SELECT username, plan, trials_ends_at FROM user_base WHERE user_id=%s",
+            (current_user_id,)
+        )
+        user_info = cursor.fetchone()
+        if not user_info:
+            return jsonify({"status": "error", "message": "User not found"}), 404
+
+        # Fetch settings 
+        cursor.execute(
+            """
+            SELECT invoice_prefix, next_invoice_number, default_due_date, default_tax_rate, show_tax, show_discount, footer_note
+            FROM user_settings
+            WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+        settings = cursor.fetchone()
+
+        tax_rate = 0
+
+        if settings['show_tax']:
+            tax_rate = settings['default_tax_rate']
+        else: 
+            tax_rate = 0
+
+        if not data.get("tax"):
+            data["tax"] = tax_rate
+
+        if not data['due_date']:
+            default_due_date = settings['default_due_date']
+            if default_due_date:
+                data['due_date'] = (datetime.now() + timedelta(days=default_due_date)).strftime("%Y-%m-%d")
+            else:
+                data['due_date'] = (datetime.now() + timedelta(days=30)).strftime("%Y-%m-%d")
+        
+        if not data['notes']:
+            data['notes'] = settings['footer_note'] if settings['footer_note'] else ""
+        
+        
+
+        client_name = data.get("client_name")
+        client_email = data.get("client_email")
+        invoice_date = data.get("invoice_date")
+        due_date = data.get("due_date")
+        items = data.get("items", [])
+        notes = data.get("notes", "")
+        subtotal = float(data.get("subtotal", 0))
+        tax = float(data.get("tax", 0))
+        total = float(data.get("total", 0))
+        amount_paid = float(data.get("amount_paid", 0))
+
+
+        invoice_number = generate_invoice_number(current_user_id, settings['invoice_prefix'])
+
+        # Validation
+        if not all([client_name, client_email, invoice_date, due_date]):
+            return jsonify({"status": "error", "message": "Missing required fields"}), 400
+
+        # Calculate balance & status
+        balance = max(total - amount_paid, 0)
+
+        if balance <= 0:
+            status = "paid"
+        elif amount_paid > 0:
+            status = "pending"
+        else:
+            status = "unpaid"
+
+
+        # Fetch total invoice
+        cursor.execute("""
+            SELECT COUNT(*)
+            FROM invoices
+            WHERE user_id=%s
+        """, (current_user_id,))
+        total_invoices = cursor.fetchone()[0]
+
+        # Update next invoice number
+        cursor.execute(
+            """
+
+            UPDATE user_settings
+            SET next_invoice_number=%s
+            WHERE user_id=%s
+            """,
+            (current_user_id, total_invoices + 1)
+        )
+
+        conn.commit()
+
+        if user_info[1] == "trial":
+            if total_invoices >= 30:
+                return jsonify({
+                    "status": "error",
+                    "message": "Trial period has ended. Please upgrade your plan."
+                }), 400
+
+        # Find or create client (email-based)
+        cursor.execute(
+            "SELECT id FROM clients WHERE user_id=%s AND client_email=%s",
+            (current_user_id, client_email)
+        )
+        client = cursor.fetchone()
+
+        if client:
+            client_id = client[0]
+        else:
+            cursor.execute(
+                """
+                INSERT INTO clients (user_id, client_name, client_email)
+                VALUES (%s, %s, %s)
+                """,
+                (current_user_id, client_name, client_email)
+            )
+            client_id = cursor.lastrowid
+
+        if not client_id:
+            return jsonify({"status": "error", "message": "Failed to create or find client"}), 500
+        
+
+
+        # Insert invoice
+        cursor.execute(
+            """
+            INSERT INTO invoices (
+                user_id,
+                client_id,
+                subtotal,
+                tax,
+                invoice_date,
+                due_date,
+                note,
+                total,
+                amount_paid,
+                balance,
+                status,
+                invoice_number
+            )
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            """,
+            (
+                current_user_id,
+                client_id,
+                subtotal,
+                tax,
+                invoice_date,
+                due_date,
+                notes,
+                total,
+                amount_paid,
+                balance,
+                status,
+                invoice_number
+            )
+        )
+        invoice_id = cursor.lastrowid
+
+        # Insert items
+        for item in items:
+            if not item.get("description"):
+                continue
+
+            cursor.execute(
+                """
+                INSERT INTO invoice_items (invoice_id, description, quantity, price)
+                VALUES (%s, %s, %s, %s)
+                """,
+                (
+                    invoice_id,
+                    item.get("description"),
+                    item.get("quantity", 1),
+                    item.get("price", 0)
+                )
+            )
+
+      
+
+        # Get Invoice prefix
+        cursor.execute(
+            """
+            SELECT invoice_prefix
+            FROM user_settings
+            WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+        invoice_prefix= cursor.fetchone()[0] if cursor.fetchone() else "INV"
+
+        # record to transaction 
+        reference = generate_reference(invoice_prefix)
+        cursor.execute(
+            """
+            INSERT INTO transactions
+            (user_id,invoice_id,amount,reference,status,paid_at,note)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """,
+            (current_user_id,invoice_id,amount_paid,reference,status,invoice_date,notes)
+        )
+
+        conn.commit()
+
+        if user_info[1] == "basic":
+            current_month = datetime.now().month
+            cursor.execute(
+                """
+                SELECT COUNT(*) FROM invoices
+                WHERE user_id=%s AND MONTH(created_at)=%s AND YEAR(created_at)=YEAR(NOW())
+                """,
+                (current_user_id, current_month)
+            )
+            invoice_count = cursor.fetchone()[0]
+            if invoice_count > 100:
+                return jsonify({
+                    "status": "error",
+                    "message": "Invoice limit reached for Basic plan. Please upgrade your plan."
+                }), 400 
+            
+            send_basic_plan_invoice_email(client_email,client_name,invoice_id,invoice_date,due_date,status,subtotal,tax,total,amount_paid, balance, notes,items)
+  
+        if user_info[1] == "pro":
+            send_pro_plan_invoice_email(client_email,client_name,invoice_id,invoice_date,due_date,status,subtotal,tax,total,amount_paid, balance, notes,items)
+        
+        if user_info[1] == "trial":
+            send_basic_plan_invoice_email(client_email,client_name,invoice_id,invoice_date,due_date,status,subtotal,tax,total,amount_paid, balance, notes,items)
+
+
+        send_notification(
+            user_id= current_user_id,
+            type_="invoice",
+            description=f"Invoice #{invoice_id} created for {client_name}",
+            amount=total,
+            status=status
+        )
+
+        return jsonify({
+            "status": "success",
+            "message": "Invoice created successfully",
+            "invoice_id": invoice_id
+        }), 201
+
+    except Exception as e:
+        conn.rollback()
+        traceback.print_exc()
+        print("Create invoice error:", e)
+        return jsonify({"status": "error", "message": f"Server error: {e}"}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/invoice/drafts", methods=["POST"])
+@token_required
+def save_draft(current_user_id, current_user_role):
+    data = request.get_json()
+    if not data:
+        return jsonify({"status": "error", "message": "Invalid JSON"}), 400
+
+    client_name = data.get("client_name")
+    client_email = data.get("client_email")
+    invoice_date = data.get("invoice_date")
+    due_date = data.get("due_date")
+    items = data.get("items", [])
+    notes = data.get("notes", "")
+    subtotal = float(data.get("subtotal", 0))
+    tax = float(data.get("tax", 0))
+    total = float(data.get("total", 0))
+
+    if not all([client_name, client_email, invoice_date, due_date]):
+        return jsonify({"status": "error", "message": "Missing required fields"}), 400
+    
+    conn = get_db()
+    cursor = conn.cursor(buffered=True)
+
+    try:
+        cursor.execute(
+            "SELECT username FROM user_base WHERE user_id=%s",
+            (current_user_id,)
+        )
+        if not cursor.fetchone():
+            return jsonify({"status": "error", "message": "User not found"}), 404
+
+        for item in items:
+            cursor.execute(
+                """
+                INSERT INTO invoice_drafts (
+                    user_id,
+                    client_name,
+                    client_email,
+                    invoice_date,
+                    due_date,
+                    note,
+                    description,
+                    quantity,
+                    price,
+                    subtotal,
+                    tax,
+                    total
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """,
+                (
+                    current_user_id,
+                    client_name,
+                    client_email,
+                    invoice_date,
+                    due_date,
+                    notes,
+                    item.get("description"),
+                    item.get("quantity", 1),
+                    item.get("price", 0),
+                    subtotal,
+                    tax,
+                    total
+                )
+            )
+
+        conn.commit()
+
+
+        send_notification(
+            user_id=current_user_id,
+            type_="invoice",
+            title="Draft Saved",
+            description=f"Draft saved for {client_name}",
+            amount=total
+        )
+
+
+        return jsonify({
+            "status": "success",
+            "message": "Invoice saved as draft"
+        }), 200
+
+    except Exception as e:
+        conn.rollback()
+        print("Save draft error:", e)
+        return jsonify({"status": "error", "message": "Server error"}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/invoice/update-edit", methods=["POST"])
+@token_required
+def update_draft(current_user_id, current_user_role):
+    data = request.get_json()
+    if not data:
+        return jsonify({"status": "error", "message": "Invalid JSON"}), 400
+
+    invoice_id = data.get("invoice_id")
+    client_name = data.get("client_name")
+    client_email = data.get("client_email")
+    invoice_date = data.get("invoice_date")
+    due_date = data.get("due_date")
+    items = data.get("items", [])
+    notes = data.get("notes", "")
+    subtotal = float(data.get("subtotal", 0))
+    tax = float(data.get("tax", 0))
+    total = float(data.get("total", 0))
+
+    if not all([invoice_id, client_name, client_email, invoice_date, due_date]):
+        return jsonify({"status": "error", "message": "Missing required fields"}), 400
+    
+    conn = get_db()
+    cursor = conn.cursor(buffered=True)
+
+    try:
+        cursor.execute(
+            "SELECT username FROM user_base WHERE user_id=%s",
+            (current_user_id,)
+        )
+        if not cursor.fetchone():
+            return jsonify({"status": "error", "message": "User not found"}), 404
+        
+        cursor.execute(
+            "SELECT id FROM clients WHERE user_id=%s AND client_email=%s",
+            (current_user_id, client_email)
+        )
+        client = cursor.fetchone()
+        if client:
+            client_id = client[0]
+        else:
+            cursor.execute(
+                """
+                INSERT INTO clients (user_id, client_name, client_email)
+                VALUES (%s, %s, %s)
+                """,
+                (current_user_id, client_name, client_email)
+            )
+            client_id = cursor.lastrowid
+
+        cursor.execute(
+            """
+            UPDATE invoices
+            SET client_id=%s,
+                invoice_date=%s,
+                due_date=%s,
+                note=%s,
+                subtotal=%s,
+                tax=%s,
+                total=%s
+            WHERE id=%s AND user_id=%s
+            """,
+            (
+                client_id,
+                invoice_date,
+                due_date,
+                notes,
+                subtotal,
+                tax,
+                total,
+                invoice_id,
+                current_user_id
+            )
+        )
+
+        cursor.execute(
+            """
+            DELETE FROM invoice_items
+            WHERE invoice_id=%s
+            """,
+            (invoice_id,)
+        )
+
+        for item in items:
+            cursor.execute(
+                """
+                INSERT INTO invoice_items (invoice_id, description, quantity, price)
+                VALUES (%s, %s, %s, %s)
+                """,
+                (
+                    invoice_id,
+                    item.get("description"),
+                    item.get("quantity", 1),
+                    item.get("price", 0)
+                )
+            )
+
+        conn.commit()
+
+        save_log_activity(
+            current_user_id,
+            "Invoice",
+            "Invoice Updated",
+            f"Invoice updated for {client_name}",
+            total
+        )
+        return jsonify({
+            "status": "success",
+            "message": "Invoice updated"
+        }), 200
+    except Exception as e:
+        conn.rollback()
+        print("Update invoice error:", e)
+        return jsonify({"status": "error", "message": "Server error"}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/invoice/delete/<int:invoice_id>", methods=["DELETE"])
+@token_required
+def delete_invoice(current_user_id, current_user_role, invoice_id):
+    conn = get_db()
+    cursor = conn.cursor(buffered=True)
+
+    try:
+        cursor.execute(
+            "SELECT id FROM invoices WHERE id=%s AND user_id=%s",
+            (invoice_id, current_user_id)
+        )
+        if not cursor.fetchone():
+            return jsonify({"status": "error", "message": "Invoice not found"}), 404
+
+        cursor.execute(
+            "DELETE FROM invoice_items WHERE invoice_id=%s",
+            (invoice_id,)
+        )
+
+        cursor.execute(
+            "DELETE FROM invoices WHERE id=%s",
+            (invoice_id,)
+        )
+
+        cursor.execute(
+            "DELETE FROM transactions WHERE invoice_id=%s",
+            (invoice_id,)
+        )
+
+        conn.commit()
+
+        save_log_activity(
+            current_user_id,
+            "Invoice",
+            "Deleted",
+            f"Invoice #{invoice_id} deleted"
+        )
+
+        return jsonify({
+            "status": "success",
+            "message": "Invoice deleted"
+        }), 200
+
+    except Exception as e:
+        conn.rollback()
+        print("Delete invoice error:", e)
+        return jsonify({"status": "error", "message": "Server error"}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/invoices/draft/delete/<int:draft_id>", methods=["DELETE"])
+@token_required
+def delete_draft(current_user_id, current_user_role, draft_id):
+    conn = get_db()
+    cursor = conn.cursor(buffered=True)
+
+    try:
+        cursor.execute(
+            "SELECT id FROM invoice_drafts WHERE id=%s AND user_id=%s",
+            (draft_id, current_user_id)
+        )
+        if not cursor.fetchone():
+            return jsonify({"status": "error", "message": "Draft not found"}), 404
+
+        cursor.execute(
+            "DELETE FROM invoice_drafts WHERE id=%s",
+            (draft_id,)
+        )
+
+        conn.commit()
+
+        save_log_activity(
+            current_user_id,
+            "draft",
+            "Deleted",
+            f"Draft #{draft_id} deleted"
+        )
+
+        return jsonify({
+            "status": "success",
+            "message": "Draft deleted"
+        }), 200
+
+    except Exception as e:
+        conn.rollback()
+        print("Delete draft error:", e)
+        return jsonify({"status": "error", "message": "Server error"}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/invoice/draft/update-edit", methods=["POST"])
+@token_required
+def update_edit_draft(current_user_id, current_user_role):
+    data = request.get_json()
+    if not data:
+        return jsonify({
+            "status": "error",
+            "message": "Invalid JSON "
+        }), 400
+    
+    conn = get_db()
+    cursor = conn.cursor(buffered=True)
+    try:
+        draft_id = data.get("draft_id")
+        client_name = data.get("client_name")
+        client_email = data.get("client_email")
+        invoice_date = data.get("invoice_date")
+        due_date = data.get("due_date")
+        items = data.get("items", [])
+        notes = data.get("notes", "")
+        subtotal = float(data.get("subtotal", 0))
+        tax = float(data.get("tax", 0))
+        total = float(data.get("total", 0))
+
+        if not all([draft_id, client_name, client_email, invoice_date, due_date]):
+            return jsonify({
+                "status": "error",
+                "message": "Missing required fields"
+            }), 400
+
+        cursor.execute(
+            "SELECT id FROM invoice_drafts WHERE id=%s AND user_id=%s",
+            (draft_id, current_user_id)
+        )
+        if not cursor.fetchone():
+            return jsonify({
+                "status": "error",
+                "message": "Draft not found"
+            }), 404
+        for item in items:
+            cursor.execute(
+            """
+            UPDATE invoice_drafts
+            SET client_name=%s,
+                client_email=%s,
+                invoice_date=%s,
+                due_date=%s,
+                note=%s,
+                subtotal=%s,
+                tax=%s,
+                total=%s,
+                description=%s,
+                quantity=%s,
+                price=%s
+            WHERE id=%s AND user_id=%s
+            """,
+            (
+                client_name,
+                client_email,
+                invoice_date,
+                due_date,
+                notes,
+                subtotal,
+                tax,
+                total,
+                item.get("description"),
+                item.get("quantity", 1),
+                item.get("price", 0),
+                draft_id,
+
+                current_user_id
+            )
+        )
+
+            conn.commit()
+
+        save_log_activity(
+            current_user_id,
+            "draft",
+            "Draft Updated",
+            f"Draft #{draft_id} updated for {client_name}",
+            total
+        )
+
+        return jsonify({
+            "status": "success",
+            "message": "Draft updated"
+        }), 200
+
+    except Exception as e:
+        conn.rollback()
+        print("Update draft error:", e)
+        return jsonify({"status": "error", "message": "Server error"}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/clients/add", methods=["POST"])
+@token_required
+def add_client(current_user_id, current_user_role):
+    data = request.get_json()
+    if not data:
+        return jsonify({"status": "error", "message": "Invalid JSON"}), 400
+    
+    conn = get_db()
+    cursor = conn.cursor(buffered=True)
+
+    try:
+        client_name = data.get("name")
+        client_email = data.get("email")
+        client_phone = data.get("phone")
+        client_company = data.get("company")
+        client_notes = data.get("notes", "")
+
+        if not client_name or not client_email:
+            return jsonify({"status": "error", "message": "Name and email are required"}), 400
+
+        cursor.execute(
+            """
+            SELECT id FROM clients WHERE client_email=%s AND user_id=%s
+            """,
+            (client_email, current_user_id)
+        )
+        if cursor.fetchone():
+            return jsonify({"status": "error", "message": "Client with this email already exists"}), 400
+
+        cursor.execute(
+            """
+            INSERT INTO clients (user_id, client_name, client_email, client_phone, client_company, client_notes)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            """,
+            (current_user_id, client_name, client_email, client_phone, client_company, client_notes)
+        )
+        conn.commit()
+
+        save_log_activity(
+            current_user_id,
+            "client",
+            "Added",
+            f"Client {client_name} added"
+        )
+
+        return jsonify({
+            "status": "success",
+            "message": "Client added successfully"
+        }), 201
+    except Exception as e:
+        conn.rollback()
+        print("Add client error:", e)
+        return jsonify({"status": "error", "message": "Server error"}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/client/update-edit", methods=["POST"])
+@token_required
+def update_client(current_user_id, current_user_role):
+    data = request.get_json()
+    if not data:
+        return jsonify({
+            "status": "error",
+            "message": "Invalid JSON."
+        }), 401
+
+    conn = get_db()
+    cursor = conn.cursor(buffered=True)
+
+    try:
+        id = data.get("id")
+        client_name = data.get("name")
+        client_email = data.get("email")
+        client_phone = data.get("phone")
+        client_address = data.get("address")
+        client_company = data.get("company")
+        client_notes = data.get("notes", "")
+
+        if not client_name or not client_email:
+            return jsonify({"status": "error", "message": "Name and email are required"}), 400
+        
+        cursor.execute(
+            """
+            UPDATE clients
+            SET client_name=%s,
+                client_email=%s,
+                client_phone=%s,
+                client_address=%s,
+                client_company=%s,
+                client_notes=%s
+            WHERE user_id=%s AND id=%s
+            """,
+            (client_name,
+             client_email,
+             client_phone,
+             client_address,
+             client_company,
+             client_notes,
+             current_user_id,
+             id
+            )
+        )
+        conn.commit()
+
+        save_log_activity(
+            current_user_id,
+            "client",
+            "Update",
+            f"Updated client {client_name}"
+        )
+
+        return jsonify({
+            "status": "success",
+            "message": "Client edited successfully"
+        }), 201
+    except Exception as e:
+        conn.rollback()
+        print("Add client error:", e)
+        return jsonify({"status": "error", "message": "Server error"}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/client/delete/<int:client_id>", methods=["DELETE"])
+@token_required
+def delete_client(current_user_id, current_user_role, client_id):
+    conn = get_db()
+    cursor = conn.cursor(buffered=True)
+
+    try:
+        cursor.execute(
+            "SELECT client_name FROM clients WHERE id=%s AND user_id=%s",
+            (client_id, current_user_id)
+        )
+        client = cursor.fetchone()
+        if not client:
+            return jsonify({"status": "error", "message": "Client not found"}), 404
+
+        # delete invoices linked to client
+        cursor.execute(
+            "SELECT id FROM invoices WHERE client_id=%s AND user_id=%s",
+            (client_id, current_user_id)
+        )
+        invoices = cursor.fetchall()
+        for invoice in invoices:
+            invoice_id = invoice[0]
+            cursor.execute(
+                "DELETE FROM invoice_items WHERE invoice_id=%s",
+                (invoice_id,)
+            )
+            cursor.execute(
+                "DELETE FROM invoices WHERE id=%s",
+                (invoice_id,)
+            )
+
+
+        cursor.execute(
+            "DELETE FROM clients WHERE id=%s",
+            (client_id,)
+        )
+
+        conn.commit()
+
+        save_log_activity(
+            current_user_id,
+            "client",
+            "Deleted",
+            f"Deleted client {client[0]}"
+        )
+
+        return jsonify({
+            "status": "success",
+            "message": "Client deleted"
+        }), 200
+
+    except Exception as e:
+        conn.rollback()
+        print("Delete client error:", e)
+        return jsonify({"status": "error", "message": "Server error"}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/logout-session/<int:session_id>", methods=["DELETE"])
+@token_required
+def logout_session(current_user, session_id):
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        DELETE FROM user_sessions
+        WHERE id=%s
+        AND user_id=%s
+    """, (session_id, current_user["user_id"]))
+
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    return jsonify({
+        "status": "success"
+    }), 200
+
+@app.route("/logout-all-other-devices", methods=["POST"])
+@token_required
+def logout_all_other_devices(current_user):
+
+    current_token = session.get("session_token")
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        DELETE FROM user_sessions
+        WHERE user_id=%s
+        AND session_token != %s
+    """, (
+        current_user["user_id"],
+        current_token
+    ))
+
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    return jsonify({
+        "status": "success"
+    }), 200
+
+ALLOWED_SETTINGS = {
+    "invoice_prefix": "invoice_prefix",
+    "next_invoice_number": "next_invoice_number",
+    "default_due_date": "default_due_date",
+    "default_tax_rate": "default_tax_rate",
+    "show_tax": "show_tax",
+    "show_discount": "show_discount",
+    "footer_note": "footer_note",
+
+    "currency": "currency",
+    "currency_symbol": "currency_symbol",
+    "timezone": "timezone",
+    "date_format": "date_format",
+
+    "email_notifications": "email_notifications",
+    "due_date_reminder": "due_date_reminder",
+    "reminder_days_before": "reminder_days_before",
+
+    "theme": "theme",
+    "language": "language",
+
+    "auto_logout_on_inactivity": "auto_logout_on_inactivity",
+    "auto_logout_minutes": "auto_logout_minutes",
+    "require_pin_for_delete": "require_pin_for_delete"
+}
+
+
+@app.route("/update/settings", methods=["POST"])
+@token_required
+def update_settings(current_user_id, current_user_role):
+
+    if not request.is_json:
+        return jsonify({"status": "error", "message": "Invalid JSON"}), 400
+
+    data = request.get_json()
+
+    key = data.get("key")
+    value = data.get("value")
+
+    if not key or key not in ALLOWED_SETTINGS:
+        return jsonify({
+            "status": "error",
+            "message": "Invalid setting key"
+        }), 400
+
+    column = ALLOWED_SETTINGS[key]
+
+    conn = get_db()
+    cursor = conn.cursor(buffered=True)
+
+    try:
+        cursor.execute(
+            f"""
+            UPDATE user_settings
+            SET {column} = %s,
+                updated_at = NOW()
+            WHERE user_id = %s
+            """,
+            (value, current_user_id)
+        )
+        conn.commit()
+
+    except Exception as e:
+        conn.rollback()
+        return jsonify({
+            "status": "error",
+            "message": "Failed to update setting"
+        }), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+    save_log_activity(
+        current_user_id,
+        "account",
+        "Update Settings",
+        f"Upated {column} successfully"
+    )
+    return jsonify({
+        "status": "success",
+        "key": key,
+        "value": value
+    }), 200
+
+
+
+
+@app.route("/submit-feedback", methods=["POST"])
+@token_required
+def submit_feedback(current_user_id,current_user_role):
+
+
+    print("Form data:", request.form)
+    feedback_type = request.form.get("feedback_type", "general")
+    rating = request.form.get("rating")
+    subject = request.form.get("subject")
+    message = request.form.get("message")
+    notify_me = request.form.get("notify_me") == "on"
+
+    # FILE UPLOAD
+    attachment_url = None
+
+    if "attachment" in request.files:
+
+        file = request.files["attachment"]
+
+        if file and file.filename != "":
+
+            try:
+
+                # ALLOWED FILE TYPES
+                allowed_extensions = {
+                    "png", "jpg", "jpeg",
+                    "pdf", "doc", "docx"
+                }
+
+                filename = file.filename.lower()
+
+                extension = filename.rsplit(".", 1)[-1]
+
+                if extension not in allowed_extensions:
+
+                    return jsonify({
+                        "status": "error",
+                        "message": "Invalid file type"
+                    }), 400
+
+                # IMAGE FILES
+                image_extensions = {"png", "jpg", "jpeg"}
+
+                if extension in image_extensions:
+
+                    result = cloudinary.uploader.upload(
+                        file,
+                        folder="feedback_attachments/images",
+
+                        transformation=[
+                            {   
+                                "width": 1200,
+                                "crop": "limit",
+                                "quality": "auto"
+                            }
+                        ],
+
+                        public_id=f"user_{current_user_id}_{int(time.time())}",
+                        resource_type="image"
+                    )
+                else:
+
+                    # PDF / DOC / DOCX
+                    result = cloudinary.uploader.upload(
+                        file,
+                        folder="feedback_attachments/documents",
+
+                        public_id=f"user_{current_user_id}_{int(time.time())}",
+
+                        resource_type="raw"
+                    )
+
+                    attachment_url = result["secure_url"]
+            except Exception as e:
+
+                print("Cloudinary upload error:", str(e))
+
+                return jsonify({
+                    "status": "error",
+                    "message": "Unable to upload file. Please try again."
+                }), 500
+
+    conn = get_db()
+    cursor = conn.cursor(buffered=True)
+
+    cursor.execute("""
+        INSERT INTO feedback
+        (
+            user_id,
+            feedback_type,
+            rating,
+            subject,
+            message,
+            attachment,
+            notify_me
+        )
+        VALUES (%s,%s,%s,%s,%s,%s,%s)
+    """, (
+        current_user_id,
+        feedback_type,
+        rating,
+        subject,
+        message,
+        attachment_url,
+        notify_me
+    ))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return jsonify({
+        "status": "success",
+        "message": "Feedback submitted successfully"
+    })
+
+@app.route("/api/support/ticket", methods=["POST"])
+@token_required
+def create_support_ticket(current_user_id, current_user_role):
+
+
+    data = request.get_json()
+
+    category = data.get("category")
+    subject = data.get("subject")
+    message = data.get("message")
+
+    if not category or not subject or not message:
+        return jsonify({
+            "status": "error",
+            "message": "All fields are required"
+        }), 400
+
+    conn = get_db()
+    cursor = conn.cursor(buffered=True)
+
+    cursor.execute("""
+        INSERT INTO support_tickets
+        (user_id, category, subject, message)
+        VALUES (%s,%s,%s,%s)
+    """, (
+        current_user_id,
+        category,
+        subject,
+        message
+    ))
+
+    conn.commit()
+
+    return jsonify({
+        "status": "success",
+        "message": "Support ticket submitted"
+    }), 200 
+
+@app.route("/account/delete", methods=["DELETE"])
+@token_required
+def delete_account(current_user_id,current_user_role):
+    data = request.get_json()
+    if not data:
+        return jsonify({
+            "status":"error",
+            "message":"Invalid JSON"
+        }), 400 
+
+    reason = data.get("reason")
+    feedback = data.get("feedback")
+    password = data.get("password")
+
+    if not password:
+        return jsonify({
+            "status": "error",
+            "message": "Password required."
+        }), 400
+
+
+    conn = get_db()
+    cursor = conn.cursor(buffered=True, dictionary=True)
+
+    try:
+        cursor.execute("""
+            SELECT password_hash, email, username
+            FROM user_base
+            WHERE user_id = %s
+        """, (current_user_id,))
+
+        user = cursor.fetchone()
+
+        hashed = hashlib.sha256(password.encode()).hexdigest()
+        if hashed != user["password_hash"]:
+            return jsonify({
+                "status": "error",
+                "message": "Incorrect password."
+            }), 401
+
+        cursor.execute("""
+            INSERT INTO closed_accounts
+            (
+                user_id,
+                reason,
+                feedback,
+                closed_at
+            )
+            VALUES (%s,%s,%s,NOW())
+        """, (
+            current_user_id,
+            reason,
+            feedback
+        ))
+        
+
+        cursor.execute(
+            """
+            DELETE FROM cust_base WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+
+        cursor.execute(
+            """
+            DELETE FROM user_settings  WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+
+        cursor.execute(
+            """
+            DELETE FROM user_sessions  WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+
+        cursor.execute(
+            """
+            DELETE FROM wallet_base  WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+
+        cursor.execute(
+            """
+            DELETE FROM security_activity  WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+
+        cursor.execute(
+            """
+            DELETE FROM log_activity  WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+
+        cursor.execute(
+            """
+            DELETE FROM clients  WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+
+        cursor.execute(
+            """
+            SELECT id FROM invoices WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+        invoices = cursor.fetchall()
+        for i in invoices:
+            cursor.execute(
+                 """
+                DELETE FROM invoice_items WHERE invoice_id=%s
+                """,
+                (i[0],)
+            )
+        cursor.execute(
+            """
+            DELETE FROM invoices  WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+
+        cursor.execute(
+            """
+            DELETE FROM transactions  WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+
+        cursor.execute(
+            """
+            DELETE FROM invoice_drafts  WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+
+        cursor.execute(
+            """
+            DELETE FROM support_tickets  WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+
+        cursor.execute(
+            """
+            DELETE FROM subscriptions  WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+
+        cursor.execute(
+            """
+            DELETE FROM referrals  WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+
+        cursor.execute(
+            """
+            DELETE FROM user_subscriptions  WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+
+        cursor.execute(
+            """
+            DELETE FROM feedback  WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+
+        cursor.execute(
+            """
+            DELETE FROM support_chat_messages  WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+        
+        conn.commit()
+        response = jsonify({
+            "status": "success",
+            "message": "Account closed successfully."
+        })
+
+        # REMOVE AUTH COOKIE
+        response.delete_cookie("access_token")
+    except Exception as e:
+        conn.rollback()
+        print("Delete account error:", e)
+        return jsonify({
+            "status": "error",
+            "message": "Server error. Please try again later."
+        }), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@app.route("/mark-notifications-read", methods=["POST"])
+@token_required
+def mark_notifications_as_read(current_user_id, current_user_role):
+
+    data = request.get_json()
+
+    notification_id = data.get("notification_id")
+
+    conn = get_db()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE log_activity
+        SET is_read = 1
+        WHERE id = %s
+        AND user_id = %s
+    """, (notification_id, current_user_id))
+
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    return jsonify({
+        "success": True,
+        "message": "Notification marked as read"
+    })
+
+
+@app.route("/profile/update-edit", methods=["POST"])
+@token_required
+def update_profile(current_user_id,current_user_role):
+    data = request.get_json()
+    if not data:
+        return jsonify({
+            "status": "error",
+            "message": "Invalid JSON"
+        }), 400
+
+    required_data = ["fullname", "profilename", "address", "alternateemail", "phone", "website", "bio", "country", "username"]
+    
+    for field in required_data:
+        if field not in data or not data[field].strip():
+            return jsonify({
+                "status": "error",
+                "message": f"{field.replace('_', ' ').title()} is required"
+            }), 400
+
+    conn = get_db()
+    cursor = conn.cursor(buffered=True)
+    try:
+        cursor.execute(
+            """
+            UPDATE cust_base
+            SET fullname=%s,
+                profilename=%s,
+                address=%s,
+                alternateemail=%s,
+                phone=%s,
+                website=%s,
+                bio=%s,
+                country=%s
+            WHERE user_id=%s
+            """,
+            (data['fullname'],
+            data['profilename'],
+            data['address'],
+            data['alternateemail'],
+            data['phone'],
+            data['website'],
+            data['bio'],
+            data['country'],
+            current_user_id)
+        )
+
+        cursor.execute(
+            "UPDATE user_base SET username=%s WHERE user_id=%s",
+            (data['username'], current_user_id)
+        )
+
+        conn.commit()
+
+        send_notification(
+            current_user_id,
+            "account",
+            "Profile Updated",
+            f"Updated profile info for {data['fullname']}"
+        )
+
+        return jsonify({
+            "status": "success",
+            "message": "Profile updated successfully"
+        }), 200
+    except Exception as e:
+        conn.rollback()
+        print("Update profile error:", e)
+        return jsonify({
+            "status": "error",
+            "message": "Server error. Please try again later."
+        }), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/profile/update/pic", methods=["POST"])
+@token_required
+def change_profile_pic(current_user_id, current_user_role):
+    file = request.files.get("profile_picture")  # Make sure your input type="file"
+    if file:
+        try:
+            result = cloudinary.uploader.upload(
+            file,
+            folder="profile_images",
+            transformation = [
+                {"width":300, "height":300, "crop":"fill"}
+            ],
+            public_id = f"user_{current_user_id}",
+            overwrite= True
+         )
+            save_path = result['secure_url']
+        except Exception as e:
+            print("Cloudinary upload error:", str(e))
+
+            return jsonify({
+            "success": False,
+            "message": "Unable to upload file. Please try again."
+        }), 500
+
+    conn = get_db()
+    cursor = conn.cursor(buffered=True)
+    try:
+        cursor.execute(
+            """
+            UPDATE cust_base
+            SET profilepicurl=%s
+            WHERE user_id=%s
+            """,
+            (save_path,current_user_id)
+        )
+
+        conn.commit()
+
+        send_notification(
+            current_user_id,
+            "account",
+            "Profile Updated",
+            "Profile picture changed"
+        )
+
+        return jsonify({
+            "success": True,
+            "message": "Profile Pic updated successfully."
+        }), 200
+    except Exception as e:
+        conn.rollback()
+        print("Update profile pic error:", e)
+        return jsonify({
+            "success": False,
+            "message": "Server error. Please try again later."
+        }), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+@app.route("/api/billing/<string:plan>/<int:amount>/<int:user_id>", methods=["GET"])
+@token_required
+def pay_page(current_user_id,current_user_role,plan,amount,user_id):
+    if current_user_id != user_id:
+        redirect("/login")
+    conn = get_db()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute(
+        """
+        SELECT email
+        FROM user_base
+        WHERE user_id=%s
+        """,
+        (user_id,)
+    )
+    email = cursor.fetchone()['email']
+    cursor.close()
+    conn.close()
+    return render_template(
+        "users/pay.html",
+        plan=plan.upper(),
+        amount=f'{amount:,.2f}',
+        email=email,
+        user_id=user_id
+    )
+
+import requests
+from dateutil.relativedelta import relativedelta
+
+@app.route("/user/verify-payment", methods=["POST"])
+def verify_payment():
+    data = request.get_json()
+    reference = data.get("reference")
+    conn = get_db()
+    cursor = conn.cursor()
+
+    headers = {
+        "Authorization": "Bearer sk_test_3efbeacd55d65d3fbcd6bfac95380aea329ca20e"
+    }
+
+    url = f"https://api.paystack.co/transaction/verify/{reference}"
+
+    response = requests.get(url, headers=headers)
+    result = response.json()
+
+    expires_at = datetime.utcnow() + relativedelta(months=1)
+
+    if result["data"]["status"] == "success":
+
+        
+        # ✅ Payment verified
+
+        cursor.execute(
+            """
+            UPDATE user_base 
+            SET plan=%s
+            WHERE user_id=%s
+            """,
+            (data["plan"], data["user_id"])
+        )
+
+        cursor.execute(
+            """
+            INSERT INTO user_subscriptions
+            (user_id,plan,amount,status,expires_at)
+            VALUES(%s,%s,%s,%s,%s)
+            """,
+            (data['user_id'],
+             data['plan'].lower(),
+             data['amount'],
+             "active",
+             expires_at)
+        )
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        return jsonify({
+            "status": "success",
+            "message": "Payment verified successfully"
+        }), 200
+
+    else:
+        return jsonify({
+            "status": "error",
+            "message": "Payment not verified"
+        }), 400
+        
+if __name__ == "__main__":
+
+    socketio.run(
+        app,
+        debug=True
+    )
+    # app.run(host='127.0.0.1', port=5502, debug=True)

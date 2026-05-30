@@ -1,0 +1,6 @@
+.env
+DATA.SQL
+__pycache__/
+*.pyc
+config.json
+testing.py.env

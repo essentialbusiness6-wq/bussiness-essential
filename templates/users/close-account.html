@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Business Essential - Close Account</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/media/app logo.png"/>
+    <link rel="stylesheet" href="/static/css/close-account.css">
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    
+    <header class="dashboard-header">
+        <button class="icon-btn" id="backButton" aria-label="Back">
+            <svg viewBox="0 0 24 24">
+                <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+
+        <h2>Close Account</h2>
+
+        <button class="icon-btn" id="helpBtn" aria-label="Help">
+            <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <line x1="12" y1="17" x2="12.01" y2="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </button>
+    </header>
+
+    <main class="content close-account-page">
+        <div class="warning-banner">
+            <svg viewBox="0 0 24 24">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <line x1="12" y1="9" x2="12" y2="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <line x1="12" y1="17" x2="12.01" y2="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <div>
+                <h3>Irreversible Action</h3>
+                <p>Closing your account will permanently delete all invoices, client data, and payment records. This action cannot be undone.</p>
+            </div>
+        </div>
+
+        <div class="alternatives-section">
+            <h4>Not sure? Consider these options instead:</h4>
+            <div class="alternative-cards">
+                <a href="/billing" class="alt-card">
+                    <span class="alt-icon">📉</span>
+                    <div>
+                        <strong>Downgrade to Free</strong>
+                        <small>Keep your data, remove billing</small>
+                    </div>
+                </a>
+                <a href="/support" class="alt-card">
+                    <span class="alt-icon">💬</span>
+                    <div>
+                        <strong>Contact Support</strong>
+                        <small>Let us help resolve issues</small>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <form id="closeAccountForm" class="close-form">
+            <!-- Reason -->
+            <div class="form-group">
+                <label for="closeReason">Why are you leaving?</label>
+                <select id="closeReason" required>
+                    <option value="" disabled selected>Select a reason</option>
+                    <option value="expensive">Too expensive</option>
+                    <option value="missing-features">Missing features I need</option>
+                    <option value="switching">Switching to a competitor</option>
+                    <option value="no-longer-use">I no longer need this service</option>
+                    <option value="technical">Technical issues / poor experience</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="additionalFeedback">Additional Feedback (Optional)</label>
+                <textarea id="additionalFeedback" rows="3" placeholder="Tell us how we can improve..."></textarea>
+            </div>
+
+            <!-- Data Export -->
+            <div class="form-group highlight-box">
+                <div class="highlight-header">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    <strong>Export Your Data</strong>
+                </div>
+                <p>Before closing, we recommend downloading a copy of your invoices and client list.</p>
+                <button type="button" class="btn outline" id="exportDataBtn">Download All Data</button>
+            </div>
+
+            <!-- Confirmation Checklist -->
+            <div class="form-group">
+                <label>Final Confirmations</label>
+                <div class="checklist">
+                    <label class="check-item">
+                        <input type="checkbox" id="confirmDataLoss">
+                        <span class="custom-checkbox"></span>
+                        <span class="check-label">I understand all my data will be permanently deleted</span>
+                    </label>
+                    <label class="check-item">
+                        <input type="checkbox" id="confirmSubscription">
+                        <span class="custom-checkbox"></span>
+                        <span class="check-label">I understand active subscriptions will be canceled immediately</span>
+                    </label>
+                    <label class="check-item">
+                        <input type="checkbox" id="confirmIrreversible">
+                        <span class="custom-checkbox"></span>
+                        <span class="check-label">I understand this action is irreversible and cannot be undone</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Security Verification -->
+            <div class="form-group">
+                <label for="verifyPassword">Enter Password to Confirm</label>
+                <input type="password" id="verifyPassword" placeholder="Your account password" required autocomplete="current-password">
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" class="btn danger" id="closeAccountBtn" disabled>
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                <span class="btn-text">Close Account Permanently</span>
+                <span class="btn-loader" style="display:none;"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 2v6m0 10v6M4.93 4.93l4.24 4.24m8.49-8.49l4.24 4.24M1.5 12h6m10 0h6M4.93 19.07l4.24-4.24m8.49 8.49l4.24-4.24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+            </button>
+        </form>
+    </main>
+
+    <!-- Final Confirmation Modal -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal-card">
+            <div class="close" id="closeModal">&times;</div>
+            <div class="modal-icon danger">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="currentColor"/><line x1="12" y1="8" x2="12" y2="12" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="16" x2="12.01" y2="16" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+            </div>
+            <h2>Final Confirmation</h2>
+            <p>You are about to permanently delete your Business Essential account and all associated data. This cannot be recovered.</p>
+            <div class="modal-buttons">
+                <button class="btn secondary" id="cancelClose">Keep Account</button>
+                <button class="btn danger" id="finalConfirm">Yes, Close Now</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal-overlay" id="successModal">
+        <div class="modal-card">
+            <div class="modal-icon success">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="currentColor"/><polyline points="20 6 9 17 4 12" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <h2>Account Closed</h2>
+            <p>Your account has been successfully closed. All data has been permanently removed from our servers. You will receive a confirmation email shortly.</p>
+            <button class="btn primary" id="redirectBtn">Return to Home</button>
+        </div>
+    </div>
+
+    <script src="/static/js/close-account.js"></script>
+</body>
+</html>

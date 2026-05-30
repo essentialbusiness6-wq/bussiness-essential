@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Business Essential - Profile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/media/app logo.png"/>
+    <link rel="stylesheet" href="/static/css/profile.css">
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    
+    <header class="dashboard-header">
+        <button class="icon-btn" id="backButton" aria-label="Back">
+            <svg viewBox="0 0 24 24">
+                <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+
+        <h2>Profile</h2>
+
+        <button class="icon-btn" id="helpBtn" aria-label="Help">
+            <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <line x1="12" y1="17" x2="12.01" y2="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </button>
+    </header>
+
+    <div class="dashboard">
+        <main class="content">
+            <div class="profile-container">
+                <div class="profile-header">
+                    <h2>Your Profile</h2>
+                    <p class="profile-subtitle">Manage your personal information and preferences</p>
+                </div>
+
+                <!-- Profile Picture -->
+                <div class="profile-pic-section">
+                    <div class="profile-pic-container" id="profilePicContainer">
+                        <div class="profile-pic-wrapper">
+                            <img id="profilePicture" 
+                                 src="{{ profile_data['profile_pic'] if profile_data['profile_pic'] else '/static/media/default-profile.png' }}" 
+                                 alt="Profile Picture" 
+                                 class="profile-pic">
+                            <div class="pic-overlay">
+                                <button type="button" class="pic-action" id="changePicBtn" title="Change picture">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M12 20h9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </button>
+                                <button type="button" class="pic-action danger" id="removePicBtn" title="Remove picture">
+                                    <svg viewBox="0 0 24 24">
+                                        <polyline points="3 6 5 6 21 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <p class="pic-hint">Click to change or remove your profile picture</p>
+                    </div>
+                    <input type="file" id="newProfilePic" name="profile-pic" accept="image/*" hidden>
+                </div>
+
+                <!-- Profile Form -->
+                <form id="profileForm" class="profile-form">
+                    <div class="form-section">
+                        <h3>Personal Information</h3>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="fullName">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <circle cx="12" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    Full Name
+                                </label>
+                                <input type="text" id="fullName" name="fullname" value="{{ profile_data['fullname'] }}" placeholder="Enter your full name" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="profileName">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <circle cx="9" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M16 3.13a4 4 0 0 1 0 7.75" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    Display Name
+                                </label>
+                                <input type="text" id="profileName" name="profilename" value="{{ profile_data['profilename'] }}" placeholder="How you appear to others">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="profileUsername">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <circle cx="12" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    Username
+                                </label>
+                                <input type="text" id="profileUsername" name="username" value="{{ profile_data['username'] }}" placeholder="Unique username" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="Phone">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    Phone Number
+                                </label>
+                                <input type="tel" id="Phone" name="phone" value="{{ profile_data['phone'] }}" placeholder="+1 (262) 873-006">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>Contact Details</h3>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="Address">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <circle cx="12" cy="10" r="3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    Address
+                                </label>
+                                <input type="text" id="Address" name="address" value="{{ profile_data['address'] }}" placeholder="Your business address">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="Country">
+                                    <svg viewBox="0 0 24 24">
+                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <circle cx="12" cy="10" r="3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    Country
+                                </label>
+                                <select id="Country" name="country">
+                                    <option value="US" {% if profile_data['country'] == 'US' %}selected{% endif %}>United States</option>
+                                    <option value="NG" {% if profile_data['country'] == 'NG' %}selected{% endif %}>Nigeria</option>
+                                    <option value="GB" {% if profile_data['country'] == 'GB' %}selected{% endif %}>United Kingdom</option>
+                                    <option value="CA" {% if profile_data['country'] == 'CA' %}selected{% endif %}>Canada</option>
+                                    <option value="AU" {% if profile_data['country'] == 'AU' %}selected{% endif %}>Australia</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="Alternateemail">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <polyline points="22 6 12 13 2 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                Alternate Email
+                            </label>
+                            <input type="email" id="Alternateemail" name="alternateemail" value="{{ profile_data['alternateemail'] }}" placeholder="Secondary contact email">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="Website">
+                                <svg viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                                </svg>
+                                Website
+                            </label>
+                            <input type="url" id="website" name="website" value="{{ profile_data['website'] }}" placeholder="https://yourwebsite.com">
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3>About You</h3>
+                        
+                        <div class="form-group full-width">
+                            <label for="profileBio">
+                                <svg viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                                    <line x1="12" y1="16" x2="12" y2="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                    <line x1="12" y1="8" x2="12.01" y2="8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                                Bio
+                            </label>
+                            <textarea id="profileBio" name="bio" rows="4" placeholder="Tell us about yourself, your business, or what you do...">{{ profile_data['bio'] }}</textarea>
+                            <p class="field-hint">Max 500 characters. This appears on your public profile.</p>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn secondary" id="cancelBtn">Cancel</button>
+                        <button type="submit" class="btn primary" id="saveChangesBtn">
+                            <svg viewBox="0 0 24 24">
+                                <polyline points="20 6 9 17 4 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span class="btn-text">Save Changes</span>
+                            <span class="btn-loader" style="display:none;">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M12 2v6m0 10v6M4.93 4.93l4.24 4.24m8.49-8.49l4.24 4.24M1.5 12h6m10 0h6M4.93 19.07l4.24-4.24m8.49 8.49l4.24-4.24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Danger Zone -->
+                <div class="danger-zone">
+                    <h3>Danger Zone</h3>
+                    <p>Permanently delete your account and all associated data. This action cannot be undone.</p>
+                    <button id="deleteAccount" class="btn danger">
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="3 6 5 6 21 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Delete Account
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="confirmModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="close" id="closeModal">&times;</div>
+            <div class="modal-icon danger">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" fill="currentColor"/>
+                    <line x1="12" y1="8" x2="12" y2="12" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <h3>Delete Account?</h3>
+            <p>Are you sure you want to delete your account? All your data, invoices, and client information will be permanently removed. This action cannot be undone.</p>
+            <div class="modal-buttons">
+                <button class="btn secondary" id="cancelDelete">Cancel</button>
+                <button class="btn danger" id="confirmDelete">Yes, Delete Account</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/profile.js"></script>
+</body>
+</html>

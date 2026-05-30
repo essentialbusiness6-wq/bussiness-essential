@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Business Essential - Execute Super Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/media/app logo.png"/>
+    <link rel="stylesheet" href="/static/css/execute-super-admin-dashboard.css">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <img src="/static/media/app logo.png" alt="Logo">
+                <span>{{ adminName }}</span>
+                <button class="close-sidebar" id="closeSidebar">&times;</button>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="/admin/execute/super-admin-dashboard" class="nav-item active">
+                    <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" fill="currentColor"/></svg>
+                    Dashboard
+                </a>
+                <a href="/admin/execute/admin-management" class="nav-item">
+                    <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 3.13a4 4 0 0 1 0 7.75" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                    Admin Management
+                </a>
+                <a href="/admin/execute/security-audit" class="nav-item">
+                    <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                    Security & Audit
+                </a>
+                <a href="/admin/execute/system-config" class="nav-item">
+                    <svg viewBox="0 0 24 24"><path d="M21 12.22C21 6.73 16.74 3 12 3c-4.69 0-9 3.73-9 9.22-.6 2.36 1.22 4.78 3.18 6.19C4.65 21.56 1 23 1 23h22s-3.65-1.44-5.18-4.59c1.96-1.41 3.78-3.83 3.18-6.19z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                    System Config
+                </a>
+                      <a href="/admin/execute//billing-payout" class="nav-item">
+                    <svg viewBox="0 0 24 24">
+                        <rect x="2" y="4" width="20" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <line x1="6" y1="8" x2="18" y2="8" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <line x1="6" y1="12" x2="18" y2="12" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <line x1="6" y1="16" x2="12" y2="16" fill="none" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    Billing & Payouts
+                </a>
+                           <a href="/admin/execute/database-api" class="nav-item">
+                    <svg viewBox="0 0 24 24">
+                        <ellipse cx="12" cy="5" rx="9" ry="3" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" fill="none" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    Database & Access
+                </a>
+                
+                <a href="/admin/execute/invite-keys" class="nav-item">
+                    <svg viewBox="0 0 24 24"><path d="M12 20h9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                    Invite Keys
+                </a>
+            </nav>
+
+             <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">{{ adminName[:2] }}</div>
+                    <div class="user-details">
+                        <span class="user-name">{{ adminName }}</span>
+                        <span class="user-role">Super Admin</span>
+                    </div>
+                </div>
+                <a href="/admin/execute/logout" class="logout-link">
+                    <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" fill="none" stroke="currentColor" stroke-width="2"/><polyline points="16 17 21 12 16 7" fill="none" stroke="currentColor" stroke-width="2"/><line x1="21" y1="12" x2="9" y2="12" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Overlay for mobile sidebar -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="content-header">
+                <button class="menu-toggle" id="menuToggle">
+                    <svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12" fill="none" stroke="currentColor" stroke-width="2"/><line x1="3" y1="6" x2="21" y2="6" fill="none" stroke="currentColor" stroke-width="2"/><line x1="3" y1="18" x2="21" y2="18" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                </button>
+                
+                <div class="header-title">
+                    <h1>Execute Super Admin</h1>
+                    <p>Full system control and administration</p>
+                </div>
+
+                <div class="header-actions">
+                    <button class="icon-btn generate-key-btn" id="generateKeyBtn">
+                        <svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                        Generate Invite Key
+                    </button>
+                </div>
+            </header>
+
+            <div class="content-area">
+                <!-- Quick Stats -->
+                <section class="stats-grid">
+                    <div class="stat-card primary">
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 3.13a4 4 0 0 1 0 7.75" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                        </div>
+                        <div class="stat-details">
+                            <span class="stat-value">{{ total_admins_before }}</span>
+                            <span class="stat-label">Total Admins</span>
+                        </div>
+                        <div class="stat-change positive">+{{ total_admins_this_week - total_admins_before }}</div>
+                    </div>
+
+                    <div class="stat-card success">
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" fill="none" stroke="currentColor" stroke-width="2"/><polyline points="22 4 12 14.01 9 11.01" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                        </div>
+                        <div class="stat-details">
+                            <span class="stat-value">99.98%</span>
+                            <span class="stat-label">System Uptime</span>
+                        </div>
+                        <div class="stat-change positive">Stable</div>
+                    </div>
+
+                    <div class="stat-card warning">
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12" y1="8" x2="12" y2="12" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12" y1="16" x2="12.01" y2="16" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                        </div>
+                        <div class="stat-details">
+                            <span class="stat-value">{{ last_failed_logins|length }}</span>
+                            <span class="stat-label">Failed Logins (24h)</span>
+                        </div>
+                        <div class="stat-change negative">Monitor closely</div>
+                    </div>
+
+                    <div class="stat-card info">
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" fill="none" stroke="currentColor" stroke-width="2"/><polyline points="17 8 12 3 7 8" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12" y1="3" x2="12" y2="15" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                        </div>
+                        <div class="stat-details">
+                            <span class="stat-value">{{ active_sessions }}</span>
+                            <span class="stat-label">Active Sessions</span>
+                        </div>
+                        <div class="stat-change positive">All verified</div>
+                    </div>
+                </section>
+
+                <!-- Admin Management -->
+                <section class="section-card">
+                    <div class="section-header">
+                        <div class="header-left">
+                            <h2>Admin Management</h2>
+                            <p>Manage platform administrators and access levels</p>
+                        </div>
+                        <div class="header-right">
+                            <div class="search-box">
+                                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" fill="none" stroke="currentColor" stroke-width="2"/><line x1="21" y1="21" x2="16.65" y2="16.65" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                                <input type="text" id="adminSearch" placeholder="Search admins...">
+                            </div>
+                            <button class="btn primary" id="addAdminBtn">
+                                <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19" fill="none" stroke="currentColor" stroke-width="2"/><line x1="5" y1="12" x2="19" y2="12" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                                Add Admin
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="admin-table-wrapper">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Admin</th>
+                                    <th>Role</th>
+                                    <th>Department</th>
+                                    <th>Status</th>
+                                    <th>Last Active</th>
+                                    <th>2FA</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for admin in admins %}
+                                <tr>
+                                    <td class="admin-cell">
+                                        <div class="avatar">{{ admin.name[:2] }}</div>
+                                        <div>
+                                            <span class="name">{{ admin.name }}</span>
+                                            <span class="email">{{ admin.email }}</span>
+                                        </div>
+                                    </td>
+                                    <td><span class="role-badge {{ admin.role|lower }}">{{ admin.role }}</span></td>
+                                    <td>{{ admin.department }}</td>
+                                    <td><span class="status-badge {{ admin.status|lower }}">● {{ admin.status }}</span></td>
+                                    <td>{{ admin.last_active }}</td>
+                                    <td><span class="{{ 'verified' if admin.two_factor_enabled else 'pending' }}">{{ '✓' if admin.two_factor_enabled else 'pending' }}</span></td>
+                                    <td>
+                                        <div class="action-menu">
+                                            <button class="action-btn" title="Edit"><svg viewBox="0 0 24 24"><path d="M12 20h9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+                                            <button class="action-btn danger" title="Suspend"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07" fill="none" stroke="currentColor" stroke-width="2"/></svg></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="table-footer">
+                        <p>Showing <strong>1-4</strong> of <strong>18</strong> admins</p>
+                        <div class="pagination">
+                            <button class="page-btn" disabled>← Previous</button>
+                            <button class="page-btn active">1</button>
+                            <button class="page-btn">2</button>
+                            <button class="page-btn">3</button>
+                            <button class="page-btn">Next →</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Recent Audit Logs -->
+                <section class="section-card">
+                    <div class="section-header">
+                        <h2>Recent Audit Activity</h2>
+                        <a href="/audit-logs" class="link-arrow">View all logs <svg viewBox="0 0 24 24"><path d="M5 12h14" fill="none" stroke="currentColor" stroke-width="2"/><path d="m12 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2"/></svg></a>
+                    </div>
+                    <ul class="activity-log">
+                        {% for log in audit_logs %}
+                        <li>
+                            <div class="log-time">{{ log.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+                            <div class="log-content">
+                                <span class="log-badge {{ log.type|lower }}">{{ log.type }}</span>
+                                <strong>{{ log.description }}</strong>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </section>
+
+                <!-- Quick Config -->
+                <section class="config-grid">
+                    <div class="config-card">
+                        <h3>System Settings</h3>
+                        <p>Configure global platform settings</p>
+                        <button class="btn secondary">Manage</button>
+                    </div>
+                    <div class="config-card">
+                        <h3>Security Policy</h3>
+                        <p>Update 2FA, password policies</p>
+                        <button class="btn secondary">Manage</button>
+                    </div>
+                    <div class="config-card">
+                        <h3>Invite Keys</h3>
+                        <p>Manage active and expired keys</p>
+                        <button class="btn secondary">Manage</button>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Generate Key Modal -->
+    <div class="modal" id="generateKeyModal">
+        <div class="modal-overlay"></div>
+        <div class="modal-card">
+            <div class="close-modal" id="closeModal">&times;</div>
+            <div class="modal-header">
+                            </div>
+                        </li>
+                        <li>
+                            <div class="log-time">Today 08:15 AM</div>
+                            <div class="log-content">
+                                <span class="log-badge warning">KEY GENERATED</span>
+                                <strong>Mike K.</strong> generated invite key <code>INV-8842-X9K2</code> for <strong>Support</strong> role
+                            </div>
+                        </li>
+                        <li>
+                            <div class="log-time">Yesterday 04:30 PM</div>
+                            <div class="log-content">
+                                <span class="log-badge error">FAILED</span>
+                                Unknown attempt from <code>45.33.22.11</code> - Blocked
+                            </div>
+                        </li>
+                        <li>
+                            <div class="log-time">Yesterday 02:15 PM</div>
+                            <div class="log-content">
+                                <span class="log-badge info">ROLE CHANGE</span>
+                                <strong>Jane Doe</strong> promoted <strong>Sarah L.</strong> to <strong>Support Admin</strong>
+                            </div>
+                        </li>
+                    </ul>
+                </section>
+
+                <!-- Quick Config -->
+                <section class="config-grid">
+                    <div class="config-card">
+                        <h3>System Settings</h3>
+                        <p>Configure global platform settings</p>
+                        <button class="btn secondary">Manage</button>
+                    </div>
+                    <div class="config-card">
+                        <h3>Security Policy</h3>
+                        <p>Update 2FA, password policies</p>
+                        <button class="btn secondary">Manage</button>
+                    </div>
+                    <div class="config-card">
+                        <h3>Invite Keys</h3>
+                        <p>Manage active and expired keys</p>
+                        <button class="btn secondary">Manage</button>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Generate Key Modal -->
+    <div class="modal" id="generateKeyModal">
+        <div class="modal-overlay"></div>
+        <div class="modal-card">
+            <div class="close-modal" id="closeModal">&times;</div>
+            <div class="modal-header">
+                <svg viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                <h3>Generate Invite Key</h3>
+            </div>
+            <form id="generateKeyForm">
+                <div class="form-group">
+                    <label>Assign Role *</label>
+                    <select id="keyRole" required>
+                        <option value="super-admin">Super Administrator</option>
+                        <option value="admin" selected>Platform Administrator</option>
+                        <option value="support">Support Administrator</option>
+                        <option value="finance">Finance Administrator</option>
+                        <option value="audit">Audit & Compliance</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Expiration Period *</label>
+                    <select id="keyExpiry" required>
+                        <option value="24h">24 Hours</option>
+                        <option value="48h">48 Hours</option>
+                        <option value="7d" selected>7 Days</option>
+                        <option value="30d">30 Days</option>
+                        <option value="never">Never Expires</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Max Uses</label>
+                    <select id="keyMaxUses">
+                        <option value="1" selected>1 use</option>
+                        <option value="5">5 uses</option>
+                        <option value="10">10 uses</option>
+                        <option value="unlimited">Unlimited</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Notes (Optional)</label>
+                    <input type="text" id="keyNotes" placeholder="e.g., For new hire onboarding">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn secondary" id="cancelKeyGen">Cancel</button>
+                    <button type="submit" class="btn primary" id="submitKeyGen">Generate Key</button>
+                </div>
+            </form>
+            
+            <div id="generatedKeyResult" style="display:none;">
+                <div class="key-display">
+                    <span class="key-value" id="newKeyValue">XXXX-XXXX-XXXX</span>
+                    <button class="copy-key" id="copyKeyBtn" title="Copy">
+                        <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                    </button>
+                </div>
+                <p class="key-notice">Store securely. This key grants access to create an admin account.</p>
+                <button class="btn primary full-width" id="closeKeyModal">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/execute-super-admin-dashboard.js"></script>
+</body>
+</html>

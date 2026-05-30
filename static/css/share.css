@@ -1,0 +1,1020 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+    --primary: #4361ee;
+    --secondary: #3f37c9;
+    --accent: #4895ef;
+    --success: #2ecc71;
+    --dark: #1e293b;
+    --light: #f8fafc;
+    --gray: #64748b;
+    --medium-gray: #475569;
+    --light-gray: #94a3b8;
+    --danger: #e74c3c;
+    --warning: #f39c12;
+    --info: #3498db;
+    --gradient-bg: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    --gradient-card: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85));
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.15);
+    --transition-fast: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
+    --transition: all 0.35s cubic-bezier(0.165, 0.84, 0.44, 1);
+    --transition-slow: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+    --border-radius-sm: 12px;
+    --border-radius: 16px;
+    --border-radius-lg: 24px;
+    --border-radius-full: 9999px;
+    --safe-area-top: env(safe-area-inset-top);
+    --safe-area-bottom: env(safe-area-inset-bottom);
+    --safe-area-left: env(safe-area-inset-left);
+    --safe-area-right: env(safe-area-inset-right);
+}
+
+/* Base styles */
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--gradient-bg);
+    color: var(--dark);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow-x: hidden;
+    overscroll-behavior-y: contain;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    padding-bottom: calc(var(--safe-area-bottom) + 20px);
+    padding-top: var(--safe-area-top);
+    background-attachment: fixed;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 70%);
+    z-index: -1;
+    animation: rotate 35s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Header styles */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: calc(12px + var(--safe-area-top)) 16px 12px;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: var(--shadow-md);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    height: calc(60px + var(--safe-area-top));
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    margin-bottom: 24px;
+}
+
+.dashboard-header h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    background: linear-gradient(to right, var(--primary), var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.icon-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--border-radius-full);
+    background: rgba(255, 255, 255, 0.85);
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    position: relative;
+    box-shadow: var(--shadow-sm);
+    color: var(--gray);
+    flex-shrink: 0;
+}
+
+.icon-btn:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.95);
+}
+
+.icon-btn:hover {
+    background: var(--primary);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(67, 97, 238, 0.4);
+}
+
+.icon-btn svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+    transition: var(--transition-fast);
+}
+
+/* Main content */
+.dashboard {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: 0 16px;
+    max-width: 100%;
+    margin: 0 auto;
+    width: 100%;
+    position: relative;
+    z-index: 10;
+}
+
+.content {
+    background: var(--gradient-card);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 28px 20px;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.content::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(67, 97, 238, 0.03) 0%, rgba(255,255,255,0) 70%);
+    z-index: -1;
+    animation: rotate 45s linear infinite reverse;
+}
+
+/* Share header */
+.share-header {
+    text-align: center;
+    margin-bottom: 32px;
+    position: relative;
+    z-index: 1;
+}
+
+.share-icon-container {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 20px;
+}
+
+.share-icon {
+    width: 70px;
+    height: 70px;
+    background: rgba(67, 97, 238, 0.15);
+    border-radius: var(--border-radius-full);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(67, 97, 238, 0.25);
+    z-index: 2;
+}
+
+.share-icon::after {
+    content: '';
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
+    animation: rotate 15s linear infinite;
+}
+
+.share-icon svg {
+    width: 36px;
+    height: 36px;
+    fill: var(--primary);
+}
+
+.share-icon-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120%;
+    height: 120%;
+    background: radial-gradient(circle, rgba(67, 97, 238, 0.2) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: pulse 3s infinite;
+    z-index: 1;
+}
+
+@keyframes pulse {
+    0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.6; }
+    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.2; }
+    100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.6; }
+}
+
+.share-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    background: linear-gradient(to right, var(--primary), var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.subtitle {
+    color: var(--gray);
+    font-size: 1.1rem;
+    line-height: 1.5;
+}
+
+/* Referral card */
+.referral-card {
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: var(--border-radius-lg);
+    padding: 28px;
+    margin-bottom: 28px;
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.referral-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(to right, var(--warning), #e67e22);
+    z-index: 1;
+}
+
+.referral-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(243, 156, 18, 0.15);
+    color: var(--warning);
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 4px 14px;
+    border-radius: var(--border-radius-full);
+    margin-bottom: 12px;
+}
+
+.referral-badge svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+}
+
+.referral-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--dark);
+}
+
+.referral-subtitle {
+    color: var(--gray);
+    font-size: 0.95rem;
+    margin-bottom: 16px;
+}
+
+.referral-code {
+    background: rgba(243, 156, 18, 0.1);
+    color: var(--warning);
+    font-weight: 700;
+    font-size: 1.6rem;
+    padding: 12px 20px;
+    border-radius: var(--border-radius);
+    margin: 16px 0;
+    letter-spacing: 2px;
+    font-family: 'Courier New', monospace;
+    border: 1px dashed rgba(243, 156, 18, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.referral-code::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 70%);
+    animation: float 10s linear infinite;
+}
+
+.copy-btn {
+    background: var(--gradient-bg);
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: var(--border-radius-full);
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 1.05rem;
+    margin-top: 12px;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(67, 97, 238, 0.35);
+}
+
+.copy-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(67, 97, 238, 0.45);
+}
+
+.copy-btn:active {
+    transform: translateY(1px);
+}
+
+.copy-btn svg {
+    width: 18px;
+    height: 18px;
+    fill: white;
+}
+
+.referral-hint {
+    margin-top: 16px;
+    color: var(--gray);
+    font-size: 0.9rem;
+}
+
+/* Share options */
+.share-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.share-option {
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: var(--border-radius-lg);
+    padding: 20px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: var(--transition);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.share-option::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: var(--gradient-bg);
+    z-index: 1;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s ease;
+}
+
+.share-option:hover::before {
+    transform: scaleX(1);
+}
+
+.share-option:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+    background: rgba(255, 255, 255, 0.92);
+}
+
+.share-option:active {
+    transform: translateY(1px);
+}
+
+.share-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--border-radius-full);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.share-icon.email { background: rgba(24, 119, 242, 0.15); color: #1877f2; }
+.share-icon.whatsapp { background: rgba(28, 166, 72, 0.15); color: #1ca648; }
+.share-icon.sms { background: rgba(225, 48, 32, 0.15); color: #e13020; }
+.share-icon.twitter { background: rgba(29, 161, 242, 0.15); color: #1da1f2; }
+.share-icon.linkedin { background: rgba(10, 102, 194, 0.15); color: #0a66c2; }
+.share-icon.more { background: rgba(100, 116, 139, 0.15); color: var(--gray); }
+
+.share-icon svg {
+    width: 28px;
+    height: 28px;
+    fill: currentColor;
+}
+
+.share-option span {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--dark);
+    text-align: center;
+}
+
+/* Benefits section */
+.benefits-section {
+    margin-bottom: 28px;
+}
+
+.section-title {
+    font-size: 1.55rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    padding-left: 8px;
+    background: linear-gradient(to right, var(--primary), var(--accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    position: relative;
+    display: inline-block;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 0;
+    width: 40px;
+    height: 4px;
+    background: var(--gradient-bg);
+    border-radius: 2px;
+}
+
+.benefits-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+.benefit-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px;
+    background: rgba(67, 97, 238, 0.05);
+    border-radius: var(--border-radius);
+    border-left: 3px solid var(--primary);
+}
+
+.benefit-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--border-radius-full);
+    background: rgba(67, 97, 238, 0.15);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.benefit-icon svg {
+    width: 20px;
+    height: 20px;
+    fill: var(--primary);
+}
+
+.benefit-text h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--dark);
+    margin-bottom: 4px;
+}
+
+.benefit-text p {
+    color: var(--gray);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+/* Stats section */
+.stats-section {
+    text-align: center;
+    padding: 24px;
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    margin-bottom: 28px;
+}
+
+.stats-title {
+    font-size: 1.45rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: var(--dark);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.stat-item {
+    padding: 16px;
+    border-radius: var(--border-radius);
+    background: rgba(67, 97, 238, 0.05);
+}
+
+.stat-number {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 6px;
+}
+
+.stat-label {
+    color: var(--gray);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Invite friends section */
+.invite-friends {
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: var(--border-radius-lg);
+    padding: 28px;
+    margin-top: 12px;
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    text-align: center;
+}
+
+.invite-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--dark);
+}
+
+.invite-subtitle {
+    color: var(--gray);
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.invite-btn {
+    background: linear-gradient(45deg, var(--warning), #e67e22);
+    color: white;
+    border: none;
+    padding: 14px 32px;
+    border-radius: var(--border-radius-full);
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 1.15rem;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 6px 15px rgba(243, 156, 18, 0.4);
+    margin-top: 8px;
+}
+
+.invite-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(243, 156, 18, 0.5);
+}
+
+.invite-btn:active {
+    transform: translateY(1px);
+}
+
+.invite-btn svg {
+    width: 22px;
+    height: 22px;
+    fill: white;
+}
+
+/* Particles background */
+.particles {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.particle {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.6);
+    animation: float 15s infinite linear;
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0) translateX(0) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(-100vh) translateX(100px) rotate(720deg);
+        opacity: 0;
+    }
+}
+
+/* Toast notification */
+.toast {
+    position: fixed;
+    bottom: calc(20px + var(--safe-area-bottom));
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--dark);
+    padding: 14px 24px;
+    border-radius: 50px;
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    font-weight: 500;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    max-width: 85%;
+    text-align: center;
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.toast svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    fill: var(--primary);
+}
+
+.toast.success {
+    background: rgba(46, 204, 113, 0.95);
+    color: white;
+}
+
+.toast.success svg {
+    fill: white;
+}
+
+.toast.warning {
+    background: rgba(243, 156, 18, 0.95);
+    color: white;
+}
+
+.toast.warning svg {
+    fill: white;
+}
+
+/* Haptic feedback */
+@keyframes haptic {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    50% { transform: translateX(2px); }
+    75% { transform: translateX(-2px); }
+    100% { transform: translateX(0); }
+}
+
+.haptic-feedback {
+    animation: haptic 0.15s ease-in-out;
+}
+
+/* Responsive Design */
+@media (max-width: 767px) {
+    .dashboard-header {
+        height: calc(56px + var(--safe-area-top));
+        padding: calc(8px + var(--safe-area-top)) 16px 8px;
+    }
+    
+    .dashboard-header h2 {
+        font-size: 1.3rem;
+    }
+    
+    .content {
+        padding: 24px 16px;
+    }
+    
+    .share-header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .subtitle {
+        font-size: 1rem;
+    }
+    
+    .share-icon {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .share-icon svg {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .referral-card {
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+    
+    .referral-title {
+        font-size: 1.3rem;
+    }
+    
+    .referral-code {
+        font-size: 1.4rem;
+        padding: 10px 16px;
+    }
+    
+    .copy-btn {
+        padding: 8px 20px;
+        font-size: 1rem;
+    }
+    
+    .share-options {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+    }
+    
+    .share-option {
+        padding: 18px 10px;
+    }
+    
+    .share-icon {
+        width: 42px;
+        height: 42px;
+    }
+    
+    .share-icon svg {
+        width: 24px;
+        height: 24px;
+    }
+    
+    .share-option span {
+        font-size: 0.85rem;
+    }
+    
+    .section-title {
+        font-size: 1.45rem;
+    }
+    
+    .benefit-item {
+        padding: 12px;
+    }
+    
+    .benefit-icon {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .benefit-icon svg {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .benefit-text h3 {
+        font-size: 1.05rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .stat-number {
+        font-size: 1.6rem;
+    }
+    
+    .invite-title {
+        font-size: 1.4rem;
+    }
+    
+    .invite-btn {
+        padding: 12px 28px;
+        font-size: 1.05rem;
+    }
+}
+
+@media (min-width: 768px) {
+    body {
+        padding-bottom: 30px;
+    }
+    
+    .dashboard {
+        padding: 0 24px;
+        max-width: 1200px;
+    }
+    
+    .content {
+        padding: 36px 32px;
+        border-radius: var(--border-radius-lg);
+    }
+    
+    .share-header h1 {
+        font-size: 2.2rem;
+    }
+    
+    .subtitle {
+        font-size: 1.15rem;
+    }
+    
+    .share-icon {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .share-icon svg {
+        width: 42px;
+        height: 42px;
+    }
+    
+    .referral-card {
+        padding: 32px;
+        margin-bottom: 32px;
+    }
+    
+    .referral-title {
+        font-size: 1.5rem;
+    }
+    
+    .referral-code {
+        font-size: 1.8rem;
+        padding: 14px 24px;
+    }
+    
+    .copy-btn {
+        padding: 12px 28px;
+        font-size: 1.1rem;
+    }
+    
+    .share-options {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+    
+    .share-option {
+        padding: 24px 16px;
+    }
+    
+    .share-icon {
+        width: 54px;
+        height: 54px;
+    }
+    
+    .share-icon svg {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .share-option span {
+        font-size: 0.95rem;
+    }
+    
+    .section-title {
+        font-size: 1.65rem;
+    }
+    
+    .benefit-item {
+        padding: 16px;
+    }
+    
+    .benefit-icon {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .benefit-icon svg {
+        width: 22px;
+        height: 22px;
+    }
+    
+    .benefit-text h3 {
+        font-size: 1.15rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+    }
+    
+    .invite-title {
+        font-size: 1.6rem;
+    }
+    
+    .invite-btn {
+        padding: 16px 36px;
+        font-size: 1.2rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .dashboard {
+        padding: 0 32px;
+    }
+    
+    .content {
+        padding: 44px 40px;
+    }
+    
+    .share-header h1 {
+        font-size: 2.4rem;
+    }
+    
+    .share-icon {
+        width: 90px;
+        height: 90px;
+    }
+    
+    .share-icon svg {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .referral-card {
+        padding: 36px;
+    }
+    
+    .referral-code {
+        font-size: 2rem;
+        padding: 16px 28px;
+    }
+    
+    .copy-btn {
+        padding: 14px 32px;
+        font-size: 1.15rem;
+    }
+    
+    .share-option {
+        padding: 28px 20px;
+    }
+    
+    .share-icon {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .share-icon svg {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .section-title {
+        font-size: 1.75rem;
+    }
+    
+    .invite-title {
+        font-size: 1.7rem;
+    }
+    
+    .invite-btn {
+        padding: 18px 40px;
+        font-size: 1.25rem;
+    }
+}

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Business Essential - Security Center</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/media/app logo.png"/>
+    <link rel="stylesheet" href="/static/css/security.css">
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    
+    <header class="dashboard-header">
+        <button class="icon-btn" id="backButton" aria-label="Back">
+            <svg viewBox="0 0 24 24">
+                <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+
+        <h2>Security Center</h2>
+
+        <button class="icon-btn" id="helpBtn" aria-label="Help">
+            <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <line x1="12" y1="17" x2="12.01" y2="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </button>
+    </header>
+
+    <div class="dashboard">
+        <main class="content">
+            <div class="security-header">
+                <div class="security-icon-container">
+                    <svg viewBox="0 0 24 24" class="security-icon">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M8 12l4-4 4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 16V8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <div class="security-pulse"></div>
+                </div>
+                <h1>Security Center</h1>
+                <p class="subtitle">Manage your account security settings and review active sessions</p>
+            </div>
+
+            <div class="security-status">
+                <div class="status-badge">
+                    <svg viewBox="0 0 24 24">
+                        <polyline points="20 6 9 17 4 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span id="securityStatusText"></span>
+                </div>
+        <h2 class="status-title" id="securityTitle"></h2>
+
+<p class="security-score" id="securityScore"></p>
+                
+
+
+                <div class="security-level">
+                    <div class="level-indicator active"></div>
+                    <div class="level-indicator active"></div>
+                    <div class="level-indicator active"></div>
+                    <div class="level-indicator active"></div>
+                    <div class="level-indicator"></div>
+                </div>
+                <p class="security-score">Security Score: 92/100</p>
+            </div>
+
+            <div class="security-section">
+                <h2 class="section-title">Security Settings</h2>
+                
+                <div class="security-option" data-status="enabled" id="twoFactorOption">
+                    <div class="option-left">
+                        <div class="option-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="option-text">
+                            <h3>Two-Factor Authentication</h3>
+                            <p>Extra layer of security for your account</p>
+                        </div>
+                    </div>
+                    <div class="option-right">
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked id="twoFactorToggle">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="status-label enabled">Enabled</span>
+                    </div>
+                </div>
+                
+                <div class="security-option" data-status="enabled" id="biometricOption">
+                    <div class="option-left">
+                        <div class="option-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.3 2.07-.84 3M12 10V8c0-1.5-1.5-3-3-3s-3 1.5-3 3c0 2.8 2.89 5.43 6 7.27.55.32 1.1.67 1.6.98.19.12.37.24.55.36.18-.12.36-.24.55-.36.5-.31 1.05-.66 1.6-.98 3.11-1.84 6-4.47 6-7.27 0-1.5-1.5-3-3-3s-3 1.5-3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="option-text">
+                            <h3>Biometric Login</h3>
+                            <p>Use fingerprint or face ID to log in</p>
+                        </div>
+                    </div>
+                    <div class="option-right">
+                        <label class="toggle-switch">
+                            <input type="checkbox" checked id="biometricToggle">
+                            <span class="slider"></span>
+                        </label>
+                        <span class="status-label enabled">Enabled</span>
+                    </div>
+                </div>
+                
+                <div class="security-option" data-status="warning" id="passwordOption">
+                    <div class="option-left">
+                        <div class="option-icon">
+                            <svg viewBox="0 0 24 24">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="option-text">
+                            <h3>Change Password</h3>
+                            <p>Last changed: 45 days ago • <span class="warning-text">Consider updating</span></p>
+                        </div>
+                    </div>
+                    <div class="option-right">
+                        <button class="action-btn primary">Change</button>
+                    </div>
+                </div>
+                
+                <div class="security-option" data-status="warning" id="emailOption">
+                    <div class="option-left">
+                        <div class="option-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <polyline points="22 6 12 13 2 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="option-text">
+                            <h3>Email Verification</h3>
+                           <p id="emailVerificationText"></p>
+                        </div>
+                    </div>
+                    <div class="option-right">
+                        <button class="action-btn secondary" id="verifybtn">Verify</button>
+                    </div>
+                </div>
+                
+                <div class="security-option" data-status="enabled" id="pinOption">
+                    <div class="option-left">
+                        <div class="option-icon">
+                            <svg viewBox="0 0 24 24">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <line x1="9" y1="9" x2="15" y2="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="option-text">
+                            <h3>Transaction PIN</h3>
+                            <p>Required for sensitive operations</p>
+                        </div>
+                    </div>
+                    <div class="option-right">
+                        <button class="action-btn secondary">Manage</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="security-section sessions-section">
+    <h2 class="section-title">Active Sessions</h2>
+
+    <div id="sessionsContainer"></div>
+
+    <button class="action-btn danger" id="logoutAllBtn">
+        Log Out From All Other Devices
+    </button>
+</div>
+            <div class="security-tips">
+                <h3 class="tips-title">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <line x1="12" y1="8" x2="12" y2="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    Security Tips
+                </h3>
+                <ul class="tips-list">
+                    <li>Use a unique password for your Business Essential account</li>
+                    <li>Enable two-factor authentication for extra security</li>
+                    <li>Review active sessions regularly and log out from unused devices</li>
+                    <li>Never share your password or PIN with anyone</li>
+                    <li>Keep your recovery email up to date</li>
+                    <li>Use a password manager to generate and store strong passwords</li>
+                </ul>
+            </div>
+        </main>
+    </div>
+
+    <!-- Logout Confirmation Modal -->
+    <div id="logoutModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="close" id="closeLogoutModal">&times;</div>
+            <div class="modal-icon warning">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" fill="currentColor"/>
+                    <line x1="12" y1="8" x2="12" y2="12" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <h2 id="modalTitle">Log Out From Device?</h2>
+            <p id="modalMessage">Are you sure you want to log out from this Windows PC device? You can always log back in with your credentials.</p>
+            <div class="modal-buttons">
+                <button class="modal-btn secondary" id="cancelLogout">Cancel</button>
+                <button class="modal-btn danger" id="confirmLogout">Log Out</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password Change Modal -->
+    <div id="passwordModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="close" id="closePasswordModal">&times;</div>
+            <div class="modal-icon">
+                <svg viewBox="0 0 24 24">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <h2>Change Password</h2>
+            <form id="passwordForm">
+                <div class="form-group">
+                    <label for="currentPassword">Current Password</label>
+                    <input type="password" id="currentPassword" required>
+                </div>
+                <div class="form-group">
+                    <label for="newPassword">New Password</label>
+                    <input type="password" id="newPassword" required>
+                    <div class="password-strength">
+                        <div class="strength-bar"></div>
+                        <span class="strength-text">Password strength</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm New Password</label>
+                    <input type="password" id="confirmPassword" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="modal-btn secondary" id="cancelPassword">Cancel</button>
+                    <button type="submit" class="modal-btn primary">Update Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/static/js/security.js"></script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Business Essential - Feedback</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/media/app logo.png"/>
+    <link rel="stylesheet" href="/static/css/feedback.css">
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    
+    <header class="dashboard-header">
+        <button class="icon-btn" id="backButton" aria-label="Back">
+            <svg viewBox="0 0 24 24">
+                <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+
+        <h2>Feedback & Suggestions</h2>
+
+        <button class="icon-btn" id="helpBtn" aria-label="Help">
+            <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <line x1="12" y1="17" x2="12.01" y2="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </button>
+    </header>
+
+    <main class="content feedback-page">
+        <div class="page-header">
+            <h1>We Value Your Feedback</h1>
+            <p>Help us improve Business Essential by sharing your thoughts, ideas, or reporting issues.</p>
+        </div>
+
+        <form id="feedbackForm" class="feedback-form" enctype="multipart/form-data">
+            <!-- Feedback Type -->
+            <div class="form-group">
+                <label>Type of Feedback</label>
+                <div class="radio-group">
+                    <label class="radio-option">
+                        <input type="radio" name="feedback_type" value="suggestion" checked>
+                        <span class="radio-custom">💡</span>
+                        <span class="radio-label">Suggestion</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="feedback_type" value="bug">
+                        <span class="radio-custom">🐛</span>
+                        <span class="radio-label">Bug Report</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="feedback_type" value="compliment">
+                        <span class="radio-custom">🌟</span>
+                        <span class="radio-label">Compliment</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Rating -->
+            <div class="form-group">
+                <label>How was your experience?</label>
+                <div class="star-rating" id="starRating">
+                    <span class="star" data-value="1">★</span>
+                    <span class="star" data-value="2">★</span>
+                    <span class="star" data-value="3">★</span>
+                    <span class="star" data-value="4">★</span>
+                    <span class="star" data-value="5">★</span>
+                    <span class="rating-text" id="ratingText">Select a rating</span>
+                </div>
+            </div>
+
+            <!-- Subject -->
+            <div class="form-group">
+                <label for="subject">Subject</label>
+                <input type="text" id="subject" name="subject" placeholder="Brief summary of your feedback" required>
+            </div>
+
+            <!-- Description -->
+            <div class="form-group">
+                <label for="message">Details</label>
+                <textarea id="message" name="message" rows="6" placeholder="Please describe your feedback in detail. What happened? What did you expect?" required></textarea>
+            </div>
+
+            <!-- Attachment -->
+            <div class="form-group">
+                <label>Attachments (Optional)</label>
+                <div class="file-upload-area" id="fileUploadArea">
+                    <div class="upload-placeholder" id="uploadPlaceholder">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <polyline points="17 8 12 3 7 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <line x1="12" y1="3" x2="12" y2="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <p>Drag & drop files here or <span class="browse-link">browse files</span></p>
+                        <small>Images, PDFs, Documents (Max 5MB)</small>
+                    </div>
+                    <input type="file" id="fileInput" name="attachment" hidden>
+                    <div class="file-preview" id="filePreview"></div>
+                </div>
+            </div>
+
+            <!-- Contact -->
+            <div class="form-group toggle-option">
+                <span>Send me an email response</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" name="notify_me" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <!-- Actions -->
+            <div class="form-actions">
+                <button type="button" class="btn secondary" id="cancelBtn">Cancel</button>
+                <button type="submit" class="btn primary" id="submitBtn">
+                    <span class="btn-text">Submit Feedback</span>
+                    <span class="btn-loader" style="display:none;">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 2v6m0 10v6M4.93 4.93l4.24 4.24m8.49-8.49l4.24 4.24M1.5 12h6m10 0h6M4.93 19.07l4.24-4.24m8.49 8.49l4.24-4.24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </span>
+                </button>
+            </div>
+        </form>
+
+        <!-- Recent Feedback -->
+        <div class="recent-feedback">
+            <h3>Your Recent Feedback</h3>
+  <div class="feedback-list" id="feedbackList">
+</div>
+        </div>
+    </main>
+
+    <script src="/static/js/feedback.js"></script>
+</body>
+</html>

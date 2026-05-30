@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Business Essential - View Invoice</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/media/app logo.png"/>
+    <link rel="stylesheet" href="/static/css/view-full-invoice.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body data-invoice-id="{{ invoiceId }}">
+    <div class="particles" id="particles"></div>
+    
+    <header class="invoice-header">
+        <button class="icon-btn" id="backBtn" aria-label="Back">
+            <svg viewBox="0 0 24 24">
+                <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+
+        <h1>Invoice Details</h1>
+
+        <div class="header-actions">
+            <button class="icon-btn" id="printBtn" aria-label="Print">
+                <svg viewBox="0 0 24 24">
+                    <path d="M6 9V2h12v7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <rect x="6" y="14" width="12" height="8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <button class="icon-btn" id="downloadBtn" aria-label="Download">
+                <svg viewBox="0 0 24 24">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <polyline points="17 8 12 3 7 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <line x1="12" y1="3" x2="12" y2="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <button class="icon-btn" id="shareBtn" aria-label="Share">
+                <svg viewBox="0 0 24 24">
+                    <path d="M18 8a6 6 0 0 0-12 0v7a4 4 0 0 0 8 0v-1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M14 16a2 2 0 0 1-4 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M2 15a10 10 0 0 0 20 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <div class="invoice-container">
+        <div class="invoice-card">
+            <div class="watermark">INVOICE</div>
+            
+            <div class="invoice-header-content">
+                <div class="company-info">
+                    <div class="company-logo">
+                        <div class="logo-icon">
+                            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="white" stroke-width="2" stroke-linejoin="round" fill="none"/>
+                                <path d="M2 17L12 22L22 17" stroke="white" stroke-width="2" stroke-linejoin="round" fill="none"/>
+                                <path d="M2 12L12 17L22 12" stroke="white" stroke-width="2" stroke-linejoin="round" fill="none"/>
+                            </svg>
+                        </div>
+                        <div class="company-name">Business Essential</div>
+                    </div>
+                    <div class="company-address">
+                        123 SaaS Avenue, Suite 100<br>
+                        San Francisco, CA 94107<br>
+                        United States<br>
+                        support@businesse.com<br>
+                        +1 (800) 555-0199
+                    </div>
+                </div>
+                
+                <div class="invoice-meta">
+                    <div class="invoice-title">TAX INVOICE</div>
+                    <div class="invoice-number" id="invoiceNumber">{{ invoiceNumber }}</div>
+                    
+                    <div class="meta-row">
+                        <div class="meta-label">Invoice Date</div>
+                        <div class="meta-value" id="invoiceDate"> {{ invoiceDate }} </div>
+                    </div>
+                    <div class="meta-row">
+                        <div class="meta-label">Due Date</div>
+                        <div class="meta-value" id="dueDate"> {{ dueDate }} </div>
+                    </div>
+                    
+                    <div class="status-badge {{ status }}" id="statusBadge"> {{status}} </div>
+                </div>
+            </div>
+            
+            <div class="invoice-details">
+
+    <!-- BILLED FROM -->
+    <div class="detail-section">
+        <h3>BILLED FROM</h3>
+        <div class="detail-content">
+            <div class="company-address">
+         <strong id="companyName">{{ companyName }}</strong><br>
+            <span id="companyEmail">{{ companyEmail }}</span><br>
+            <span id="companyPhone">{{ companyPhone }}</span><br>
+            <span id="companyWebsite">{{ companyWebsite }}</span><br>
+            <span id="companyAddress">
+                {{ companyAddress }}
+            </span>
+</div>
+   
+        </div>
+    </div>
+
+    <!-- BILLED TO -->
+    <div class="detail-section">
+        <h3>BILLED TO</h3>
+        <div class="detail-content">
+            <strong id="clientName">{{ clientName }}</strong><br>
+            <span id="clientEmail">{{ clientEmail }}</span>
+            <span id="clientAddress">
+                {{ clientAddress }}
+            </span>
+        </div>
+    </div>
+
+    <!-- INVOICE DETAILS -->
+    <div class="detail-section">
+        <h3>INVOICE DETAILS</h3>
+        <div class="detail-content">
+            <strong>Invoice Number</strong>
+            <span id="invoiceDetailNumber">{{ invoiceNumber }}</span>
+
+            <strong>Client ID</strong>
+            <span id="clientId">CL-{{clientId}}</span>
+
+            <strong>Payment Terms</strong>
+            <span id="paymentTerms">{{ paymentTerms }}</span>
+
+            <strong>Status</strong>
+            <span id="invoiceStatus">{{ status }}</span>
+        </div>
+    </div>
+
+</div>
+            
+            <div class="invoice-items">
+                <table class="items-table">
+                    <thead>
+                        <tr>
+                            <th>DESCRIPTION</th>
+                            <th>QTY</th>
+                            <th>UNIT PRICE</th>
+                            <th>AMOUNT</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invoiceItems">
+                        {% for item in items %}
+                        <tr>
+                            <td>{{ currencySymbol }}{{ item.desc }}</td>
+                            <td>{{ item.qty }}</td>
+                            <td>{{ currencySymbol }}{{ item.price }}</td>
+                            <td>{{ currencySymbol }}{{ item.total }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                
+                <div class="total-section">
+                    <div class="total-row subtotal">
+                        <span class="label">Subtotal</span>
+                        <span class="value" id="subtotal">{{currencySymbol}}{{ subtotal }}</span>
+                    </div>
+                    <div class="total-row tax">
+                        <span class="label">Tax ({{tax}}%)</span>
+                        <span class="value" id="taxAmount">{{currencySymbol}}{{ taxAmount }}</span>
+                    </div>
+                    <div class="total-row total">
+                        <span class="label">TOTAL PAID</span>
+                        <span class="value" id="totalAmount">{{currencySymbol}}{{ totalAmount }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="invoice-footer">
+                <div class="footer-section">
+                    <h3>
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <line x1="12" y1="8" x2="12" y2="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        Payment Information
+                    </h3>
+                    <div class="footer-content">
+                        <p>Payment is due within 30 days of the invoice date. This invoice has been paid in full via your Business Essential account.</p>
+                        <p>For payment history and receipts, please log in to your account dashboard at <strong>app.businesse.com</strong></p>
+                    </div>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Questions?
+                    </h3>
+                    <div class="footer-content">
+                        <p>If you have any questions about this invoice, please contact our support team:</p>
+                        <p><strong>Email:</strong> billing@businesse.com<br>
+                        <strong>Phone:</strong> +1 (800) 555-0199<br>
+                        <strong>Hours:</strong> Monday-Friday, 9am-6pm PT</p>
+                        <p>Thank you for being a valued Business Essential customer!</p>
+                    </div>
+                </div>
+                
+                <div class="thank-you">
+                    Thank you for powering your business with Business Essential!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Overlay -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-card">
+            <div class="close" id="closeModal">&times;</div>
+            <div class="modal-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" fill="currentColor"/>
+                    <path d="M12 16v-4" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                    <circle cx="12" cy="8" r="0.5" fill="white"/>
+                </svg>
+            </div>
+            <h2 id="modalTitle">Notification</h2>
+            <p id="modalMessage">This is a modal message.</p>
+            <button class="modal-btn" id="modalActionBtn">OK</button>
+        </div>
+    </div>
+
+    <script src="/static/js/view-full-invoice.js"></script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Business Essential - Invite Keys</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/media/app logo.png"/>
+    <link rel="stylesheet" href="/static/css/invite-keys.css">
+</head>
+<body>
+    <div class="page-wrapper">
+        <!-- Page Header -->
+        <header class="page-header">
+            <div class="header-title">
+                <h1>Invite Keys Management</h1>
+                <p>Track and generate secure access keys for new administrators</p>
+            </div>
+            <button class="btn primary generate-btn" id="openGenerateModal">
+                <svg viewBox="0 0 24 24">
+                    <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" fill="none" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                Generate Invite Key
+            </button>
+        </header>
+
+        <!-- Keys Table -->
+        <main class="content-card">
+            <div class="table-header">
+                <h2>Active Invite Keys</h2>
+                <div class="search-box">
+                    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" fill="none" stroke="currentColor" stroke-width="2"/><line x1="21" y1="21" x2="16.65" y2="16.65" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                    <input type="text" id="tableSearch" placeholder="Search keys or emails...">
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <table class="data-table" id="keysTable">
+                    <thead>
+                        <tr>
+                            <th>User Email</th>
+                            <th>Invite Key</th>
+                            <th>Employee ID</th>
+                            <th>Role</th>
+                            <th>Department</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for key in invite_keys %}
+                        <tr>
+                            <td class="email-cell">{{ key.email }}</td>
+                            <td><code class="key-code" data-key="{{ key.invite_key }}">{{ key.invite_key }}</code></td>
+                            <td>{{ key.employee_id }}</td>
+                            <td><span class="role-badge {{ key.role.lower() }}">{{ key.role }}</span></td>
+                            <td>{{ key.department }}</td>
+                            <td><span class="status-badge {{ 'used' if key.used else 'active' }}">{{ 'Used' if key.used else 'Active' }}</span></td>
+                        </tr>
+                        {% endfor %}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="table-footer">
+                <p>Showing <span id="visibleCount">{{ invite_keys|length }}</span> keys</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Generate Key Modal -->
+    <div class="modal-overlay" id="generateModal">
+        <div class="modal-card">
+            <button class="modal-close" id="closeModal">&times;</button>
+            <div class="modal-header">
+                <svg viewBox="0 0 24 24">
+                    <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" fill="none" stroke="currentColor" stroke-width="2"/>
+                </svg>
+                <h3>Generate Invite Key</h3>
+            </div>
+            
+            <form id="generateForm">
+                <div class="form-group">
+                    <label for="targetEmail">Email Address</label>
+                    <input type="email" id="targetEmail" placeholder="name@businesse.com" required>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn secondary" id="cancelGenerate">Cancel</button>
+                    <button type="submit" class="btn primary" id="submitGenerate">
+                        <span class="btn-text">Generate Key</span>
+                        <span class="btn-loader" style="display:none;">
+                            <svg viewBox="0 0 24 24"><path d="M12 2v6m0 10v6M4.93 4.93l4.24 4.24m8.49-8.49l4.24 4.24M1.5 12h6m10 0h6M4.93 19.07l4.24-4.24m8.49 8.49l4.24-4.24" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                        </span>
+                    </button>
+                </div>
+            </form>
+
+            <div class="generated-result" id="generatedResult" style="display:none;">
+                <div class="result-box">
+                    <p class="result-label">Secure Invite Key Generated</p>
+                    <div class="key-display">
+                        <span id="newKeyOutput">XXXX-XXXX-XXXX</span>
+                        <button type="button" class="copy-btn" id="copyNewKey" title="Copy to clipboard">
+                            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                        </button>
+                    </div>
+                    <p class="result-notice">Share securely. This key expires in 7 days.</p>
+                </div>
+                <button class="btn primary full-width" id="doneGenerate">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+
+    <script src="/static/js/invite-keys.js"></script>
+</body>
+</html>

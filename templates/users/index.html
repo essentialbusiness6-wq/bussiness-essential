@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome · Business Essential</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='media/app logo.png') }}"/>
+    <link rel="stylesheet" href="/static/css/entry.css">
+</head>
+<body>
+    <div class="intro-wrapper">
+        <div class="logo">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+                <path d="M2 17L12 22L22 17" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+                <path d="M2 12L12 17L22 12" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        
+        <div class="slides-container">
+            <div class="intro-card active" style="background: var(--gradient-1);">
+                <h1>Invoice smarter</h1>
+                <p>Create professional invoices in seconds with our intuitive interface and customizable templates.</p>
+            </div>
+            
+            <div class="intro-card" style="background: var(--gradient-2);">
+                <h1>Get paid faster</h1>
+                <p>Automated reminders and real-time tracking ensure you never miss a payment again.</p>
+            </div>
+            
+            <div class="intro-card" style="background: var(--gradient-3);">
+                <h1>Stay in control</h1>
+                <p>Your business finances, simplified with powerful insights and reporting tools.</p>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="dots">
+                <span class="dot active" data-index="0"></span>
+                <span class="dot" data-index="1"></span>
+                <span class="dot" data-index="2"></span>
+            </div>
+            <button id="nextBtn">Continue</button>
+        </div>
+        
+        <div class="particles" id="particles"></div>
+    </div>
+    <script src="{{ url_for('static', filename='js/entry.js') }}"></script>
+
+
+</body>
+</html>
+

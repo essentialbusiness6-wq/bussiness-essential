@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Business Essential - Notifications</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/media/app logo.png"/>
+    <link rel="stylesheet" href="/static/css/notifications.css">
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    
+    <header class="dashboard-header">
+        <button class="icon-btn" id="backButton" aria-label="Back">
+            <svg viewBox="0 0 24 24">
+                <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+
+        <h2>Notifications</h2>
+
+        <button class="icon-btn" id="optionsButton" aria-label="Options">
+            <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="2" fill="currentColor"/>
+                <circle cx="12" cy="6" r="2" fill="currentColor"/>
+                <circle cx="12" cy="18" r="2" fill="currentColor"/>
+            </svg>
+        </button>
+    </header>
+
+    <main class="content">
+        <!-- Header Stats -->
+        <div class="notifications-header">
+            <div class="stats-bar">
+                <span class="stat-item">
+                    <span class="stat-number" id="unreadCount">3</span>
+                    <span class="stat-label">Unread</span>
+                </span>
+                <span class="stat-divider"></span>
+                <span class="stat-item">
+                    <span class="stat-number" id="totalCount">8</span>
+                    <span class="stat-label">Total</span>
+                </span>
+            </div>
+            
+            <div class="notification-actions">
+                <button class="btn mark-all-btn" id="markAllRead">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M20 6 9 17l-5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Mark All Read</span>
+                </button>
+                <button class="btn clear-btn" id="clearAll">
+                    <svg viewBox="0 0 24 24">
+                        <polyline points="3 6 5 6 21 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Clear All</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-bar">
+            <div class="filter-group">
+                <label>Type</label>
+                <select id="typeFilter">
+                    <option value="all">All Types</option>
+                    <option value="payment">Payments</option>
+                    <option value="invoice">Invoices</option>
+                    <option value="client">Clients</option>
+                    <option value="system">System</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Status</label>
+                <select id="statusFilter">
+                    <option value="all">All Status</option>
+                    <option value="unread">Unread Only</option>
+                    <option value="read">Read Only</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Date</label>
+                <div class="date-selectors">
+                    <select id="month-select">
+                        <option value="all">All Months</option>
+                        <option value="1">January</option>
+                        <option value="2">February</option>
+                        <option value="3">March</option>
+                        <option value="4">April</option>
+                        <option value="5">May</option>
+                        <option value="6">June</option>
+                        <option value="7">July</option>
+                        <option value="8">August</option>
+                        <option value="9">September</option>
+                        <option value="10">October</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
+                    </select>
+                    <select id="year-select">
+                        <option value="all">All Years</option>
+                        <option value="2026">2026</option>
+                        <option value="2025">2025</option>
+                        <option value="2024">2024</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications List -->
+        <div class="notification-list" id="notifications">
+            <!-- Payment Notification -->
+            <div class="notification-card unread" data-type="payment" data-status="unread" data-date="2026-05-28">
+                <div class="card-left">
+                    <div class="icon payment">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <polyline points="22 4 12 14.01 9 11.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="details">
+                        <p class="title">Payment Received</p>
+                        <p class="description">TechSolutions Inc. has paid invoice #INV-2024-001 for $1,250.00</p>
+                        <div class="meta">
+                            <span class="badge payment">Payment</span>
+                            <span class="timestamp">2 min ago</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-right">
+                    <div class="unread-indicator"></div>
+                    <button class="action-btn" aria-label="View details">
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="9 18 15 12 9 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Invoice Overdue -->
+            <div class="notification-card unread critical" data-type="invoice" data-status="unread" data-date="2026-05-28">
+                <div class="card-left">
+                    <div class="icon invoice critical">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <polyline points="14 2 14 8 20 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <line x1="16" y1="13" x2="8" y2="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <line x1="16" y1="17" x2="8" y2="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <polyline points="10 9 9 9 8 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="details">
+                        <p class="title">Invoice Overdue</p>
+                        <p class="description">Invoice #INV-2023-089 to Global Innovations is 30 days overdue</p>
+                        <div class="meta">
+                            <span class="badge invoice critical">Overdue</span>
+                            <span class="timestamp">15 min ago</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-right">
+                    <div class="unread-indicator critical"></div>
+                    <button class="action-btn" aria-label="View invoice">
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="9 18 15 12 9 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- New Client -->
+            <div class="notification-card" data-type="client" data-status="read" data-date="2026-05-28">
+                <div class="card-left">
+                    <div class="icon client">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="9" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="details">
+                        <p class="title">New Client Added</p>
+                        <p class="description">CreativeMinds Co. has been added to your client list</p>
+                        <div class="meta">
+                            <span class="badge client">Client</span>
+                            <span class="timestamp">3 hours ago</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-right">
+                    <button class="action-btn" aria-label="View client">
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="9 18 15 12 9 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Security Alert -->
+            <div class="notification-card unread critical" data-type="system" data-status="unread" data-date="2026-05-28">
+                <div class="card-left">
+                    <div class="icon system critical">
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <line x1="12" y1="16" x2="12" y2="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <line x1="12" y1="8" x2="12.01" y2="8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="details">
+                        <p class="title">Security Alert</p>
+                        <p class="description">New login detected from San Francisco, CA on your account</p>
+                        <div class="meta">
+                            <span class="badge system critical">Alert</span>
+                            <span class="timestamp">5 hours ago</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-right">
+                    <div class="unread-indicator critical"></div>
+                    <button class="action-btn" aria-label="Review security">
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="9 18 15 12 9 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Invoice Created -->
+            <div class="notification-card" data-type="invoice" data-status="read" data-date="2026-05-27">
+                <div class="card-left">
+                    <div class="icon invoice">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <polyline points="14 2 14 8 20 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <line x1="16" y1="13" x2="8" y2="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <line x1="16" y1="17" x2="8" y2="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <polyline points="10 9 9 9 8 9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="details">
+                        <p class="title">Invoice Created</p>
+                        <p class="description">New invoice #INV-2024-005 created for CreativeMinds Co.</p>
+                        <div class="meta">
+                            <span class="badge invoice">Invoice</span>
+                            <span class="timestamp">Yesterday</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-right">
+                    <button class="action-btn" aria-label="View invoice">
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="9 18 15 12 9 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Payment Received (older) -->
+            <div class="notification-card" data-type="payment" data-status="read" data-date="2026-02-10">
+                <div class="card-left">
+                    <div class="icon payment">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <polyline points="22 4 12 14.01 9 11.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="details">
+                        <p class="title">Payment Received</p>
+                        <p class="description">DesignHub Studio has paid invoice #INV-2024-002 for $875.50</p>
+                        <div class="meta">
+                            <span class="badge payment">Payment</span>
+                            <span class="timestamp">Feb 10</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-right">
+                    <button class="action-btn" aria-label="View payment">
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="9 18 15 12 9 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Client Updated -->
+            <div class="notification-card" data-type="client" data-status="read" data-date="2026-02-08">
+                <div class="card-left">
+                    <div class="icon client">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <circle cx="9" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="details">
+                        <p class="title">Client Updated</p>
+                        <p class="description">MarketingPro Agency's contact information has been updated</p>
+                        <div class="meta">
+                            <span class="badge client">Client</span>
+                            <span class="timestamp">Feb 8</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-right">
+                    <button class="action-btn" aria-label="View client">
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="9 18 15 12 9 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- App Update -->
+            <div class="notification-card" data-type="system" data-status="read" data-date="2026-02-05">
+                <div class="card-left">
+                    <div class="icon system">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="details">
+                        <p class="title">App Update Available</p>
+                        <p class="description">Version 2.4.0 is now available with new features and improvements</p>
+                        <div class="meta">
+                            <span class="badge system">Update</span>
+                            <span class="timestamp">Feb 5</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-right">
+                    <button class="action-btn" aria-label="Update app">
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="9 18 15 12 9 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <svg viewBox="0 0 24 24">
+                <path d="M18 8a6 6 0 0 0-12 0v7a4 4 0 0 0 8 0v-1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M14 16a2 2 0 0 1-4 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M2 15a10 10 0 0 0 20 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <h3>No notifications yet</h3>
+            <p>When you receive notifications, they'll appear here</p>
+            <button class="btn primary" id="createFirstNotification">
+                <svg viewBox="0 0 24 24">
+                    <line x1="12" y1="5" x2="12" y2="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="5" y1="12" x2="19" y2="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Create First Invoice
+            </button>
+        </div>
+    </main>
+
+    <!-- Options Dropdown -->
+    <div class="options-dropdown" id="optionsDropdown">
+        <button class="dropdown-item" id="exportNotifications">
+            <svg viewBox="0 0 24 24">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <polyline points="17 8 12 3 7 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <line x1="12" y1="3" x2="12" y2="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            Export Notifications
+        </button>
+        <button class="dropdown-item" id="notificationSettings">
+            <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" fill="none" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            Notification Settings
+        </button>
+        <button class="dropdown-item danger" id="deleteAll">
+            <svg viewBox="0 0 24 24">
+                <polyline points="3 6 5 6 21 6" fill="none" stroke="currentColor" stroke-width="2"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" fill="none" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            Delete All Notifications
+        </button>
+    </div>
+    
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="/static/js/notifications.js"></script>
+</body>
+</html>

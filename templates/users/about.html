@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Business Essential - About</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/media/app logo.png"/>
+    <link rel="stylesheet" href="/static/css/about.css">
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    
+    <header class="dashboard-header">
+        <button class="icon-btn" id="backButton" aria-label="Back">
+            <svg viewBox="0 0 24 24">
+                <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+
+        <h2>About Us</h2>
+
+        <button class="icon-btn" id="helpBtn" aria-label="Help">
+            <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <line x1="12" y1="17" x2="12.01" y2="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </button>
+    </header>
+
+    <main class="content about-page">
+        <!-- App Version & Logo -->
+        <div class="app-header-card">
+            <div class="app-logo-container">
+                <div class="app-logo-glow"></div>
+                <img src="/static/media/app logo.png" alt="Business Essential Logo" class="app-logo">
+            </div>
+            <h1>Business Essential</h1>
+            <p class="tagline">Powerful Invoicing & Business Management</p>
+            <div class="version-info">
+                <span class="badge version">v2.4.0</span>
+                <span class="badge build">Build 2026.05</span>
+            </div>
+        </div>
+
+        <!-- Our Story -->
+        <section class="section-card">
+            <div class="section-header">
+                <h2>Our Mission</h2>
+                <svg viewBox="0 0 24 24" class="header-icon">
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                    <path d="M2 17L12 22L22 17" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                    <path d="M2 12L12 17L22 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="story-content">
+                <p>Founded with a vision to empower freelancers, small business owners, and agencies, Business Essential provides professional-grade invoicing, client management, and payment tracking tools.</p>
+                <p>We believe in simplicity, security, and exceptional user experience. Every feature is carefully crafted to help you focus on what matters most: growing your business.</p>
+            </div>
+        </section>
+
+        <!-- Key Features -->
+        <section class="section-card">
+            <div class="section-header">
+                <h2>Why Choose Us?</h2>
+                <svg viewBox="0 0 24 24" class="header-icon">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Bank-Grade Security</h3>
+                    <p>Your financial data is encrypted end-to-end with industry-leading protocols.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Lightning Fast</h3>
+                    <p>Generate and send professional invoices in seconds with smart automation.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">🌍</div>
+                    <h3>Global Currencies</h3>
+                    <p>Seamlessly handle NGN, USD, EUR, GBP, and other major currencies.</p>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">📱</div>
+                    <h3>Mobile Optimized</h3>
+                    <p>Manage your entire business pipeline from anywhere on any device.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats -->
+        <section class="section-card">
+            <div class="section-header">
+                <h2>By The Numbers</h2>
+                <svg viewBox="0 0 24 24" class="header-icon">
+                    <line x1="18" y1="20" x2="18" y2="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="12" y1="20" x2="12" y2="4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="6" y1="20" x2="6" y2="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-number">15K+</span>
+                    <span class="stat-label">Active Users</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">99.9%</span>
+                    <span class="stat-label">Uptime SLA</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">4.8★</span>
+                    <span class="stat-label">Avg Rating</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact & Legal -->
+        <section class="section-card">
+            <div class="section-header">
+                <h2>Connect & Legal</h2>
+                <svg viewBox="0 0 24 24" class="header-icon">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" fill="none" stroke="currentColor" stroke-width="2"/>
+                    <polyline points="22 6 12 13 2 6" fill="none" stroke="currentColor" stroke-width="2"/>
+                </svg>
+            </div>
+            
+            <div class="contact-grid">
+                <a href="mailto:support@businesse.com" class="contact-btn">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg>
+                    Email Support
+                </a>
+                <a href="/support" class="contact-btn secondary">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0v7a4 4 0 0 0 8 0v-1"/><path d="M14 16a2 2 0 0 1-4 0"/></svg>
+                    Help Center
+                </a>
+            </div>
+
+            <div class="legal-footer">
+                <p>&copy; <span id="year"></span> Business Essential. All rights reserved.</p>
+                <div class="legal-links">
+                    <a href="/privacy">Privacy Policy</a>
+                    <span class="dot">•</span>
+                    <a href="/terms">Terms of Service</a>
+                    <span class="dot">•</span>
+                    <a href="/licenses">Licenses</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="/static/js/about.js"></script>
+</body>
+</html>

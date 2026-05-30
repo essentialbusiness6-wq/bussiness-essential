@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Business Essential - Rate Us</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/media/app logo.png"/>
+    <link rel="stylesheet" href="/static/css/rate.css">
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+    
+    <header class="dashboard-header">
+        <button class="icon-btn" id="backButton" aria-label="Back">
+            <svg viewBox="0 0 24 24">
+                <path d="M15 18l-6-6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+
+        <h2>Rate Us</h2>
+
+        <button class="icon-btn" id="helpBtn" aria-label="Help">
+            <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <line x1="12" y1="17" x2="12.01" y2="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </button>
+    </header>
+
+    <div class="dashboard">
+        <main class="content">
+            <div class="rate-header">
+                <div class="app-icon-container">
+                    <div class="app-icon">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="white" stroke-width="2" stroke-linejoin="round" fill="none"/>
+                            <path d="M2 17L12 22L22 17" stroke="white" stroke-width="2" stroke-linejoin="round" fill="none"/>
+                            <path d="M2 12L12 17L22 12" stroke="white" stroke-width="2" stroke-linejoin="round" fill="none"/>
+                        </svg>
+                    </div>
+                    <div class="app-icon-glow"></div>
+                </div>
+                <h1>Rate Business Essential</h1>
+                <p class="subtitle">Help us improve by sharing your experience</p>
+            </div>
+
+            <div class="current-rating">
+                <div class="rating-badge">
+                    <svg viewBox="0 0 24 24">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="currentColor"/>
+                    </svg>
+                    <span>Excellent</span>
+                </div>
+                <h2 class="rating-value">4.8</h2>
+                <div class="stars-container rating-stars">
+                    <span class="star filled">★</span>
+                    <span class="star filled">★</span>
+                    <span class="star filled">★</span>
+                    <span class="star filled">★</span>
+                    <span class="star half">★</span>
+                </div>
+                <p class="rating-count">Based on <strong>1,247</strong> ratings</p>
+            </div>
+
+            <div class="feedback-section">
+                <h2 class="section-title">Your Rating</h2>
+                <div class="rating-instruction">Tap to rate your experience</div>
+                <div class="stars-container interactive" id="ratingStars">
+                    <span class="star" data-value="1" aria-label="1 star">★</span>
+                    <span class="star" data-value="2" aria-label="2 stars">★</span>
+                    <span class="star" data-value="3" aria-label="3 stars">★</span>
+                    <span class="star" data-value="4" aria-label="4 stars">★</span>
+                    <span class="star" data-value="5" aria-label="5 stars">★</span>
+                </div>
+                <div class="rating-label" id="ratingLabel">How would you rate us?</div>
+            </div>
+
+            <div class="feedback-section">
+                <h2 class="section-title">Your Feedback</h2>
+                <textarea id="feedbackText" placeholder="Tell us what you think about Business Essential... What do you love? What could be improved?"></textarea>
+                <div class="character-count"><span id="charCount">0</span>/500 characters</div>
+            </div>
+
+            <button class="submit-btn" id="submitRating">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <polyline points="16 16 12 20 8 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <line x1="12" y1="20" x2="12" y2="8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Submit Rating
+            </button>
+
+            <div class="rewards-section">
+                <h3 class="rewards-title">
+                    <svg viewBox="0 0 24 24">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Rate & Get Rewarded
+                </h3>
+                <p class="rewards-subtitle">Share your feedback and earn exclusive rewards:</p>
+                <ul class="rewards-list">
+                    <li>
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>1-month Pro subscription free trial</span>
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>Exclusive badge on your profile</span>
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>Early access to new features</span>
+                    </li>
+                    <li>
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>Priority customer support</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="thank-you" id="thankYouSection">
+                <div class="thank-you-icon">
+                    <svg viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <polyline points="20 6 9 17 4 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h2>Thank You!</h2>
+                <p class="thank-you-message">Your feedback helps us make Business Essential better for everyone. As a token of our appreciation, we've added <strong>1 month of Pro features</strong> to your account!</p>
+                <div class="reward-badge">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                        <path d="M2 17L12 22L22 17" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                        <path d="M2 12L12 17L22 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Pro Features Unlocked!</span>
+                </div>
+                <button class="btn" id="doneBtn">
+                    <svg viewBox="0 0 24 24">
+                        <polyline points="20 6 9 17 4 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Done
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/rate.js"></script>
+</body>
+</html>
