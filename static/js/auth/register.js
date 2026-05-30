@@ -38,24 +38,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const appPinInput = document.getElementById('app_pin_input');
 
     /* ================= FORM SWITCHING ================= */
-    function showForm(formId, step) {
-        userbaseWrapper.classList.remove('active');
-        verifyWrapper.classList.remove('active');
-        custbaseWrapper.classList.remove('active');
-        completecustWrapper.classList.remove('active');
+function showForm(formId, step) {
+    userbaseWrapper.classList.remove('active');
+    verifyWrapper.classList.remove('active');
+    custbaseWrapper.classList.remove('active');
+    completecustWrapper.classList.remove('active');
 
-        document.getElementById(formId).classList.add('active');
-        updateProgress(step);
-    }
+    document.getElementById(formId).classList.add('active');
+    updateProgress(step);
+}
 
-    function updateProgress(step) {
-        progressBar.style.width = `${(step - 1) * 33.33}%`;
+function updateProgress(step) {
+    const totalSteps = 4;
 
-        stepDots.forEach((dot, index) => {
-            dot.classList.toggle('active', index < step);
-        });
-    }
+    progressBar.style.width =
+        `${((step - 1) / (totalSteps - 1)) * 100}%`;
 
+    stepDots.forEach((dot, index) => {
+        dot.classList.toggle("active", index < step);
+    });
+}
     function showOnly(div) {
         userDiv.style.display = "none";
         custDiv.style.display = "none";
@@ -305,8 +307,7 @@ userForm.addEventListener("submit", async function (e) {
         clearLoading(submitBtn);
 
         if (result.status === "success") {
-            showOnly(verifyDiv);
-            updateProgress(2);
+         showForm("verify", 2);
 
         } else {
             showErrorModal(result.message || "Registration failed");
@@ -349,8 +350,7 @@ verifyForm.addEventListener("submit", async function (e) {
         clearLoading(verifyBtn);
 
         if (result.status === "success") {
-            showOnly(custDiv);
-            updateProgress(3);
+        showForm("custbase", 3);
         } else {
             showErrorModal(result.message || "Verification failed");
         }
@@ -381,8 +381,7 @@ resendCodeBtn.addEventListener("click",async function () {
         clearLoading(resendCodeBtn);
 
         if (result.status === "success") {
-            showOnly(custDiv);
-            updateProgress(3);
+         showForm("custbase", 3);
         } else {
             showErrorModal(result.message || "Verification failed");
         }
@@ -427,8 +426,7 @@ custForm.addEventListener("submit", async function (e) {
 
         if (result.status === "success") {
 
-            showOnly(completeCustDiv);
-            updateProgress(4);
+        showForm("completecust", 4);
         } else {
             showErrorModal(result.message || "Saving Profile failed");
         }
