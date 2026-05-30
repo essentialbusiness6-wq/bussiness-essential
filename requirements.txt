@@ -13,6 +13,7 @@ pyotp
 qrcode
 cloudinary
 openai
+dateutil
 reportlab
 eventlet
 gevent
