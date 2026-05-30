@@ -39,6 +39,25 @@ def get_db():
     port= os.getenv("DBPORT")
     )
 
+def get_user_id(username):
+    conn = get_db()
+    cursor = conn.cursor(buffered=True)
+    cursor.execute("SELECT user_id, username FROM user_base WHERE username=%s", (username,))
+    user = cursor.fetchone()
+
+    if not user:
+        return jsonify({
+            "status": "error",
+            "message": "User not found"
+        }), 400
+    
+    
+    user_id = user[0]
+    cursor.close()
+    conn.close()
+
+    return user_id
+
 
 
 def token_required(f):
