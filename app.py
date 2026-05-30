@@ -13,6 +13,7 @@ from werkzeug import Client
 from backend.utils import (
     send_email,
     save_security_activity,
+    get_user_id,
     get_client_ip,
     get_location_from_ip,
     parse_user_agent,
@@ -1677,7 +1678,7 @@ def create_profile():
             title="Profile Creation",
             description= f"Profile {data["profile_name"]} created fsuccessfully",
             severity="LOW",
-            ip_address=get_client_ip(request)
+            ip_address=get_client_ip()
         )
 
         return jsonify({
@@ -1770,7 +1771,7 @@ def create_user():
             title="New User",
             description="User created successfully",
             severity="LOW",
-            ip_address=get_client_ip(request)
+            ip_address=get_client_ip()
         )
 
         return jsonify({
@@ -1827,7 +1828,7 @@ def verify_user():
             title="Email verification",
             description="Email verification failed",
             severity="MEDIUM",
-            ip_address=get_client_ip(request)
+            ip_address=get_client_ip()
         )
     
         return jsonify({
@@ -1841,7 +1842,7 @@ def verify_user():
         title="Email verification",
         description="Email verified successfully",
         severity="LOW",
-        ip_address=get_client_ip(request)
+        ip_address=get_client_ip()
     )
 
     cursor.execute(
@@ -2066,7 +2067,7 @@ def complete_cust():
             body=welcome_html,
             html=True
         )
-        _ip = get_client_ip(request)
+        _ip = get_client_ip()
    
         save_security_activity(
             user_id=user_id,
