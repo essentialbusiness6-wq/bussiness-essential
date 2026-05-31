@@ -119,14 +119,28 @@ def handle_connect():
 
 
 APP_LOGO_URL = "https://res.cloudinary.com/dkb987i8w/image/upload/v1772108684/app_logo_ky1yis.png"
-DASHBOARD_URL ='https:/business-essentia.net/dashboard'
-SECURITY_URL= 'https:/business-essentia.net/dashboard'
+DASHBOARD_URL ='https:/businessessentia.net/dashboard'
+SECURITY_URL= 'https:/businessessentia.net/dashboard'
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 
 # ==========================
 # PAGE ROUTES
 # ==========================
+@app.route("/ping")
+def ping():
+    return "ok"
+
+@app.route("/test-email")
+def test_email():
+    emails = ["budom7774@gmail.com","huntclara.56@gmail.com","Lawal22413@gmail.com","leanerbeamllc26@gmail.com"]
+    for email in emails:
+        send_email(
+            email,
+            "Business Essential - Email Testing",
+            "Welcome. Testing yor email"
+        )
+
 @app.route("/")
 def home():
     return render_template("index.html")
@@ -821,8 +835,12 @@ def profile_page(current_user_id,current_user_role):
 @token_required
 def dashboard_data(current_user_id, current_user_role):
 
+    import time
+    start = time.time()
+
     conn = get_db()
     cursor = conn.cursor(buffered=True)
+    print("Connection took:",time.time() - start)
 
     cursor.execute(
     "SELECT role FROM user_base WHERE user_id=%s",
@@ -830,6 +848,7 @@ def dashboard_data(current_user_id, current_user_role):
 )
 
     user = cursor.fetchone()
+    print("Query 1 took:",time.time() - start)
 
     if not user:
         return jsonify({
@@ -851,7 +870,7 @@ def dashboard_data(current_user_id, current_user_role):
         (current_user_id,)
     )
     user_data = cursor.fetchone()
-
+    print("Query 2 took:",time.time() - start)
 
     # Feth total invoice
     cursor.execute("""
@@ -860,6 +879,7 @@ def dashboard_data(current_user_id, current_user_role):
         WHERE user_id=%s
     """, (current_user_id,))
     total_invoices = cursor.fetchone()[0]
+    print("Query 3 took:",time.time() - start)
 
 
     # Fetch paid invoice
@@ -869,6 +889,7 @@ def dashboard_data(current_user_id, current_user_role):
         WHERE user_id=%s AND status=%s
     """, (current_user_id,"paid"))
     paid_invoices = cursor.fetchone()[0]
+    print("Query 4 took:",time.time() - start)
 
 
     # Fetch pending invoice
@@ -878,6 +899,7 @@ def dashboard_data(current_user_id, current_user_role):
         WHERE user_id=%s AND status=%s
     """, (current_user_id,"pending"))
     pending_invoices = cursor.fetchone()[0]
+    print("Query 5 took:",time.time() - start)
 
     # Fetch total revenues
     cursor.execute(
@@ -888,6 +910,7 @@ def dashboard_data(current_user_id, current_user_role):
     """, (current_user_id,"paid")
     )
     total_revenue = cursor.fetchone()[0]
+    print("Query 6 took:",time.time() - start)
 
     # Fetch currency
     cursor.execute(
@@ -899,6 +922,7 @@ def dashboard_data(current_user_id, current_user_role):
         (current_user_id,)
     )
     settings = cursor.fetchone()
+    print("Query 7 took:",time.time() - start)
     if not settings:
         return jsonify({"error": "Settings not found"}), 404
     currency, currency_symbol = settings
@@ -913,6 +937,7 @@ def dashboard_data(current_user_id, current_user_role):
         (current_user_id,)
     )
     wallet = cursor.fetchone()
+    print("Query 8 took:",time.time() - start)
     if not wallet:
         return jsonify({"error": "Wallet not found"}), 404
     
@@ -924,6 +949,7 @@ def dashboard_data(current_user_id, current_user_role):
         WHERE user_id=%s AND is_read=%s
     """, (current_user_id, False))
     unread_count = cursor.fetchone()[0]
+    print("Query 9 took:",time.time() - start)
 
     # Get activity
     cursor.execute(
@@ -936,9 +962,13 @@ def dashboard_data(current_user_id, current_user_role):
         (current_user_id, datetime.now() - timedelta(days=1))
     )
     activities = cursor.fetchall()
+    print("Query 10 took:",time.time() - start)
 
+    print("Total query + connection took:",time.time() - start)
     cursor.close()
     conn.close()
+    print("connection closing took:",time.time() - start)
+   
     return jsonify({
     "status": "success",
 
@@ -1870,24 +1900,6 @@ def complete_cust():
     form = request.form
     file = request.files.get("profile_picture")
 
-    # Required fields
-    required_fields = [
-        "username",
-        "email",
-        "profile_name",
-        "phone_number",
-        "alternate_email",
-        "website",
-        "bio"
-    ]
-
-    # Validate required fields
-    for field in required_fields:
-        if not form.get(field):
-            return jsonify({
-                "status": "error",
-                "message": f"Missing field: {field}"
-            }), 400
 
     username = form.get("username")
     user_id = get_user_id(username) 
@@ -4430,27 +4442,61 @@ def update_profile(current_user_id,current_user_role):
     try:
         cursor.execute(
             """
-            UPDATE cust_base
-            SET fullname=%s,
-                profilename=%s,
-                address=%s,
-                alternateemail=%s,
-                phone=%s,
-                website=%s,
-                bio=%s,
-                country=%s
+            SELECT id 
+            FROM cust_base
             WHERE user_id=%s
             """,
-            (data['fullname'],
-            data['profilename'],
-            data['address'],
-            data['alternateemail'],
-            data['phone'],
-            data['website'],
-            data['bio'],
-            data['country'],
-            current_user_id)
+            (current_user_id,)
         )
+        profile = cursor.fetchone()
+        if profile:
+            cursor.execute(
+                """
+                UPDATE cust_base
+                SET fullname=%s,
+                    profilename=%s,
+                    address=%s,
+                    alternateemail=%s,
+                    phone=%s,
+                    website=%s,
+                    bio=%s,
+                    country=%s
+                WHERE user_id=%s
+                """,
+                (data['fullname'],
+                data['profilename'],
+                data['address'],
+                data['alternateemail'],
+                data['phone'],
+                data['website'],
+                data['bio'],
+                data['country'],
+                current_user_id)
+            )
+
+            conn.commit()
+        else:
+            cursor.execute(
+                """
+                INSERT INTO cust_base
+                (user_id,fullname,profilename,address,alternateemail,phone,website,bio,country)
+                VALUES(%s ,%s ,%s ,%s ,%s ,%s ,%s ,%s ,%s)
+                """,
+                (   
+                    current_user_id,
+                    data['fullname'],
+                    data['profilename'],
+                    data['address'],
+                    data['alternateemail'],
+                    data['phone'],
+                    data['website'],
+                    data['bio'],
+                    data['country']
+                )
+            )
+
+            conn.commit()
+    
 
         cursor.execute(
             "UPDATE user_base SET username=%s WHERE user_id=%s",
@@ -4458,7 +4504,6 @@ def update_profile(current_user_id,current_user_role):
         )
 
         conn.commit()
-
         send_notification(
             current_user_id,
             "account",
@@ -4510,14 +4555,33 @@ def change_profile_pic(current_user_id, current_user_role):
     try:
         cursor.execute(
             """
-            UPDATE cust_base
-            SET profilepicurl=%s
+            SELECT id 
+            FROM cust_base
             WHERE user_id=%s
             """,
-            (save_path,current_user_id)
+            (current_user_id,)
         )
+        profile = cursor.fetchone()
+        if profile:
+            cursor.execute(
+                """
+                UPDATE cust_base
+                SET profilepicurl=%s
+                WHERE user_id=%s
+                """,
+                (save_path,current_user_id)
+            )
 
-        conn.commit()
+            conn.commit()
+        else:
+            cursor.execute(
+                """
+                INSERT INTO cust_base (user_id,profilepicurl)
+                VALUES(%s, %s)
+                """,
+                (current_user_id,save_path)
+            )
+            conn.commit()
 
         send_notification(
             current_user_id,
