@@ -2304,21 +2304,25 @@ def verifylogin():
             SELECT 1
             FROM user_settings
             WHERE user_id=%
+            LIMIT 1
             """,
             (user_id,)
         )
         s = cursor.fetchone()
+        print("Just fetched s")
         if not s:
             cursor.execute(
                 """
                 INSERT INTO user_settings (user_id, footer_note)
-                VALUES (%s, %s)
+                VALUES(%s, %s)
                 """,
                 (
                     user_id,
                     "Thanks for doing business with us."
                 )
             )
+            conn.commit()
+            print("Just finished fetched s")
 
             
 
