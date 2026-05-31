@@ -161,11 +161,11 @@ function clearLoading(button) {
 }
 
 function showOnly(div) {
-    logindiv.style.display = "none";
-    resetdiv.style.display = "none";
-    savediv.style.display = "none";
+    logindiv.classList.remove("active");
+    resetdiv.classList.remove("active");
+    savediv.classList.remove("active");
 
-    div.style.display = "block";
+    div.classList.add("active");
 }
 
 
@@ -256,11 +256,21 @@ loginForm.addEventListener("submit", async function(e) {
     );
 });
 
-restBtna.addEventListener('click', function () {
-  logindiv.style.display = 'none';
-  resetdiv.style.display = 'block';
-});
+restBtna.addEventListener('click', function (e) {
+    e.preventDefault();
 
+    const username =
+        document.getElementById("username_input").value.trim();
+
+    if (!username) {
+        showErrorModal(
+            "Please enter your username first."
+        );
+        return;
+    }
+
+    showOnly(resetdiv);
+});
 
 resetForm.addEventListener("submit", async function (e) {
     e.preventDefault();
