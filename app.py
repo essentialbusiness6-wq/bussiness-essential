@@ -153,7 +153,7 @@ def home():
             FROM user_base
             WHERE account_status=%s
         """,
-        ("active")
+        ("active",)
     )
     totalUsers = cursor.fetchone()['total_user']
     
