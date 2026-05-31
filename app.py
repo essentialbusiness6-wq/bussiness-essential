@@ -835,8 +835,11 @@ def profile_page(current_user_id,current_user_role):
 @token_required
 def dashboard_data(current_user_id, current_user_role):
     try:
+        import time 
+        start = time.time()
         conn = get_db()
         cursor = conn.cursor(dictionary=True)
+        print("Connection took:", time.time() - start)
 
         # ================= USER DATA =================
         cursor.execute("""
@@ -853,6 +856,7 @@ def dashboard_data(current_user_id, current_user_role):
         """, (current_user_id,))
 
         user_data = cursor.fetchone()
+        print("Query 1 took:", time.time() - start)
 
         if not user_data:
             return jsonify({
@@ -897,6 +901,7 @@ def dashboard_data(current_user_id, current_user_role):
         """, (current_user_id,))
 
         invoice_stats = cursor.fetchone()
+        print("Query 1 took:", time.time() - start)
 
         # ================= SETTINGS =================
         cursor.execute("""
@@ -909,6 +914,7 @@ def dashboard_data(current_user_id, current_user_role):
         """, (current_user_id,))
 
         settings = cursor.fetchone()
+        print("Query 1 took:", time.time() - start)
 
         if not settings:
             return jsonify({
@@ -925,6 +931,7 @@ def dashboard_data(current_user_id, current_user_role):
         """, (current_user_id,))
 
         wallet = cursor.fetchone()
+        print("Query 1 took:", time.time() - start)
 
         if not wallet:
             return jsonify({
@@ -941,6 +948,7 @@ def dashboard_data(current_user_id, current_user_role):
         """, (current_user_id,))
 
         unread_count = cursor.fetchone()["unread_count"]
+        print("Query 1 took:", time.time() - start)
 
         # ================= RECENT ACTIVITIES =================
         cursor.execute("""
@@ -957,9 +965,13 @@ def dashboard_data(current_user_id, current_user_role):
         """, (current_user_id,))
 
         activities = cursor.fetchall()
+        print("Query 1 took:", time.time() - start)
+
+       
 
         cursor.close()
         conn.close()
+         print("Total query took:", time.time() - start)
 
         return jsonify({
             "status": "success",
@@ -2286,6 +2298,29 @@ def verifylogin():
                 """,
                 (user_id,)
             )
+
+        cursor.execute(
+            """
+            SELECT 1
+            FROM user_settings
+            WHERE user_id=%
+            """,
+            (user_id,)
+        )
+        s = cursor.fetchone()
+        if not s:'
+            cursor.execute(
+                """
+                INSERT INTO user_settings (user_id, footer_note)
+                VALUES (%s, %s)
+                """,
+                (
+                    user_id,
+                    "Thanks for doing business with us."
+                )
+            )
+
+            
 
 
         lat = data['lat']
