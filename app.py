@@ -141,9 +141,24 @@ def test_email():
             "Welcome. Testing yor email"
         )
 
+    return "Email Sent"
+
 @app.route("/")
 def home():
-    return render_template("index.html")
+    conn = get_db()
+    cursor = conn.cursor(buffered=True, dictionary=True)
+    cursor.execute(
+        """
+            SELECT COUNT(*) as total_user
+            FROM user_base
+            WHERE account_status=%s
+        """,
+        ("active")
+    )
+    totalUsers = cursor.fetchone()['total_user']
+    
+        
+    return render_template("index.html",totalUsers=totalUsers)
 
 @app.route("/about")
 def about():
