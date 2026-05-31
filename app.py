@@ -2560,7 +2560,7 @@ def reset():
     try:
         cursor.execute(
             """
-            SELECT user_id, sequrity_question, sequrity_answer_hash, email
+            SELECT user_id, security_question, security_answer, email
             FROM user_base
             WHERE username=%s
             """,
@@ -4486,7 +4486,7 @@ def update_profile(current_user_id,current_user_role):
     try:
         cursor.execute(
             """
-            SELECT id 
+            SELECT 1 
             FROM cust_base
             WHERE user_id=%s
             """,
@@ -4518,7 +4518,6 @@ def update_profile(current_user_id,current_user_role):
                 current_user_id)
             )
 
-            conn.commit()
         else:
             cursor.execute(
                 """
@@ -4539,7 +4538,7 @@ def update_profile(current_user_id,current_user_role):
                 )
             )
 
-            conn.commit()
+
     
 
         cursor.execute(
