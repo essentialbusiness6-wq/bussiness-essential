@@ -1424,10 +1424,15 @@ def me_page_data(current_user_id,current_user_role):
     )
     currencySymbol = cursor.fetchone()['currency_symbol']
 
+    if user_data['fullname'] :
+        name = user_data['fullname'] 
+    else: 
+        name = ""
+
     return jsonify({
         "status": "success",
         "user": {
-            "name": user_data['fullname'],
+            "name": name,
             "profilePic": user_data['profilepicurl'],
             "balance": balance 
         },
