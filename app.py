@@ -4522,8 +4522,8 @@ def update_profile(current_user_id,current_user_role):
             cursor.execute(
                 """
                 INSERT INTO cust_base
-                (user_id,fullname,profilename,address,alternateemail,phone,website,bio,country)
-                VALUES(%s ,%s ,%s ,%s ,%s ,%s ,%s ,%s ,%s)
+                (user_id,fullname,profilename,address,alternateemail,phone,website,bio,country,currency)
+                VALUES(%s ,%s ,%s ,%s ,%s ,%s ,%s ,%s ,%s ,%s)
                 """,
                 (   
                     current_user_id,
@@ -4534,7 +4534,8 @@ def update_profile(current_user_id,current_user_role):
                     data['phone'],
                     data['website'],
                     data['bio'],
-                    data['country']
+                    data['country'],
+                    "NGN"
                 )
             )
 
