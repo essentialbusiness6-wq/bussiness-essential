@@ -834,167 +834,167 @@ def profile_page(current_user_id,current_user_role):
 @app.route("/dashboard/data")
 @token_required
 def dashboard_data(current_user_id, current_user_role):
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
 
-    import time
-    start = time.time()
+        # ================= USER DATA =================
+        cursor.execute("""
+            SELECT
+                ub.username,
+                ub.plan,
+                cb.profilepicurl,
+                cb.profilename
+            FROM user_base ub
+            LEFT JOIN cust_base cb
+                ON cb.user_id = ub.user_id
+            WHERE ub.user_id = %s
+            LIMIT 1
+        """, (current_user_id,))
 
-    conn = get_db()
-    cursor = conn.cursor(buffered=True)
-    print("Connection took:",time.time() - start)
+        user_data = cursor.fetchone()
 
-    cursor.execute(
-    "SELECT role FROM user_base WHERE user_id=%s",
-    (current_user_id,)
-)
+        if not user_data:
+            return jsonify({
+                "status": "error",
+                "message": "User not found"
+            }), 404
 
-    user = cursor.fetchone()
-    print("Query 1 took:",time.time() - start)
+        # ================= INVOICE STATS =================
+        cursor.execute("""
+            SELECT
+                COUNT(*) AS total_invoices,
 
-    if not user:
+                SUM(
+                    CASE
+                        WHEN status = 'paid'
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS paid_invoices,
+
+                SUM(
+                    CASE
+                        WHEN status = 'pending'
+                        THEN 1
+                        ELSE 0
+                    END
+                ) AS pending_invoices,
+
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN status = 'paid'
+                            THEN total
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS total_revenue
+
+            FROM invoices
+            WHERE user_id = %s
+        """, (current_user_id,))
+
+        invoice_stats = cursor.fetchone()
+
+        # ================= SETTINGS =================
+        cursor.execute("""
+            SELECT
+                currency,
+                currency_symbol
+            FROM user_settings
+            WHERE user_id = %s
+            LIMIT 1
+        """, (current_user_id,))
+
+        settings = cursor.fetchone()
+
+        if not settings:
+            return jsonify({
+                "status": "error",
+                "message": "Settings not found"
+            }), 404
+
+        # ================= WALLET =================
+        cursor.execute("""
+            SELECT wallet_balance
+            FROM wallet_base
+            WHERE user_id = %s
+            LIMIT 1
+        """, (current_user_id,))
+
+        wallet = cursor.fetchone()
+
+        if not wallet:
+            return jsonify({
+                "status": "error",
+                "message": "Wallet not found"
+            }), 404
+
+        # ================= UNREAD NOTIFICATIONS =================
+        cursor.execute("""
+            SELECT COUNT(*) AS unread_count
+            FROM log_activity
+            WHERE user_id = %s
+            AND is_read = FALSE
+        """, (current_user_id,))
+
+        unread_count = cursor.fetchone()["unread_count"]
+
+        # ================= RECENT ACTIVITIES =================
+        cursor.execute("""
+            SELECT
+                type,
+                title,
+                description,
+                amount,
+                created_at
+            FROM log_activity
+            WHERE user_id = %s
+            ORDER BY created_at DESC
+            LIMIT 20
+        """, (current_user_id,))
+
+        activities = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
         return jsonify({
-        "status": "error",
-        "message": "User not found"
-    }), 401
+            "status": "success",
 
-    cursor.execute(
-        """
-        SELECT 
-            user_base.username,
-            user_base.plan,
-            cust_base.profilepicurl,
-            cust_base.profilename
-        FROM user_base
-        JOIN cust_base ON cust_base.user_id = user_base.user_id
-        WHERE user_base.user_id=%s
-        """,
-        (current_user_id,)
-    )
-    user_data = cursor.fetchone()
-    print("Query 2 took:",time.time() - start)
+            "username": user_data["username"],
+            "plan": (user_data["plan"] or "").capitalize(),
+            "profilepicurl": user_data["profilepicurl"],
+            "profilename": user_data["profilename"],
 
-    # Feth total invoice
-    cursor.execute("""
-        SELECT COUNT(*)
-        FROM invoices
-        WHERE user_id=%s
-    """, (current_user_id,))
-    total_invoices = cursor.fetchone()[0]
-    print("Query 3 took:",time.time() - start)
+            "total_invoices": invoice_stats["total_invoices"] or 0,
+            "paid_invoices": invoice_stats["paid_invoices"] or 0,
+            "pending_invoices": invoice_stats["pending_invoices"] or 0,
+            "total_revenue": float(invoice_stats["total_revenue"] or 0),
 
+            "currency": settings["currency"],
+            "currency_symbol": settings["currency_symbol"],
 
-    # Fetch paid invoice
-    cursor.execute("""
-        SELECT COUNT(*)
-        FROM invoices
-        WHERE user_id=%s AND status=%s
-    """, (current_user_id,"paid"))
-    paid_invoices = cursor.fetchone()[0]
-    print("Query 4 took:",time.time() - start)
+            "balance": float(wallet["wallet_balance"] or 0),
 
+            "unread_count": unread_count,
+            "activities": activities,
 
-    # Fetch pending invoice
-    cursor.execute("""
-        SELECT COUNT(*)
-        FROM invoices
-        WHERE user_id=%s AND status=%s
-    """, (current_user_id,"pending"))
-    pending_invoices = cursor.fetchone()[0]
-    print("Query 5 took:",time.time() - start)
+            "user": {
+                "id": current_user_id,
+                "role": current_user_role
+            }
+        })
 
-    # Fetch total revenues
-    cursor.execute(
-        """
-        SELECT  COALESCE(SUM(total), 0) 
-        FROM invoices
-        WHERE user_id=%s AND status=%s
-    """, (current_user_id,"paid")
-    )
-    total_revenue = cursor.fetchone()[0]
-    print("Query 6 took:",time.time() - start)
+    except Exception as e:
+        print("Dashboard error:", e)
 
-    # Fetch currency
-    cursor.execute(
-        """
-        SELECT currency, currency_symbol
-        FROM user_settings
-        WHERE user_id=%s
-        """,
-        (current_user_id,)
-    )
-    settings = cursor.fetchone()
-    print("Query 7 took:",time.time() - start)
-    if not settings:
-        return jsonify({"error": "Settings not found"}), 404
-    currency, currency_symbol = settings
-
-    # Fetch wallet balance
-    cursor.execute(
-        """
-        SELECT wallet_balance 
-        FROM wallet_base
-        WHERE user_id=%s
-        """,
-        (current_user_id,)
-    )
-    wallet = cursor.fetchone()
-    print("Query 8 took:",time.time() - start)
-    if not wallet:
-        return jsonify({"error": "Wallet not found"}), 404
-    
-    wallet_balance = wallet[0]
-
-    cursor.execute("""
-        SELECT COUNT(*) AS unread
-        FROM log_activity
-        WHERE user_id=%s AND is_read=%s
-    """, (current_user_id, False))
-    unread_count = cursor.fetchone()[0]
-    print("Query 9 took:",time.time() - start)
-
-    # Get activity
-    cursor.execute(
-        """
-        SELECT type,title,description, amount
-        FROM log_activity
-        WHERE user_id=%s  AND  created_at>=%s
-        ORDER BY created_at DESC
-        """,
-        (current_user_id, datetime.now() - timedelta(days=1))
-    )
-    activities = cursor.fetchall()
-    print("Query 10 took:",time.time() - start)
-
-    print("Total query + connection took:",time.time() - start)
-    cursor.close()
-    conn.close()
-    print("connection closing took:",time.time() - start)
-   
-    return jsonify({
-    "status": "success",
-
-    "username": user_data[0],
-    "plan": user_data[1].capitalize(),
-    "profilepicurl": user_data[2],
-    "profilename": user_data[3],
-
-    "total_invoices": total_invoices,
-    "paid_invoices": paid_invoices,
-    "pending_invoices": pending_invoices,
-
-    "total_revenue": float(total_revenue),
-    "currency": currency,
-    "currency_symbol": currency_symbol,
-
-    "balance": float(wallet_balance),
-
-    "unread_count": unread_count,
-    "activities": activities,
-
-    "user": {
-        "id": current_user_id,
-        "role": current_user_role
-    }
-})
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 
 @app.route("/dashboard/invoices/list/data")
 @token_required
