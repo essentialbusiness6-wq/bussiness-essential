@@ -14,11 +14,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const pricingData = {
         basic: {
             monthly: 1000,
-            yearly: 9600 // 20% discount
+            yearly: 12000 // 20% discount
         },
         pro: {
             monthly: 10000,
-            yearly: 96000 // 20% discount
+            yearly: 120000 // 20% discount
         }
     };
     
