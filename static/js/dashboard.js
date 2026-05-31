@@ -132,210 +132,263 @@ function setupEventListeners() {
 // ==============================
 // FETCH DASHBOARD DATA
 // ==============================
-function fetchDashboardData() {
+let dashboardController = null;
+let dashboardLoading = false;
 
-    // SHOW LOADING STATE
-    showStatsLoading(true);
+async function fetchDashboardData(forceRefresh = false) {
 
+    if (dashboardLoading) return;
 
-    fetch("/dashboard/data", {
-        "method": "GET",
-        "credentials": "include"
-    })
-        .then(res => {
+    dashboardLoading = true;
 
-            if (res.status === 401) {
-                showModal(
-                    "error",
-                    "Session expired. Please log in again.",
-                    "/login"
-                );
+    try {
 
-                throw new Error("Unauthorized");
+        const CACHE_KEY = "dashboard_data";
+        const CACHE_TIME_KEY = "dashboard_data_time";
+        const CACHE_DURATION = 60 * 1000; // 1 minute
+
+        const cachedData =
+            sessionStorage.getItem(CACHE_KEY);
+
+        const cachedTime =
+            sessionStorage.getItem(CACHE_TIME_KEY);
+
+        const now = Date.now();
+
+        // ========================
+        // USE CACHE FIRST
+        // ========================
+
+        if (
+            !forceRefresh &&
+            cachedData &&
+            cachedTime &&
+            now - parseInt(cachedTime) < CACHE_DURATION
+        ) {
+
+            const data = JSON.parse(cachedData);
+
+            renderDashboard(data);
+
+            dashboardLoading = false;
+
+            // Background refresh
+            fetchDashboardData(true);
+
+            return;
+        }
+
+        showStatsLoading(true);
+
+        // Cancel previous request
+        if (dashboardController) {
+            dashboardController.abort();
+        }
+
+        dashboardController = new AbortController();
+
+        const response = await fetch(
+            "/dashboard/data",
+            {
+                method: "GET",
+                credentials: "include",
+                signal: dashboardController.signal
             }
+        );
 
-            if (!res.ok) {
-                throw new Error(`HTTP error! status: ${res.status}`);
-            }
+        if (response.status === 401) {
 
-            return res.json();
-        })
+            showModal(
+                "error",
+                "Session expired. Please login again.",
+                "/login"
+            );
 
-        .then(data => {
+            return;
+        }
 
-            console.log("Dashboard Data:", data);
+        if (!response.ok) {
+            throw new Error(
+                `HTTP error ${response.status}`
+            );
+        }
 
-            // REMOVE LOADING STATE
-            showStatsLoading(false);
+        const data = await response.json();
 
-            // =========================
-            // USER DATA
-            // =========================
-            currencySymbol = data.currency_symbol || "$";
-            const username = `Hi, ${data.username|| "User"}`;
-            const plan = data.plan || "Trial";
-            const profilepicurl =
-                data.profilepicurl ||
-                "/static/images/default-profile.png";
+        // Save cache
+        sessionStorage.setItem(
+            CACHE_KEY,
+            JSON.stringify(data)
+        );
 
-            const profilename =
-                data.user_data?.[3] || username;
+        sessionStorage.setItem(
+            CACHE_TIME_KEY,
+            now.toString()
+        );
 
-            const usernameEl =
-                document.getElementById("username-placeholder");
+        renderDashboard(data);
 
-            if (usernameEl) {
-                usernameEl.textContent = username;
-            }
+    } catch (err) {
 
-            const planBadge =
-                document.getElementById("planBadge");
+        if (err.name === "AbortError") {
+            return;
+        }
 
-            if (planBadge) {
-                planBadge.textContent = plan;
-                planBadge.className =
-                    `plan-badge ${plan === 'Trial' ? 'trial' : ''}`;
-            }
+        console.error(
+            "Dashboard fetch error:",
+            err
+        );
 
-            const profilePic =
-                document.getElementById("dashboard-profile-pic");
+        showModal(
+            "error",
+            "Failed to load dashboard data."
+        );
 
-            if (profilePic) {
-                profilePic.src = profilepicurl;
-            }
+    } finally {
 
-            // =========================
-            // BALANCE
-            // =========================
+        showStatsLoading(false);
 
-            const balanceElement =
-                document.getElementById("balance-amount");
+        dashboardLoading = false;
+    }
+}
 
-            const formattedBalance = formatCurrency(
-                data.wallet_balance || 0,
+function renderDashboard(data) {
+
+    currencySymbol =
+        data.currency_symbol || "$";
+
+    const username =
+        `Hi, ${data.username || "User"}`;
+
+    const plan =
+        data.plan || "Trial";
+
+    const profilepicurl =
+        data.profilepicurl ||
+        "/static/images/default-profile.png";
+
+    const profilename =
+        data.profilename ||
+        data.username ||
+        "User";
+
+    document.getElementById(
+        "username-placeholder"
+    )?.textContent = username;
+
+    const planBadge =
+        document.getElementById("planBadge");
+
+    if (planBadge) {
+
+        planBadge.textContent = plan;
+
+        planBadge.className =
+            `plan-badge ${
+                plan === "Trial"
+                    ? "trial"
+                    : ""
+            }`;
+    }
+
+    document.getElementById(
+        "dashboard-profile-pic"
+    )?.setAttribute(
+        "src",
+        profilepicurl
+    );
+
+    document.getElementById(
+        "greeting-text"
+    )?.innerHTML =
+        `Good ${getTimeOfDay()}, ${profilename} 👋`;
+
+    document.getElementById(
+        "total-invoices"
+    )?.replaceChildren(
+        document.createTextNode(
+            data.total_invoices || 0
+        )
+    );
+
+    document.getElementById(
+        "paid-invoices"
+    )?.replaceChildren(
+        document.createTextNode(
+            data.paid_invoices || 0
+        )
+    );
+
+    document.getElementById(
+        "pending-invoices"
+    )?.replaceChildren(
+        document.createTextNode(
+            data.pending_invoices || 0
+        )
+    );
+
+    document.getElementById(
+        "total-revenue"
+    )?.replaceChildren(
+        document.createTextNode(
+            formatCurrency(
+                data.total_revenue || 0,
+                currencySymbol
+            )
+        )
+    );
+
+    const balanceElement =
+        document.getElementById(
+            "balance-amount"
+        );
+
+    if (balanceElement) {
+
+        const formattedBalance =
+            formatCurrency(
+                data.balance || 0,
                 currencySymbol
             );
 
-            if (balanceElement) {
-                balanceElement.textContent = formattedBalance;
-                balanceElement.dataset.balance = formattedBalance;
-            }
+        balanceElement.textContent =
+            formattedBalance;
 
-            // =========================
-            // GREETING
-            // =========================
+        balanceElement.dataset.balance =
+            formattedBalance;
+    }
 
-            const greetingText =
-                document.getElementById("greeting-text");
+    const notifyCount =
+        document.getElementById(
+            "notifyCount"
+        );
 
-            if (greetingText) {
-                greetingText.innerHTML =
-                    `Good ${getTimeOfDay()}, ${profilename} 👋`;
-            }
+    if (notifyCount) {
 
-            // =========================
-            // STATS
-            // =========================
+        notifyCount.textContent =
+            data.unread_count || 0;
 
-            const totalInvoices =
-                document.getElementById("total-invoices");
+        notifyCount.style.display =
+            data.unread_count > 0
+                ? "flex"
+                : "none";
+    }
 
-            const paidInvoices =
-                document.getElementById("paid-invoices");
+    document
+        .getElementById(
+            "upgradeBanner"
+        )
+        ?.classList.toggle(
+            "hidden",
+            plan !== "Trial"
+        );
 
-            const pendingInvoices =
-                document.getElementById("pending-invoices");
+    populateActivityList(
+        data.activities || []
+    );
 
-            const totalRevenue =
-                document.getElementById("total-revenue");
-
-            if (totalInvoices) {
-                totalInvoices.textContent =
-                    data.total_invoices || 0;
-            }
-
-            if (paidInvoices) {
-                paidInvoices.textContent =
-                    data.paid_invoices || 0;
-            }
-
-            if (pendingInvoices) {
-                pendingInvoices.textContent =
-                    data.pending_invoices || 0;
-            }
-
-            if (totalRevenue) {
-                totalRevenue.textContent = formatCurrency(
-                    data.total_revenue || 0,
-                    currencySymbol
-                );
-            }
-
-            // =========================
-            // NOTIFICATIONS
-            // =========================
-
-            const notifyCount =
-                document.getElementById("notifyCount");
-
-            if (notifyCount) {
-                notifyCount.textContent =
-                    data.unread_count || 0;
-
-                notifyCount.style.display =
-                    data.unread_count > 0
-                        ? 'flex'
-                        : 'none';
-            }
-
-            // =========================
-            // UPGRADE BANNER
-            // =========================
-
-            const upgradeBanner =
-                document.getElementById("upgradeBanner");
-
-            if (upgradeBanner) {
-                upgradeBanner.classList.toggle(
-                    'hidden',
-                    plan !== 'Trial'
-                );
-            }
-
-            // =========================
-            // ACTIVITY
-            // =========================
-
-            populateActivityList(data.activities || []);
-
-            // =========================
-            // ANIMATION
-            // =========================
-
-            setTimeout(() => {
-                animateStatsCards();
-            }, 300);
-
-        })
-
-        .catch(err => {
-
-            console.error(
-                "Error fetching dashboard data:",
-                err
-            );
-
-            showStatsLoading(false);
-
-            if (err.message !== "Unauthorized") {
-                showModal(
-                    "error",
-                    "Failed to load dashboard data. Please try again later."
-                );
-            }
-        });
+    animateStatsCards();
 }
-
 // ==============================
 // STATS LOADING FIX
 // ==============================
