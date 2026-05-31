@@ -21,7 +21,7 @@ from dotenv import load_dotenv
 from typing import Optional
 from backend.extentions import socketio
 import base64
-
+from mysql.connector.pooling import MySQLConnectionPool
 
 
 load_dotenv()
@@ -29,15 +29,19 @@ load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 
-
-def get_db():
-    return mysql.connector.connect(
-    host = os.getenv("DBHOST"),
-    user = os.getenv("DBUSER"),
+db_pool = MySQLConnectionPool(
+    pool_name="business_pool",
+    pool_size=20,
+    host= os.getenv("DBHOST"),
+    user= os.getenv("DBUSER"),
     password = os.getenv("DBPASS"),
     database = os.getenv("DB"),
     port= os.getenv("DBPORT")
-    )
+)
+
+def get_db():
+    return db_pool.get_connection()
+
 
 def get_user_id(username):
     conn = get_db()
