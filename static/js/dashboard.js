@@ -300,45 +300,65 @@ function renderDashboard(data) {
         profilepicurl
     );
 
-    document.getElementById(
+    const greetText =     document.getElementById(
         "greeting-text"
-    )?.innerHTML =
+    );
+
+    if (greetText) {
+        greetText.innerHTML =
         `Good ${getTimeOfDay()}, ${profilename} 👋`;
+    }
 
-    document.getElementById(
+    const totInv =     document.getElementById(
         "total-invoices"
-    )?.replaceChildren(
-        document.createTextNode(
-            data.total_invoices || 0
-        )
     );
 
-    document.getElementById(
-        "paid-invoices"
-    )?.replaceChildren(
-        document.createTextNode(
-            data.paid_invoices || 0
-        )
-    );
-
-    document.getElementById(
-        "pending-invoices"
-    )?.replaceChildren(
-        document.createTextNode(
-            data.pending_invoices || 0
-        )
-    );
-
-    document.getElementById(
-        "total-revenue"
-    )?.replaceChildren(
-        document.createTextNode(
-            formatCurrency(
-                data.total_revenue || 0,
-                currencySymbol
+    if (totInv){
+       totInv .replaceChildren(
+            document.createTextNode(
+                data.total_invoices || 0
             )
-        )
+        );
+    }
+
+    const padInv =    document.getElementById(
+        "paid-invoices"
     );
+
+    if (padInv){
+        padInv.replaceChildren(
+            document.createTextNode(
+                data.paid_invoices || 0
+            )
+        );
+    }
+
+    const pendInv =     document.getElementById(
+        "pending-invoices"
+    );
+
+    if (pendInv) {
+        pendInv.replaceChildren(
+            document.createTextNode(
+                data.pending_invoices || 0
+            )
+        );
+    }
+
+    const totRev =     document.getElementById(
+        "total-revenue"
+    );
+
+    if (totRev) {
+        totRev.replaceChildren(
+            document.createTextNode(
+                formatCurrency(
+                    data.total_revenue || 0,
+                    currencySymbol
+                )
+            )
+        );
+    }
 
     const balanceElement =
         document.getElementById(
