@@ -2586,7 +2586,7 @@ def reset():
                 title="Password Reset",
                 description="Failed. Invalid security details",
                 severity= "MEDIUM",
-                ip_address=get_client_ip(request)
+                ip_address=get_client_ip()
             )
 
             return jsonify({"status": "error", "message": "Invalid security details"}), 400
@@ -2736,7 +2736,7 @@ def savepassword():
                 title="Password Reset",
                 description="Failed.No active reset request ",
                 severity= "MEDIUM",
-                ip_address=get_client_ip(request)
+                ip_address=get_client_ip()
             )
 
             return jsonify({
@@ -2857,7 +2857,7 @@ def savepassword():
             title="Password Reset",
             description="Password updated successfully.",
             severity= "LOW",
-            ip_address=get_client_ip(request)
+            ip_address=get_client_ip()
         )
 
         return jsonify({
