@@ -971,7 +971,7 @@ def dashboard_data(current_user_id, current_user_role):
 
         cursor.close()
         conn.close()
-         print("Total query took:", time.time() - start)
+        print("Total query took:", time.time() - start)
 
         return jsonify({
             "status": "success",
