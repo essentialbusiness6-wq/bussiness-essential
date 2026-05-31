@@ -2303,7 +2303,7 @@ def verifylogin():
             """
             SELECT 1
             FROM user_settings
-            WHERE user_id=%
+            WHERE user_id=%s
             LIMIT 1
             """,
             (user_id,)
