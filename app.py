@@ -2308,7 +2308,7 @@ def verifylogin():
             (user_id,)
         )
         s = cursor.fetchone()
-        if not s:'
+        if not s:
             cursor.execute(
                 """
                 INSERT INTO user_settings (user_id, footer_note)
