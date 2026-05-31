@@ -272,9 +272,11 @@ function renderDashboard(data) {
         data.username ||
         "User";
 
-    document.getElementById(
-        "username-placeholder"
-    )?.textContent = username;
+    const usernameEl = document.getElementById("username-placeholder");
+
+    if (usernameEl) {
+        usernameEl.textContent = username;
+    }
 
     const planBadge =
         document.getElementById("planBadge");
