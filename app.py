@@ -1817,9 +1817,29 @@ def create_user():
             hashlib.sha256(data['app_pin'].encode()).hexdigest()
         ))
         user_id = cursor.lastrowid
+        cursor.execute(
+            """
+            INSERT INTO user_settings (user_id, footer_note
+            )
+            VALUES (%s, %s)
+            """,
+            (
+                user_id,
+                "Thanks for doing business with us."
+            )
+        )
+
+        cursor.execute(
+            """
+            INSERT INTO wallet_base (user_id)
+            VALUES(%s)
+            """,
+            (user_id,)
+        )
+
 
         conn.commit()
-
+    
         send_email(
             recipient=data["email"],
             subject="Verification of Account Creation",
@@ -1881,11 +1901,11 @@ def verify_user():
 
     conn = get_db()
     cursor = conn.cursor()
-
-    # Here you would normally check the verification code against what was sent/stored
+    user_id = get_user_id(data['username'])
     if data["generated_code"] != data["verification_code"]:
+      
         save_security_activity(
-            user_id= get_user_id(data['username']),
+            user_id= user_id ,
             type_="Verification",
             title="Email verification",
             description="Email verification failed",
@@ -1899,7 +1919,7 @@ def verify_user():
         }), 400
 
     save_security_activity(
-        user_id= get_user_id(data['username']),
+        user_id= user_id,
         type_="Verification",
         title="Email verification",
         description="Email verified successfully",
@@ -1913,7 +1933,7 @@ def verify_user():
         SET is_email_verified=%s
         WHERE user_id=%s
         """,
-        (True, get_user_id(data['username']))
+        (True, user_id)
     )
 
     conn.commit()
@@ -1981,25 +2001,7 @@ def complete_cust():
             user_id
         ))
 
-        cursor.execute(
-            """
-            INSERT INTO user_settings (user_id, footer_note
-            )
-            VALUES (%s, %s)
-            """,
-            (
-                user_id,
-                "Thanks for doing business with us."
-            )
-        )
-
-        cursor.execute(
-            """
-            INSERT INTO wallet_base (user_id)
-            VALUES(%s)
-            """,
-            (user_id,)
-        )
+      
 
         conn.commit()
 
