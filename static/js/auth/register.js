@@ -401,6 +401,7 @@ custForm.addEventListener("submit", async function (e) {
 
     const data = {
         username: document.getElementById("username_input").value,
+        email: document.getElementById("email_input").value.trim(),
         profile_name: document.getElementById("profile_name_input").value,
         full_name: document.getElementById("full_name_input").value,
         address: document.getElementById("address_input").value,
