@@ -1311,7 +1311,6 @@ def clients_page_data(current_user_id, current_user_role):
     cursor.close()
     conn.close()
 
-    print(clients)
 
     return jsonify({
         "status": "success",
