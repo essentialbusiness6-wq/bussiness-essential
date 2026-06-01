@@ -1734,7 +1734,7 @@ def create_profile():
 
         conn.commit()
         # welcome html
-        first_name = data'profile_name']
+        first_name = data['profile_name']
         year = datetime.now().year
         welcome_html = f"""
 
