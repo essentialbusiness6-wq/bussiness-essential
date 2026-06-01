@@ -382,7 +382,7 @@ resendCodeBtn.addEventListener("click",async function () {
         clearLoading(resendCodeBtn);
 
         if (result.status === "success") {
-         showForm("custbase", 3);
+            showSuccessModal(data.message || "Code resent.");
         } else {
             showErrorModal(result.message || "Verification failed");
         }
