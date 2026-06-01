@@ -2566,7 +2566,7 @@ def verifylogin():
             "access_token",
             token,
             httponly=True,
-            secure=False,  # True when using HTTPS
+            secure=True,  
             samesite="Lax",
             max_age=60 * 60 * 24 * 7
         )
