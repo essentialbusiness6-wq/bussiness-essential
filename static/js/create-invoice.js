@@ -546,6 +546,9 @@ function clearLoading(button) {
     }
 }
 
-function  formatCurrency(amount) {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+function formatCurrency(amount, currency = "NGN") {
+    return new Intl.NumberFormat("en-NG", {
+        style: "currency",
+        currency: currency
+    }).format(amount);
 }
