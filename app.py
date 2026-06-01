@@ -1402,7 +1402,7 @@ def payment_page_data(current_user_id,current_user_role):
             FROM invoice_items
             WHERE invoice_id=%s
             """,
-            (p['id'])
+            (p['id'],)
         )
         items = cursor.fetchall()
         
