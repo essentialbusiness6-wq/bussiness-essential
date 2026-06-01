@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /* ================= BUTTONS ================= */
     const resendCodeBtn = document.getElementById("resend_code_btn");
+    const skipBtn = document.getElementById("skipBtn");
 
     /* ================= UI ELEMENTS ================= */
     const userbaseWrapper = document.getElementById('userbase');
@@ -425,8 +426,8 @@ custForm.addEventListener("submit", async function (e) {
         clearLoading(submitBtn);
 
         if (result.status === "success") {
-
-        showForm("completecust", 4);
+            showSuccessModal(data.message || "Profile created successfully.");
+            showForm("completecust", 4);
         } else {
             showErrorModal(result.message || "Saving Profile failed");
         }
@@ -492,6 +493,11 @@ enableFaceBtn.addEventListener("click", async () => {
     }
 });
 
+skipBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    showSuccessModal("Welcome. You can login now and start.", "/login", 2000);
+})
+    
 /* ================= COMPLETE PROFILE ================= */
 completeCustForm.addEventListener("submit", async function(e) {
     e.preventDefault();
