@@ -2754,7 +2754,7 @@ def savepassword():
     try:
         cursor.execute(
             """
-            SELECT user_id reset_code_hash, reset_code_expires, email
+            SELECT user_id, reset_code_hash, reset_code_expires, email
             FROM user_base
             WHERE username=%s
             """,
