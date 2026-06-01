@@ -3,7 +3,6 @@ gunicorn
 flask-cors
 flask-socketio
 python-dotenv
-requests
 APScheduler
 werkzeug
 PyJWT
@@ -18,3 +17,6 @@ reportlab
 eventlet
 gevent
 gevent-websocket
+requests>=2.31.0
+urllib3>=2.0.0
+certifi>=2024.0.0
