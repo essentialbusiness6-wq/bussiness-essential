@@ -1733,6 +1733,114 @@ def create_profile():
         ))
 
         conn.commit()
+        # welcome html
+        first_name = data'profile_name']
+        year = datetime.now().year
+        welcome_html = f"""
+
+<body style="margin:0; padding:0; background-color:#f4f6f8; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;">
+    <tr>
+      <td align="center">
+
+
+    <!-- Card -->
+    <table width="100%" cellpadding="0" cellspacing="0"
+      style="max-width:600px; background:#ffffff; border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,0.08); overflow:hidden;">
+
+      <!-- Header -->
+      <tr>
+        <td style="background:linear-gradient(135deg, #2563eb, #1e40af); padding:28px; text-align:center;">
+          <img src="{APP_LOGO_URL}" alt="Business Essential Logo" width="56" height="56"
+            style="display:block; margin:0 auto 10px;" />
+          <h1 style="margin:0; font-size:22px; color:#ffffff;">Welcome to Business Essential 🎉</h1>
+          <p style="margin:6px 0 0; font-size:14px; color:#dbeafe;">
+            Simple • Secure • Professional Invoicing
+          </p>
+        </td>
+      </tr>
+
+      <!-- Body -->
+      <tr>
+        <td style="padding:36px; color:#111827;">
+          <h2 style="margin-top:0; font-size:24px;">
+            Hi {first_name},
+          </h2>
+
+          <p style="font-size:15px; line-height:1.7;">
+            Welcome aboard! We’re excited to have you join <strong>Business Essential</strong>.
+            Your account has been successfully created, and you’re now ready to start managing
+            invoices, customers, and payments with ease.
+          </p>
+
+          <!-- Feature List -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;">
+            <tr>
+              <td style="font-size:15px; line-height:1.8;">
+                ✅ Create and manage professional invoices<br />
+                ✅ Track payments and customer activity<br />
+                ✅ Secure your account with built-in protections<br />
+                ✅ Access your data anytime, anywhere
+              </td>
+            </tr>
+          </table>
+
+          <!-- CTA -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin:32px 0;">
+            <tr>
+              <td align="center">
+                <a href="{DASHBOARD_URL}"
+                  style="background:#2563eb; color:#ffffff; text-decoration:none;
+                         padding:14px 26px; border-radius:10px;
+                         font-size:15px; font-weight:600; display:inline-block;">
+                  Go to Dashboard
+                </a>
+              </td>
+            </tr>
+          </table>
+
+          <p style="font-size:15px; line-height:1.7;">
+            If you ever need help, our support team is always here to assist you.
+            We recommend starting by completing your profile and creating your first invoice.
+          </p>
+
+          <p style="font-size:15px; line-height:1.7;">
+            We’re glad you’re here — let’s build something great together 🚀
+          </p>
+
+          <p style="margin-top:32px; font-size:14px; color:#374151;">
+            Warm regards,<br />
+            <strong>The Business Essential Team</strong>
+          </p>
+        </td>
+      </tr>
+
+      <!-- Footer -->
+      <tr>
+        <td style="background:#f9fafb; padding:18px; text-align:center; font-size:12px; color:#6b7280;">
+          You’re receiving this email because you created an Business Essential account.<br />
+          © {year} Business Essential. All rights reserved.
+        </td>
+      </tr>
+
+    </table>
+
+  </td>
+</tr>
+
+
+  </table>
+
+</body>
+
+"""
+        send_email(
+            recipient=data["email"],
+            subject="Welcome to Business Essential 🎉",
+            body=welcome_html,
+            html=True
+        )
         
         save_security_activity(
             user_id=user_id,
