@@ -2342,12 +2342,22 @@ def verifylogin():
                     "Thanks for doing business with us."
                 )
             )
-            conn.commit()
+           
             print("Just finished fetched s")
+
+        referral_code = f"REF{user_id}{int(datetime.now().timestamp())}"
+        cursor.execute(
+            """
+            INSERT INTO referrals (user_id,referral_code)
+            VALUES(%s,%s)  
+            """,
+            (user_id,referral_code)
+        )
+
 
             
 
-
+        conn.commit()
         lat = data['lat']
         lng = data['lng']
         login_ip = get_client_ip()
@@ -2372,19 +2382,8 @@ def verifylogin():
 
         session["session_token"] = session_token
 
-
-        conn.commit()
         
-        referral_code = f"REF{user_id}{int(datetime.now().timestamp())}"
-        cursor.execute(
-            """
-            INSERT INTO referrals (user_id,referral_code)
-            VALUES(%s,%s)  
-            """,
-            (user_id,referral_code)
-        )
 
-        conn.commit()
   
     
         # --- Send login notification ---
@@ -2545,7 +2544,7 @@ def verifylogin():
             samesite="Lax",
             max_age=60 * 60 * 24 * 7
         )
-        return response, 201
+        return response, 200
 
     except Exception as e:
         conn.rollback()
