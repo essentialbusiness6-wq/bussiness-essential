@@ -119,7 +119,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function formatCurrency(amount) {
-        return `${currencySymbol}${amount}.00`
+        return `${currencySymbol}${amount}`
     }
     
     function createParticles() {
