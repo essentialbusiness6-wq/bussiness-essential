@@ -286,23 +286,47 @@ def get_location_from_ip(ip):
         return "Unknown City", "Unknown Region", "Unknown Country"
     
 
-def get_location(lat,lng):
+import requests
 
-    url = f"https://nominatim.openstreetmap.org/reverse?lat={lat}&lon={lng}&format=json"
+def get_location(lat, lng):
+    url = "https://nominatim.openstreetmap.org/reverse"
 
     headers = {
-        "User-Agent": "Bussiness Essential"
+        "User-Agent": "BusinessEssentialApp/1.0 (contact: admin@businessessentia.net)"
     }
 
-    response = requests.get(url,headers=headers)
-    location_data= response.json()
+    params = {
+        "lat": lat,
+        "lon": lng,
+        "format": "json"
+    }
 
-    address = location_data.get("address", {})
-    city = address.get('city') or address.get('town')
-    state = address.get("state")
-    country = address.get("country")
+    try:
+        response = requests.get(
+            url,
+            headers=headers,
+            params=params,
+            timeout=10
+        )
 
-    return city, state, country
+        response.raise_for_status()
+        location_data = response.json()
+
+        address = location_data.get("address", {})
+
+        city = address.get("city") or address.get("town") or address.get("village")
+        state = address.get("state")
+        country = address.get("country")
+
+        return city, state, country
+
+    except requests.exceptions.RequestException as e:
+        print("Location API error:", e)
+        return None, None, None
+
+    except Exception as e:
+        print("Unexpected error:", e)
+        return None, None, None
 
 
 
