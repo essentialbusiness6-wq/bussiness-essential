@@ -2575,7 +2575,7 @@ def verifylogin():
     except Exception as e:
         conn.rollback()
         print(e)
-
+        traceback.print_exc()
         return jsonify({
             "status": "error",
             "message": "Database error",
