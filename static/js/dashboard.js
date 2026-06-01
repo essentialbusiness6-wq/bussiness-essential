@@ -9,7 +9,26 @@ document.addEventListener('DOMContentLoaded', function () {
     updateGreeting();
 
     // Fetch dashboard data
-    fetchDashboardData();
+    const cachedData =
+            sessionStorage.getItem(
+                "dashboard_data"
+            );
+
+    if (cachedData) {
+
+            renderDashboard(
+                JSON.parse(cachedData)
+            );
+
+            // silent refresh in background
+            setTimeout(() => {
+                fetchDashboardData(true);
+            }, 1000);
+
+        } else {
+
+            fetchDashboardData();
+        }
 
     // Set up scroll indicator
     setupScrollIndicator();
