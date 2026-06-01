@@ -201,8 +201,23 @@ def dashboard():
     return render_template("users/dashboard.html")
 
 @app.route("/dashboard/create-invoice")
-def create_invoice_page():
-    return render_template("users/create-invoice.html")
+@token_required
+def create_invoice_page(current_user_id,current_user_role):
+    conn = get_db()
+    cursor = conn.cursor(buffered=True, dictionary=True)
+
+    cursor.execute(
+        """
+        SELECT currency_symbol
+        FROM user_settings
+        WHERE user_id=%s
+        """,
+        (current_user_id,)
+    )
+    currencySymbol = cursor.fetchone()['currency_symbol']
+    
+
+    return render_template("users/create-invoice.html",currencySymbol=currencySymbol)
 
 @app.route("/invoice/edit/<int:invoiceId>")
 @token_required
@@ -3325,7 +3340,7 @@ def create_invoice(current_user_id, current_user_role):
 
       
 
-        invoice_prefix= settings[0] if cursor.fetchone() else "INV"
+        invoice_prefix= settings[0] if settings else "INV"
 
         # record to transaction 
         reference = generate_reference(invoice_prefix)
