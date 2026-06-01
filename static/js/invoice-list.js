@@ -444,7 +444,7 @@ function showDeleteConfirmation(invoiceId) {
 }
 
 // Function to handle delete invoice
-function deleteInvoice(invoiceId) {
+async function deleteInvoice(invoiceId) {
     e.preventDefault();
     const deleteBtn = document.getElementById('confirmDelete');
 
