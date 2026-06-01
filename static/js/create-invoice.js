@@ -290,6 +290,13 @@ async function submitInvoice(e) {
 
         if (data.status === "success") {
             showModal("success", "Invoice created successfully");
+            sessionStorage.removeItem(
+                "dashboard_data"
+            );
+
+            sessionStorage.removeItem(
+                "dashboard_data_time"
+            );
         } else {
             showModal("error", data.message || "Failed");
         }
@@ -365,6 +372,13 @@ async function saveDraftInvoice(e) {
 
         if (data.status === "success") {
             showModal("success", "Draft saved successfully");
+            sessionStorage.removeItem(
+                "dashboard_data"
+            );
+
+            sessionStorage.removeItem(
+                "dashboard_data_time"
+            );
         } else {
             showModal("error", data.message || "Draft failed");
         }
