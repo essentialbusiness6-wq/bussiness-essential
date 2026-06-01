@@ -3382,6 +3382,7 @@ def create_invoice(current_user_id, current_user_role):
 
         send_notification(
             user_id= current_user_id,
+            title='Invoice Created",
             type_="invoice",
             description=f"Invoice #{invoice_id} created for {client_name}",
             amount=total,
