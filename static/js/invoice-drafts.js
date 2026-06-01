@@ -123,7 +123,7 @@ function setupEventListeners() {
         editDraft.addEventListener('click', () => {
             showHapticFeedback(editDraft);
             // In a real app, this would navigate to edit draft page
-            window.location.href = '/invoices/edit/draft/123';
+            window.location.href = `/invoice/draft/edit/${selectedDraftId}`;
         });
     }
     
