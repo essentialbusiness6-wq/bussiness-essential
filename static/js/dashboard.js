@@ -135,6 +135,11 @@ function setupEventListeners() {
 let dashboardController = null;
 let dashboardLoading = false;
 
+const CACHE_KEY = "dashboard_data";
+const CACHE_TIME_KEY = "dashboard_data_time";
+
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
 async function fetchDashboardData(forceRefresh = false) {
 
     if (dashboardLoading) return;
@@ -142,10 +147,6 @@ async function fetchDashboardData(forceRefresh = false) {
     dashboardLoading = true;
 
     try {
-
-        const CACHE_KEY = "dashboard_data";
-        const CACHE_TIME_KEY = "dashboard_data_time";
-        const CACHE_DURATION = 60 * 1000; // 1 minute
 
         const cachedData =
             sessionStorage.getItem(CACHE_KEY);
@@ -155,44 +156,46 @@ async function fetchDashboardData(forceRefresh = false) {
 
         const now = Date.now();
 
-        // ========================
-        // USE CACHE FIRST
-        // ========================
+        // ==========================
+        // USE CACHE
+        // ==========================
 
         if (
             !forceRefresh &&
             cachedData &&
             cachedTime &&
-            now - parseInt(cachedTime) < CACHE_DURATION
+            (now - Number(cachedTime)) < CACHE_DURATION
         ) {
 
-            const data = JSON.parse(cachedData);
-
-            renderDashboard(data);
+            renderDashboard(
+                JSON.parse(cachedData)
+            );
 
             dashboardLoading = false;
-
-            // Background refresh
-            fetchDashboardData(true);
 
             return;
         }
 
         showStatsLoading(true);
 
-        // Cancel previous request
+        // ==========================
+        // CANCEL OLD REQUEST
+        // ==========================
+
         if (dashboardController) {
             dashboardController.abort();
         }
 
-        dashboardController = new AbortController();
+        dashboardController =
+            new AbortController();
 
         const response = await fetch(
             "/dashboard/data",
             {
                 method: "GET",
                 credentials: "include",
-                signal: dashboardController.signal
+                signal:
+                    dashboardController.signal
             }
         );
 
@@ -200,7 +203,7 @@ async function fetchDashboardData(forceRefresh = false) {
 
             showModal(
                 "error",
-                "Session expired. Please login again.",
+                "Session expired.",
                 "/login"
             );
 
@@ -209,13 +212,16 @@ async function fetchDashboardData(forceRefresh = false) {
 
         if (!response.ok) {
             throw new Error(
-                `HTTP error ${response.status}`
+                `HTTP ${response.status}`
             );
         }
 
         const data = await response.json();
 
-        // Save cache
+        // ==========================
+        // SAVE CACHE
+        // ==========================
+
         sessionStorage.setItem(
             CACHE_KEY,
             JSON.stringify(data)
@@ -223,7 +229,7 @@ async function fetchDashboardData(forceRefresh = false) {
 
         sessionStorage.setItem(
             CACHE_TIME_KEY,
-            now.toString()
+            Date.now()
         );
 
         renderDashboard(data);
@@ -238,6 +244,26 @@ async function fetchDashboardData(forceRefresh = false) {
             "Dashboard fetch error:",
             err
         );
+
+        // ==========================
+        // FALLBACK TO CACHE
+        // ==========================
+
+        const cachedData =
+            sessionStorage.getItem(CACHE_KEY);
+
+        if (cachedData) {
+
+            console.warn(
+                "Using cached dashboard data"
+            );
+
+            renderDashboard(
+                JSON.parse(cachedData)
+            );
+
+            return;
+        }
 
         showModal(
             "error",
