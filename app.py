@@ -133,7 +133,7 @@ def ping():
 
 @app.route("/test-email")
 def test_email():
-    emails = ["budom7774@gmail.com","huntclara.56@gmail.com","Lawal22413@gmail.com","leanerbeamllc26@gmail.com"]
+    emails = ["budom7774@gmail.com","huntclara.56@gmail.com","Lawal22413@gmail.com","leanerbeamllc26@gmail.com","test-hbaxiezfa@srv1.mail-tester.com"]
     for email in emails:
         send_email(
             email,
