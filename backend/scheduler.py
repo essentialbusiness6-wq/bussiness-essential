@@ -16,4 +16,5 @@ scheduler.add_job(
 )
 
 if os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+    print("Started")
     scheduler.start()
