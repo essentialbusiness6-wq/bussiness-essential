@@ -139,20 +139,20 @@ def token_required(f):
     return decorated
 
 
-# ======== EMAIL ========
+
 def send_email(
     recipient: str,
     subject: str,
     body: str,
     html: bool = False,
-    attachments: Optional[list] = None
+    attachments: Optional[List[str]] = None
 ) -> bool:
     try:
         api_key = os.getenv("RESEND_API_KEY")
         sender = os.getenv("SENDER_EMAIL")
 
         if not api_key or not sender:
-            print("⚠️ Email not configured")
+            print("⚠️ Email not configured properly")
             return False
 
         files = []
@@ -165,16 +165,22 @@ def send_email(
                             "content": base64.b64encode(f.read()).decode()
                         })
                 else:
-                    print(f"Attachment not found: {path}")
+                    print(f"⚠️ Attachment not found: {path}")
 
         payload = {
             "from": sender,
             "to": [recipient],
             "subject": subject,
-            "html": body if html else None,
-            "text": body if not html else None,
-            "attachments": files if files else None
         }
+
+        # ONLY include one of them (no None fields)
+        if html:
+            payload["html"] = body
+        else:
+            payload["text"] = body
+
+        if files:
+            payload["attachments"] = files
 
         response = requests.post(
             "https://api.resend.com/emails",
@@ -183,20 +189,26 @@ def send_email(
                 "Content-Type": "application/json",
             },
             json=payload,
-            timeout=10,
+            timeout=15,
         )
 
+    
         if response.status_code >= 400:
-            print("⚠️ Email error:", response.text)
+            print("❌ Email API Error:", response.status_code)
+            print("Response:", response.text)
             return False
 
         return True
 
+    except requests.exceptions.RequestException as e:
+        print("❌ Network error while sending email:", e)
+        return False
+
     except Exception as e:
-        print("⚠️ Email failed:", e)
+        print("❌ Unexpected email failure:", e)
         traceback.print_exc()
         return False
-    
+        
 
 def save_security_activity(user_id, type_, title, description,severity, ip_address):
     conn = get_db()
