@@ -849,14 +849,30 @@ def profile_page(current_user_id,current_user_role):
 @app.route("/dashboard/data")
 @token_required
 def dashboard_data(current_user_id, current_user_role):
+
     try:
-        import time 
+        # ================= CACHE =================
+        cache_key = f"dashboard_{current_user_id}"
+
+        cached_data = session.get(cache_key)
+        cached_time = session.get(f"{cache_key}_time")
+
+        if (
+            cached_data and
+            cached_time and
+            time.time() - cached_time < 60
+        ):
+            return jsonify(cached_data)
+
         start = time.time()
+
         conn = get_db()
         cursor = conn.cursor(dictionary=True)
+
         print("Connection took:", time.time() - start)
 
-        # ================= USER DATA =================
+        # ================= USER =================
+
         cursor.execute("""
             SELECT
                 ub.username,
@@ -866,12 +882,11 @@ def dashboard_data(current_user_id, current_user_role):
             FROM user_base ub
             LEFT JOIN cust_base cb
                 ON cb.user_id = ub.user_id
-            WHERE ub.user_id = %s
+            WHERE ub.user_id=%s
             LIMIT 1
         """, (current_user_id,))
 
         user_data = cursor.fetchone()
-        print("Query 1 took:", time.time() - start)
 
         if not user_data:
             return jsonify({
@@ -879,14 +894,17 @@ def dashboard_data(current_user_id, current_user_role):
                 "message": "User not found"
             }), 404
 
+        print("User query took:", time.time() - start)
+
         # ================= INVOICE STATS =================
+
         cursor.execute("""
             SELECT
                 COUNT(*) AS total_invoices,
 
                 SUM(
                     CASE
-                        WHEN status = 'paid'
+                        WHEN status='paid'
                         THEN 1
                         ELSE 0
                     END
@@ -894,7 +912,7 @@ def dashboard_data(current_user_id, current_user_role):
 
                 SUM(
                     CASE
-                        WHEN status = 'pending'
+                        WHEN status='pending'
                         THEN 1
                         ELSE 0
                     END
@@ -903,7 +921,7 @@ def dashboard_data(current_user_id, current_user_role):
                 COALESCE(
                     SUM(
                         CASE
-                            WHEN status = 'paid'
+                            WHEN status='paid'
                             THEN total
                             ELSE 0
                         END
@@ -912,60 +930,52 @@ def dashboard_data(current_user_id, current_user_role):
                 ) AS total_revenue
 
             FROM invoices
-            WHERE user_id = %s
+            WHERE user_id=%s
         """, (current_user_id,))
 
         invoice_stats = cursor.fetchone()
-        print("Query 1 took:", time.time() - start)
 
-        # ================= SETTINGS =================
+        print("Invoice query took:", time.time() - start)
+
+        # ================= SETTINGS + WALLET =================
+
         cursor.execute("""
             SELECT
-                currency,
-                currency_symbol
-            FROM user_settings
-            WHERE user_id = %s
+                us.currency,
+                us.currency_symbol,
+                wb.wallet_balance
+            FROM user_settings us
+            LEFT JOIN wallet_base wb
+                ON wb.user_id = us.user_id
+            WHERE us.user_id=%s
             LIMIT 1
         """, (current_user_id,))
 
-        settings = cursor.fetchone()
-        print("Query 1 took:", time.time() - start)
+        account_data = cursor.fetchone()
 
-        if not settings:
+        if not account_data:
             return jsonify({
                 "status": "error",
-                "message": "Settings not found"
+                "message": "Account settings missing"
             }), 404
 
-        # ================= WALLET =================
-        cursor.execute("""
-            SELECT wallet_balance
-            FROM wallet_base
-            WHERE user_id = %s
-            LIMIT 1
-        """, (current_user_id,))
+        print("Settings query took:", time.time() - start)
 
-        wallet = cursor.fetchone()
-        print("Query 1 took:", time.time() - start)
+        # ================= UNREAD COUNT =================
 
-        if not wallet:
-            return jsonify({
-                "status": "error",
-                "message": "Wallet not found"
-            }), 404
-
-        # ================= UNREAD NOTIFICATIONS =================
         cursor.execute("""
             SELECT COUNT(*) AS unread_count
             FROM log_activity
-            WHERE user_id = %s
-            AND is_read = FALSE
+            WHERE user_id=%s
+            AND is_read=FALSE
         """, (current_user_id,))
 
         unread_count = cursor.fetchone()["unread_count"]
-        print("Query 1 took:", time.time() - start)
+
+        print("Unread query took:", time.time() - start)
 
         # ================= RECENT ACTIVITIES =================
+
         cursor.execute("""
             SELECT
                 type,
@@ -974,21 +984,19 @@ def dashboard_data(current_user_id, current_user_role):
                 amount,
                 created_at
             FROM log_activity
-            WHERE user_id = %s
+            WHERE user_id=%s
             ORDER BY created_at DESC
-            LIMIT 20
+            LIMIT 10
         """, (current_user_id,))
 
         activities = cursor.fetchall()
-        print("Query 1 took:", time.time() - start)
 
-       
+        print("Activity query took:", time.time() - start)
 
         cursor.close()
         conn.close()
-        print("Total query took:", time.time() - start)
 
-        return jsonify({
+        response_data = {
             "status": "success",
 
             "username": user_data["username"],
@@ -999,21 +1007,39 @@ def dashboard_data(current_user_id, current_user_role):
             "total_invoices": invoice_stats["total_invoices"] or 0,
             "paid_invoices": invoice_stats["paid_invoices"] or 0,
             "pending_invoices": invoice_stats["pending_invoices"] or 0,
-            "total_revenue": float(invoice_stats["total_revenue"] or 0),
 
-            "currency": settings["currency"],
-            "currency_symbol": settings["currency_symbol"],
+            "total_revenue": float(
+                invoice_stats["total_revenue"] or 0
+            ),
 
-            "balance": float(wallet["wallet_balance"] or 0),
+            "currency": account_data["currency"],
+            "currency_symbol": account_data["currency_symbol"],
+
+            "balance": float(
+                account_data["wallet_balance"] or 0
+            ),
 
             "unread_count": unread_count,
+
             "activities": activities,
 
             "user": {
                 "id": current_user_id,
                 "role": current_user_role
             }
-        })
+        }
+
+        # ================= CACHE =================
+
+        session[cache_key] = response_data
+        session[f"{cache_key}_time"] = time.time()
+
+        print(
+            "Total query took:",
+            time.time() - start
+        )
+
+        return jsonify(response_data)
 
     except Exception as e:
         print("Dashboard error:", e)
