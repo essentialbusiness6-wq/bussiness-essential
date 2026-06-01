@@ -193,7 +193,7 @@ loginForm.addEventListener("submit", async function(e) {
             lng
         };
 
-        console.log("Payload:", payload);
+
 
         setLoading(loginBtn, "Logging in...");
 
@@ -209,7 +209,7 @@ loginForm.addEventListener("submit", async function(e) {
 
             const data = await response.json();
 
-            console.log("Login response:", data);
+
 
             clearLoading(loginBtn);
 
@@ -299,7 +299,6 @@ resetForm.addEventListener("submit", async function (e) {
         });
 
         const data = await response.json();
-        console.log("Reset response:", data);
 
         clearLoading(resetBtn);
 
@@ -339,8 +338,6 @@ saveForm.addEventListener('submit', async function (e) {
         new_password: password,
     };
 
-    console.log("DATA -", d_dict)
-
     
     try {
         const response = await fetch("/save-password", {
@@ -350,7 +347,6 @@ saveForm.addEventListener('submit', async function (e) {
         });
 
         const data = await response.json();
-        console.log("Save response:", data);
 
         clearLoading(saveBtn);
 
