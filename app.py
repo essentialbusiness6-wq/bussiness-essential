@@ -3168,8 +3168,8 @@ def create_invoice(current_user_id, current_user_role):
 
         tax_rate = 0
 
-        if settings['show_tax']:
-            tax_rate = settings['default_tax_rate']
+        if settings[4]:
+            tax_rate = settings[3]
         else: 
             tax_rate = 0
 
@@ -3177,14 +3177,14 @@ def create_invoice(current_user_id, current_user_role):
             data["tax"] = tax_rate
 
         if not data['due_date']:
-            default_due_date = settings['default_due_date']
+            default_due_date = settings[2]
             if default_due_date:
                 data['due_date'] = (datetime.now() + timedelta(days=default_due_date)).strftime("%Y-%m-%d")
             else:
                 data['due_date'] = (datetime.now() + timedelta(days=30)).strftime("%Y-%m-%d")
         
         if not data['notes']:
-            data['notes'] = settings['footer_note'] if settings['footer_note'] else ""
+            data['notes'] = settings[6] if settings['footer_note'] else ""
         
         
 
@@ -3200,7 +3200,7 @@ def create_invoice(current_user_id, current_user_role):
         amount_paid = float(data.get("amount_paid", 0))
 
 
-        invoice_number = generate_invoice_number(current_user_id, settings['invoice_prefix'])
+        invoice_number = generate_invoice_number(current_user_id, settings[0])
 
         # Validation
         if not all([client_name, client_email, invoice_date, due_date]):
@@ -3325,16 +3325,7 @@ def create_invoice(current_user_id, current_user_role):
 
       
 
-        # Get Invoice prefix
-        cursor.execute(
-            """
-            SELECT invoice_prefix
-            FROM user_settings
-            WHERE user_id=%s
-            """,
-            (current_user_id,)
-        )
-        invoice_prefix= cursor.fetchone()[0] if cursor.fetchone() else "INV"
+        invoice_prefix= settings[0] if cursor.fetchone() else "INV"
 
         # record to transaction 
         reference = generate_reference(invoice_prefix)
