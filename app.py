@@ -937,6 +937,7 @@ def dashboard_data(current_user_id, current_user_role):
                 SELECT
                     us.currency,
                     us.currency_symbol,
+                    us.theme,
                     wb.wallet_balance
                 FROM user_settings us
                 LEFT JOIN wallet_base wb
@@ -1007,6 +1008,7 @@ def dashboard_data(current_user_id, current_user_role):
 
             "currency": account_data["currency"],
             "currency_symbol": account_data["currency_symbol"],
+            "theme": account_data['theme'],
 
             "balance": float(
                 account_data["wallet_balance"] or 0
