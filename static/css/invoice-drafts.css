@@ -157,6 +157,9 @@ body::before {
 .dark body::before {
     background: radial-gradient(circle, rgba(96, 165, 250, 0.05) 0%, rgba(255,255,255,0) 70%);
 }
+.dark body {
+    color: var(--dark);
+}
 
 @keyframes rotate {
     from { transform: rotate(0deg); }
@@ -186,7 +189,7 @@ body::before {
 .dashboard-header h2 {
     font-size: 1.5rem;
     font-weight: 700;
-    background: linear-gradient(to right, var(--primary), var(--accent));
+    background: background: var(--glass-header);;
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
