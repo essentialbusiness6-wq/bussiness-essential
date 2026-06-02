@@ -1114,7 +1114,7 @@ def invoice_list_data(current_user_id, current_user_role):
 
         cursor.execute(
             """
-            SELECT currency_symbol
+            SELECT currency_symbol, theme 
             FROM user_settings
             WHERE user_id=%s
             """,
@@ -1128,11 +1128,17 @@ def invoice_list_data(current_user_id, current_user_role):
             if settings
             else "$"
         )
+        theme = (
+            settings[1]
+            if settings 
+            else "light"
+        )
 
     return jsonify({
         "status": "success",
         "invoices": invoice_list,
         "currency_symbol": currency_symbol,
+        "theme":theme,
         "user": {
             "user_id": current_user_id,
             "role": current_user_role
