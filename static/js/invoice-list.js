@@ -212,6 +212,7 @@ async function loadSampleInvoices() {
 
         const invoices = data.invoices || [];
         const currencySymbol = data.currency_symbol || '$';
+        applyTheme(data.theme)
 
         if (invoices.length === 0) {
             invoicesGrid.innerHTML = `
@@ -238,6 +239,22 @@ async function loadSampleInvoices() {
             "error"
         );
     }
+}
+
+
+function applyTheme(theme) {
+    const body = document.body;
+
+    if (theme === "dark") {
+        body.classList.add("dark");
+        body.classList.remove("light");
+    } else {
+        body.classList.remove("dark");
+        body.classList.add("light");
+    }
+
+    // optional: persist it
+    localStorage.setItem("theme", theme);
 }
 
 // Function to create an invoice card element
