@@ -293,6 +293,7 @@ async function loadSampleDrafts() {
         // SAVE GLOBALLY
         allDrafts = drafts;
         currencySymbol = data.currency_symbol || "$";
+        applyTheme(data.theme);
 
         if (drafts.length === 0) {
             draftsGrid.innerHTML = `
@@ -326,6 +327,22 @@ async function loadSampleDrafts() {
         showToast("Failed to load drafts", "error");
     }
 }
+
+function applyTheme(theme) {
+    const body = document.body;
+
+    if (theme === "dark") {
+        body.classList.add("dark");
+        body.classList.remove("light");
+    } else {
+        body.classList.remove("dark");
+        body.classList.add("light");
+    }
+
+    // optional: persist it
+    localStorage.setItem("theme", theme);
+}
+
 
 // Function to create a draft card element
 function createDraftCard(draft, currencySymbol = "$") {
