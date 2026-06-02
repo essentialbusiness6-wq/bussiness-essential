@@ -1360,7 +1360,7 @@ def clients_page_data(current_user_id, current_user_role):
 @app.route("/dashboard/payment/data")
 @token_required
 def payment_page_data(current_user_id,current_user_role):
-    with db_cursor() as (_, cursor):
+    with db_cursor(dictionary=True) as (_, cursor):
 
         # Total recieved
         cursor.execute(
