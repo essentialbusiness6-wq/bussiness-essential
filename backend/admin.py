@@ -1428,7 +1428,7 @@ def generate_invite_key(current_user_id, current_user_role, current_user_departm
     cursor = None
     try:
       conn = get_db()
-      cursor = conn.cursor(dictionary=True,buffered-=True)
+      cursor = conn.cursor(dictionary=True,buffered=True)
       cursor.execute(
         "SELECT * FROM admin_invites WHERE email=%s",
         (email,)
