@@ -8,6 +8,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // Initialize greeting
     updateGreeting();
 
+    const saved = localStorage.getItem("theme");
+    if (saved) applyTheme(saved);
+
     // Fetch dashboard data
     const cachedData =
             sessionStorage.getItem(
@@ -186,9 +189,9 @@ async function fetchDashboardData(forceRefresh = false) {
             (now - Number(cachedTime)) < CACHE_DURATION
         ) {
 
-            renderDashboard(
-                JSON.parse(cachedData)
-            );
+       const parsed = JSON.parse(cachedData);
+        renderDashboard(parsed);
+        applyTheme(parsed.theme || "light");
 
             dashboardLoading = false;
 
@@ -297,8 +300,23 @@ async function fetchDashboardData(forceRefresh = false) {
     }
 }
 
-function renderDashboard(data) {
+function applyTheme(theme) {
+    const body = document.body;
 
+    if (theme === "dark") {
+        body.classList.add("dark");
+        body.classList.remove("light");
+    } else {
+        body.classList.remove("dark");
+        body.classList.add("light");
+    }
+
+    // optional: persist it
+    localStorage.setItem("theme", theme);
+}
+
+function renderDashboard(data) {
+    applyTheme(data.theme || localStorage.getItem("theme") || "light");
     currencySymbol =
         data.currency_symbol || "$";
 
