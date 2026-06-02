@@ -46,21 +46,27 @@ def get_db():
 def get_user_id(username):
     conn = get_db()
     cursor = conn.cursor(buffered=True)
-    cursor.execute("SELECT user_id, username FROM user_base WHERE username=%s", (username,))
-    user = cursor.fetchone()
+    try:
+        cursor.execute("SELECT user_id, username FROM user_base WHERE username=%s", (username,))
+        user = cursor.fetchone()
 
-    if not user:
-        return jsonify({
-            "status": "error",
-            "message": "User not found"
-        }), 400
+        if not user:
+            return jsonify({
+                "status": "error",
+                "message": "User not found"
+            }), 400
     
     
-    user_id = user[0]
-    cursor.close()
-    conn.close()
+        user_id = user[0]
+        return user_id
+    execpt Execption as e:
+        conn.rollback()
+        print(f"Failed to get user id: {e}")
+    finally:
+        cursor.close()
+        conn.close()
 
-    return user_id
+    
 
 
 
@@ -213,15 +219,19 @@ def send_email(
 def save_security_activity(user_id, type_, title, description,severity, ip_address):
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO security_activity (user_id, type, title, description,severity,ip_address) VALUES (%s,%s,%s,%s,%s,%s)",
-        (user_id, type_, title, description,severity,ip_address)
-    )
+    try:
+        cursor.execute(
+            "INSERT INTO security_activity (user_id, type, title, description,severity,ip_address) VALUES (%s,%s,%s,%s,%s,%s)",
+            (user_id, type_, title, description,severity,ip_address)
+        )
 
-    conn.commit()
-
-    cursor.close()
-    conn.close()
+        conn.commit()
+    execpt Execption as e:
+        conn.rollback()
+        print(f"Failed to save security activity: {e}")
+    finally:
+        cursor.close()
+        conn.close()
 
 
 from user_agents import parse
@@ -271,18 +281,22 @@ def expire_old_sessions():
     conn = get_db()
     cursor = conn.cursor()
 
-    cursor.execute("""
-        UPDATE user_sessions
-        SET active = FALSE,
-            is_current = FALSE
-        WHERE last_active_time < NOW() - INTERVAL 4 DAY
-        LIMIT 500
-    """)
-    conn.commit()
-    cursor.close()
-    conn.close()
 
-
+    try:
+        cursor.execute("""
+            UPDATE user_sessions
+            SET active = FALSE,
+                is_current = FALSE
+            WHERE last_active_time < NOW() - INTERVAL 4 DAY
+            LIMIT 500
+        """)
+        conn.commit()
+    execpt Execption as e:
+        conn.rollback()
+        print(f"Failed to update old sessions: {e}")
+    finally:
+        cursor.close()
+        conn.close()
 
 
 def get_location_from_ip(ip):
@@ -343,70 +357,109 @@ def get_location(lat, lng):
 
 
 
-def log_session(user_id, device_model, client_type,
-                os_name, os_version,
-                login_ip, city, country):
+def log_session(
+    user_id,
+    device_model,
+    client_type,
+    os_name,
+    os_version,
+    login_ip,
+    city,
+    country
+):
+    conn = None
+    cursor = None
 
-    now = datetime.utcnow()
+    try:
+        now = datetime.utcnow()
 
-    conn = get_db()
-    cursor = conn.cursor()
-    # 1️⃣ Check if session already exists
-    cursor.execute("""
-        SELECT session_id FROM user_sessions
-        WHERE user_id=%s
-        AND device_model=%s
-        AND client_type=%s
-        AND os_name=%s
-        AND ip_address=%s
-    """, (user_id, device_model, client_type, os_name, login_ip))
+        conn = get_db()
+        cursor = conn.cursor(buffered=True)
 
-    existing_session = cursor.fetchone()
-
-    # 2️⃣ Update existing session
-    if existing_session:
         cursor.execute("""
-            UPDATE user_sessions
-            SET
-                last_active_time=%s,
-                os_version=%s,
-                location_city=%s,
-                location_country=%s,
-                is_current=TRUE,
-                active=TRUE
-            WHERE session_id=%s
-            LIMIT 500
+            SELECT session_id
+            FROM user_sessions
+            WHERE user_id=%s
+            AND device_model=%s
+            AND client_type=%s
+            AND os_name=%s
+            AND ip_address=%s
         """, (
-            now,
-            os_version,
-            city,
-            country,
-            existing_session[0]
+            user_id,
+            device_model,
+            client_type,
+            os_name,
+            login_ip
         ))
 
-    # 3️⃣ Insert new session
-    else:
-        cursor.execute("""
-            INSERT INTO user_sessions
-            (
-                user_id, device_model, client_type,
-                os_name, os_version, ip_address,
-                location_city, location_country,
-                login_time, last_active_time,
-                is_current, active
-            )
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-        """, (
-            user_id, device_model, client_type,
-            os_name, os_version, login_ip,
-            city, country,
-            now, now,
-            True, True
-        ))
+        existing_session = cursor.fetchone()
 
-    conn.commit() 
-    cursor.close()
-    conn.close()
+        if existing_session:
+            cursor.execute("""
+                UPDATE user_sessions
+                SET
+                    last_active_time=%s,
+                    os_version=%s,
+                    location_city=%s,
+                    location_country=%s,
+                    is_current=TRUE,
+                    active=TRUE
+                WHERE session_id=%s
+            """, (
+                now,
+                os_version,
+                city,
+                country,
+                existing_session[0]
+            ))
+        else:
+            cursor.execute("""
+                INSERT INTO user_sessions (
+                    user_id,
+                    device_model,
+                    client_type,
+                    os_name,
+                    os_version,
+                    ip_address,
+                    location_city,
+                    location_country,
+                    login_time,
+                    last_active_time,
+                    is_current,
+                    active
+                )
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            """, (
+                user_id,
+                device_model,
+                client_type,
+                os_name,
+                os_version,
+                login_ip,
+                city,
+                country,
+                now,
+                now,
+                True,
+                True
+            ))
+
+        conn.commit()
+
+    except Exception as e:
+        print(f"log_session error: {e}")
+
+        if conn:
+            conn.rollback()
+
+        raise
+
+    finally:
+        if cursor:
+            cursor.close()
+
+        if conn:
+            conn.close()
 
 
 LOGO_PATH = "C:\\Users\\Elitebook 1040 G6\\OneDrive\\Desktop\\web developmen\\reciept app\\static\\media\\app logo.png"  # Replace with your logo path
@@ -681,6 +734,33 @@ def send_pro_plan_invoice_email(
         attachments=[pdf_path]
     )
 
+from contextlib import contextmanager
+
+@contextmanager
+def db_cursor(dictionary=False):
+    conn = None
+    cursor = None
+
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=dictionary)
+
+        yield conn, cursor
+
+        conn.commit()
+
+    except:
+        if conn:
+            conn.rollback()
+        raise
+
+    finally:
+        if cursor:
+            cursor.close()
+
+        if conn:
+            conn.close()
+
 
 
 def save_log_activity(
@@ -691,21 +771,17 @@ def save_log_activity(
     amount: Optional[float] = None,
     status: Optional[str] = None
 ):
-    conn = get_db()
-    cursor = conn.cursor()
+    with db_cursor() as (conn, cursor):
+        cursor.execute(
+            """
+            INSERT INTO log_activity
+            (user_id, type, title, description, amount, status)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            """,
+            (user_id, type_, title, description, amount, status)
+        )
 
-    cursor.execute(
-        """
-        INSERT INTO log_activity
-        (user_id, type, title, description, amount, status)
-        VALUES (%s, %s, %s, %s, %s, %s)
-        """,
-        (user_id, type_, title, description, amount, status)
-    )
 
-    conn.commit()
-    cursor.close()
-    conn.close()
 
 
 from uuid import uuid4
@@ -721,9 +797,6 @@ def log_session(
     latitude=None,
     longitude=None
 ):
-    conn = get_db()
-    cursor = conn.cursor(dictionary=True)
-
     device_info = parse_user_agent(user_agent)
 
     device_id = generate_device_id(
@@ -733,131 +806,118 @@ def log_session(
 
     session_token = secrets.token_hex(32)
 
-    cursor.execute(
-        """
-        SELECT id
-        FROM user_sessions
-        WHERE user_id=%s
-        AND device_id=%s
-        """,
-        (user_id, device_id)
-    )
-
-    existing = cursor.fetchone()
-
-    if existing:
+    with db_cursor(dictionary=True) as (conn, cursor):
 
         cursor.execute(
             """
-            UPDATE user_sessions
-            SET
-                session_token=%s,
-                ip_address=%s,
-                location=%s,
-                latitude=%s,
-                longitude=%s,
-                last_active=NOW()
-            WHERE id=%s
+            SELECT id
+            FROM user_sessions
+            WHERE user_id=%s
+            AND device_id=%s
             """,
-            (
-                session_token,
-                ip_address,
-                location,
-                latitude,
-                longitude,
-                existing["id"]
-            )
+            (user_id, device_id)
         )
 
-    else:
+        existing = cursor.fetchone()
 
-        cursor.execute(
-            """
-            INSERT INTO user_sessions(
-                user_id,
-                session_token,
-                device_id,
-                device_type,
-                browser,
-                os,
-                ip_address,
-                location,
-                latitude,
-                longitude,
-                user_agent
+        if existing:
+
+            cursor.execute(
+                """
+                UPDATE user_sessions
+                SET
+                    session_token=%s,
+                    ip_address=%s,
+                    location=%s,
+                    latitude=%s,
+                    longitude=%s,
+                    last_active=NOW()
+                WHERE id=%s
+                """,
+                (
+                    session_token,
+                    ip_address,
+                    location,
+                    latitude,
+                    longitude,
+                    existing["id"]
+                )
             )
-            VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-            """,
-            (
-                user_id,
-                session_token,
-                device_id,
-                device_info["device_type"],
-                device_info["browser"],
-                device_info["os"],
-                ip_address,
-                location,
-                latitude,
-                longitude,
-                user_agent
+
+        else:
+
+            cursor.execute(
+                """
+                INSERT INTO user_sessions(
+                    user_id,
+                    session_token,
+                    device_id,
+                    device_type,
+                    browser,
+                    os,
+                    ip_address,
+                    location,
+                    latitude,
+                    longitude,
+                    user_agent
+                )
+                VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                """,
+                (
+                    user_id,
+                    session_token,
+                    device_id,
+                    device_info.get("device_type"),
+                    device_info.get("browser"),
+                    device_info.get("os"),
+                    ip_address,
+                    location,
+                    latitude,
+                    longitude,
+                    user_agent
+                )
             )
-        )
-
-    conn.commit()
-
-    cursor.close()
-    conn.close()
 
     return session_token
 
 def update_session_activity(session_token):
-    conn = get_db()
-    cursor = conn.cursor()
 
-    cursor.execute(
-        """
-        UPDATE user_sessions
-        SET last_active=NOW()
-        WHERE session_token=%s
-        """,
-        (session_token,)
-    )
+    with db_cursor() as (conn, cursor):
 
-    conn.commit()
-    cursor.close()
-    conn.close()
+        cursor.execute(
+            """
+            UPDATE user_sessions
+            SET last_active=NOW()
+            WHERE session_token=%s
+            """,
+            (session_token,)
+        )
 
 
 
 def get_user_sessions(user_id):
-    conn = get_db()
-    cursor = conn.cursor(dictionary=True)
+    with db_cursor(dictionary=True) as (conn, cursor):
 
-    cursor.execute(
-        """
-        SELECT
-            id,
-            device_name,
-            browser,
-            operating_system,
-            location,
-            ip_address,
-            login_at,
-            last_activity,
-            is_active
-        FROM user_sessions
-        WHERE user_id=%s
-        ORDER BY last_activity DESC
-        """,
-        (user_id,)
-    )
+        cursor.execute(
+            """
+            SELECT
+                id,
+                device_name,
+                browser,
+                operating_system,
+                location,
+                ip_address,
+                login_at,
+                last_activity,
+                is_active
+            FROM user_sessions
+            WHERE user_id=%s
+            ORDER BY last_activity DESC
+            """,
+            (user_id,)
+        )
 
-    sessions = cursor.fetchall()
-
-    cursor.close()
-    conn.close()
-
-    return sessions
+        return cursor.fetchall()
 
 def parse_user_agent(user_agent):
     """
@@ -889,7 +949,7 @@ def parse_user_agent(user_agent):
         "device_type": device_type
     }
 
-import hashlib
+
 
 
 def generate_device_id(user_agent, ip_address):
@@ -897,7 +957,6 @@ def generate_device_id(user_agent, ip_address):
     return hashlib.sha256(raw.encode()).hexdigest()
 
 
-from flask import request
 
 
 def get_client_ip():
@@ -910,7 +969,6 @@ def get_client_ip():
 
     return request.remote_addr
 
-import jwt
 
 
 def get_user_from_token_cookie(request):
@@ -979,9 +1037,6 @@ def get_user_from_token_cookie(request):
             }), 401
         
       
-
-
-
 def send_notification(
     user_id,
     type_,
@@ -990,60 +1045,63 @@ def send_notification(
     amount=None,
     status=None
 ):
+    with db_cursor(dictionary=True) as (conn, cursor):
 
-    conn = get_db()
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        INSERT INTO log_activity
-        (
-            user_id,
-            type,
-            title,
-            description,
-            amount,
-            status
+        cursor.execute(
+            """
+            INSERT INTO log_activity
+            (
+                user_id,
+                type,
+                title,
+                description,
+                amount,
+                status
+            )
+            VALUES (%s,%s,%s,%s,%s,%s)
+            """,
+            (
+                user_id,
+                type_,
+                title,
+                description,
+                amount,
+                status
+            )
         )
-        VALUES (%s,%s,%s,%s,%s,%s)
-    """, (
-        user_id,
-        type_,
-        title,
-        description,
-        amount,
-        status
-    ))
 
-    conn.commit()
+        notification_id = cursor.lastrowid
 
-    notification_id = cursor.lastrowid
+        cursor.execute(
+            """
+            SELECT *
+            FROM log_activity
+            WHERE id=%s AND user_id=%s
+            """,
+            (notification_id, user_id)
+        )
 
-    cursor.execute("""
-        SELECT *
-        FROM log_activity
-        WHERE id=%s AND user_id=%s
-    """, (notification_id,user_id))
-
-    notification = cursor.fetchone()
+        notification = cursor.fetchone()
 
     notification_data = {
-    "id": int(notification_id),
-    "user_id": int(user_id),
-    "type": str(type_),
-    "title": str(title),
-    "description": str(description),
-    "amount": float(amount) if amount else 0,
-    "status": str(status) if status else None,
-    "is_read": False,
-    "created_at": datetime.now().isoformat()
-}
-    conn.close()
+        "id": int(notification_id),
+        "user_id": int(user_id),
+        "type": str(type_),
+        "title": str(title),
+        "description": str(description),
+        "amount": float(amount) if amount else 0,
+        "status": str(status) if status else None,
+        "is_read": False,
+        "created_at": datetime.now().isoformat()
+    }
 
     socketio.emit(
         "new_notification",
         notification_data,
         room=f"user_{user_id}"
     )
+
+    return notification_data
 
 def save_audit_activity(
     user_id,
@@ -1052,52 +1110,44 @@ def save_audit_activity(
     description,
     ip_address
 ):
-    conn = get_db()
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        INSERT INTO audit_activity
-        (
-            admin_id,
-            type,
+    with db_cursor() as (conn, cursor):
+        cursor.execute("""
+            INSERT INTO audit_activity
+            (
+                admin_id,
+                type,
+                title,
+                description,
+                ip_address
+            )
+            VALUES (%s,%s,%s,%s,%s)
+        """, (
+            user_id,
+            type_,
             title,
             description,
             ip_address
-        )
-        VALUES (%s,%s,%s,%s,%s)
-    """, (
-        user_id,
-        type_,
-        title,
-        description,
-        ip_address
-    ))
+        ))
 
-    conn.commit()
-    cursor.close()
-    conn.close()
+
 
 def generate_invoice_number(user_id, invoice_prefix):
-    conn = get_db()
-    cursor = conn.cursor()
 
     today = datetime.now().date()
     start_of_month = datetime.combine(today.replace(day=1), time.min)
+    with db_cursor(dictionary=True) as (conn, cursor):
+        cursor.execute("""
+            SELECT COUNT(*) AS TOTAL FROM invoices
+            WHERE user_id=%s AND created_at >= %s
+        """, (user_id, start_of_month))
 
-    cursor.execute("""
-        SELECT COUNT(*) FROM invoices
-        WHERE user_id=%s AND created_at >= %s
-    """, (user_id, start_of_month))
-
-    count = cursor.fetchone()[0] + 1
+        count = cursor.fetchone()["TOTAL"] + 1
 
 
-    invoice_number = f"{invoice_prefix}-{today.strftime('%Y%m')}-{count:04d}"
+        invoice_number = f"{invoice_prefix}-{today.strftime('%Y%m')}-{count:04d}"
 
-    cursor.close()
-    conn.close()
 
-    return invoice_number
+        return invoice_number
 
 
 def generate_reference(invoice_prefix):
@@ -1187,19 +1237,16 @@ def token_required_admin(f):
 
 
 def log_admin_session(admin_id, ip_address, user_agent, session_token):
-    conn = get_db()
-    cursor = conn.cursor(dictionary=True)
-
     try:
         device_info = parse_user_agent(user_agent)
         location = str(get_location_from_ip(ip_address))
 
-        device_id = generate_device_id(
-            user_agent,
-            ip_address
-        )
+        device_id = generate_device_id(user_agent, ip_address)
 
-        # Check if this device already exists
+      
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+
         cursor.execute(
             """
             SELECT id
@@ -1207,16 +1254,12 @@ def log_admin_session(admin_id, ip_address, user_agent, session_token):
             WHERE admin_id = %s
             AND device_id = %s
             """,
-            (
-                admin_id,
-                device_id
-            )
+            (admin_id, device_id)
         )
 
         existing_session = cursor.fetchone()
 
         if existing_session:
-
             cursor.execute(
                 """
                 UPDATE admin_sessions
@@ -1233,18 +1276,16 @@ def log_admin_session(admin_id, ip_address, user_agent, session_token):
                 """,
                 (
                     session_token,
-                    device_info["device_type"],
-                    device_info["browser"],
-                    device_info["os"],
+                    device_info.get("device_type"),
+                    device_info.get("browser"),
+                    device_info.get("os"),
                     ip_address,
                     user_agent,
                     location,
                     existing_session["id"]
                 )
             )
-
         else:
-
             cursor.execute(
                 """
                 INSERT INTO admin_sessions(
@@ -1263,10 +1304,10 @@ def log_admin_session(admin_id, ip_address, user_agent, session_token):
                 (
                     admin_id,
                     session_token,
-                    device_info["device_type"],
+                    device_info.get("device_type"),
                     device_id,
-                    device_info["browser"],
-                    device_info["os"],
+                    device_info.get("browser"),
+                    device_info.get("os"),
                     ip_address,
                     user_agent,
                     location
@@ -1276,120 +1317,118 @@ def log_admin_session(admin_id, ip_address, user_agent, session_token):
         conn.commit()
 
     except Exception as e:
-        conn.rollback()
+        if conn:
+            conn.rollback()
         print("log_admin_session error:", e)
         raise
 
     finally:
-        cursor.close()
-        conn.close()
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 def update_admin_session_activity(session_token):
-    conn = get_db()
-    cursor = conn.cursor()
+    with db_cursor() as (conn, cursor):
 
-    cursor.execute(
-        """
-        UPDATE admin_sessions
-        SET last_active=NOW()
-        WHERE session_token=%s
-        """,
-        (session_token,)
-    )
+        cursor.execute(
+            """
+            UPDATE admin_sessions
+            SET last_active=NOW()
+            WHERE session_token=%s
+            """,
+            (session_token,)
+        )
 
-    conn.commit()
-    cursor.close()
-    conn.close()
-
-from datetime import datetime
 
 def auto_check_overdue_invoices():
     """
-    Automatically checks ALL users' unpaid invoices and marks overdue if past due date.
-    Sends email notifications to both client and user.
+    Automatically checks unpaid invoices and marks overdue if past due date.
     """
-    conn = get_db()
-    cursor = conn.cursor()
 
     try:
-        # Fetch all unpaid invoices across all users
-        cursor.execute("""
-            SELECT invoice_id, user_id, client_email, client_name, due_date, total_amount
-            FROM invoices
-            WHERE status = 'unpaid'
-        """)
-        invoices = cursor.fetchall()
+
+        with db_cursor(dictionary=True) as (conn, cursor):
+            cursor.execute("""
+                SELECT invoice_id, user_id, client_email, client_name, due_date, total_amount
+                FROM invoices
+                WHERE status = 'unpaid'
+            """)
+            invoices = cursor.fetchall()
 
         now = datetime.now()
 
-        for invoice in invoices:
-            invoice_id, user_id, client_email, client_name, due_date, total = invoice
 
-            # Convert due_date properly
+        for invoice in invoices:
+
+            invoice_id = invoice["invoice_id"]
+            user_id = invoice["user_id"]
+            client_email = invoice["client_email"]
+            client_name = invoice["client_name"]
+            due_date = invoice["due_date"]
+            total = invoice["total_amount"]
+
             if isinstance(due_date, str):
                 due_date_dt = datetime.strptime(due_date, "%Y-%m-%d")
             else:
                 due_date_dt = due_date
 
-            if due_date_dt < now:
-                # Mark invoice as overdue
+            if due_date_dt >= now:
+                continue
+
+
+            with db_cursor() as (conn, cursor):
+
                 cursor.execute("""
-                    UPDATE invoices 
-                    SET status = 'overdue' 
+                    UPDATE invoices
+                    SET status = 'overdue'
                     WHERE invoice_id = %s
                 """, (invoice_id,))
 
-                # Get user info
                 cursor.execute("""
-                    SELECT email, username, plan 
-                    FROM user_base 
+                    SELECT email, username, plan
+                    FROM user_base
                     WHERE user_id = %s
                 """, (user_id,))
+
                 user_info = cursor.fetchone()
+                conn.commit()
 
-                if user_info:
-                    user_email, username, user_plan = user_info
+     
+            if user_info:
+                user_email, username, user_plan = user_info
 
-                    # Notify user
-                    send_overdue_invoice_email_to_user(
-                        user_email=user_email,
-                        username=username,
-                        invoice_id=invoice_id,
-                        client_name=client_name,
-                        total=total,
-                        due_date=due_date_dt.strftime("%d %b %Y")
-                    )
-
-                    # Notify client only for Pro users
-                    if user_plan == "Pro":
-                        pay_link = f"https://yourapp.com/pay/invoice/{invoice_id}"
-
-                        send_overdue_invoice_email(
-                            client_email=client_email,
-                            client_name=client_name,
-                            invoice_id=invoice_id,
-                            due_date=due_date_dt.strftime("%d %b %Y"),
-                            total=total,
-                            pay_link=pay_link
-                        )
-
-                # Log activity
-                save_log_activity(
-                    user_id,
-                    "Invoice",
-                    "Invoice Overdue",
-                    f"Invoice #{invoice_id} for {client_name} is now overdue."
+                send_overdue_invoice_email_to_user(
+                    user_email=user_email,
+                    username=username,
+                    invoice_id=invoice_id,
+                    client_name=client_name,
+                    total=total,
+                    due_date=due_date_dt.strftime("%d %b %Y")
                 )
 
-        conn.commit()
+                if user_plan == "Pro":
+                    pay_link = f"https://yourapp.com/pay/invoice/{invoice_id}"
+
+                    send_overdue_invoice_email(
+                        client_email=client_email,
+                        client_name=client_name,
+                        invoice_id=invoice_id,
+                        due_date=due_date_dt.strftime("%d %b %Y"),
+                        total=total,
+                        pay_link=pay_link
+                    )
+
+
+            save_log_activity(
+                user_id,
+                "Invoice",
+                "Invoice Overdue",
+                f"Invoice #{invoice_id} for {client_name} is now overdue."
+            )
 
     except Exception as e:
-        conn.rollback()
         print("Error checking overdue invoices:", e)
-
-    finally:
-        cursor.close()
-        conn.close()
 
 
 def send_overdue_invoice_email(client_email, client_name, invoice_id, due_date=None, total=None, pay_link=None):
