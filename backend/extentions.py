@@ -1,6 +1,10 @@
 from flask_socketio import SocketIO
 from flask_caching import Cache
+import os
+from dotenv import load_dotenv
 
+
+load_dotenv()
 
 socketio = SocketIO(
     cors_allowed_origins="*",
