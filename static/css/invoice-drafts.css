@@ -93,13 +93,12 @@ body::before {
 
 
 /* ================= HEADER ================= */
-
 .dashboard-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: calc(12px + var(--safe-area-top)) 16px 12px;
-    background: rgba(255, 255, 255, 0.88);
+    background: rgba(255,255,255,0.88);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     box-shadow: var(--shadow-md);
@@ -110,8 +109,11 @@ body::before {
     border-bottom-left-radius: 20px;
     border-bottom-right-radius: 20px;
     margin-bottom: 24px;
+    transition: var(--transition);
 }
-
+.dark .dashboard-header {
+    background: rgba(2,6,23,0.85);
+}
 .dashboard-header h2 {
     font-size: 1.5rem;
     font-weight: 700;
@@ -188,6 +190,7 @@ body::before {
     animation: rotate 45s linear infinite reverse;
 }
 
+
 /* ================= BUTTONS ================= */
 
 .top-actions {
@@ -214,6 +217,7 @@ body::before {
     line-height: 1.3;
 }
 
+
 .btn.primary {
     background: var(--gradient-bg);
     color: white;
@@ -225,6 +229,12 @@ body::before {
     color: var(--primary);
     border: 1px solid rgba(67, 97, 238, 0.2);
 }
+
+.dark .btn.secondary {
+    background: rgba(15,23,42,0.9);
+    color: var(--primary);
+}
+
 
 .btn.danger {
     background: rgba(231, 76, 60, 0.1);
@@ -292,11 +302,11 @@ body::before {
 /* ================= CARD ================= */
 
 .invoice-card {
-    background: rgba(255, 255, 255, 0.85);
+     background: var(--gradient-card);
     border-radius: var(--border-radius);
     padding: 24px;
     box-shadow: var(--shadow-md);
-    border: 1px solid rgba(0, 0, 0, 0.05);
+   border: 1px solid rgba(255,255,255,0.08);
     transition: var(--transition);
     position: relative;
     overflow: hidden;
@@ -544,6 +554,11 @@ body::before {
     border-top-right-radius: 24px;
 }
 
+.dark .bottom-nav {
+    background: rgba(2,6,23,0.9);
+}
+
+
 .nav-item {
     display: flex;
     flex-direction: column;
@@ -667,34 +682,7 @@ body::before {
 
 
 
-/* ================= HEADER ================= */
-.dashboard-header {
-    background: rgba(255,255,255,0.88);
-    backdrop-filter: blur(20px);
-    box-shadow: var(--shadow-md);
-    transition: var(--transition);
-}
 
-.dark .dashboard-header {
-    background: rgba(2,6,23,0.85);
-}
-
-/* ================= CARDS ================= */
-.content,
-.invoice-card {
-    background: var(--gradient-card);
-    border: 1px solid rgba(255,255,255,0.08);
-}
-
-/* ================= BUTTONS ================= */
-.btn.secondary {
-    background: rgba(255,255,255,0.85);
-}
-
-.dark .btn.secondary {
-    background: rgba(15,23,42,0.9);
-    color: var(--primary);
-}
 
 /* ================= FILTERS ================= */
 .filter {
@@ -704,15 +692,6 @@ body::before {
 .dark .filter {
     background: rgba(15,23,42,0.85);
     color: var(--gray);
-}
-
-/* ================= BOTTOM NAV ================= */
-.bottom-nav {
-    background: rgba(255,255,255,0.92);
-}
-
-.dark .bottom-nav {
-    background: rgba(2,6,23,0.9);
 }
 
 /* ================= MODALS ================= */
