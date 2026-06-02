@@ -1218,7 +1218,7 @@ def invoice_drafts_list_data(current_user_id, current_user_role):
         "drafts": draft_list,
         "currency_symbol": currency_symbol,
           "theme":
-                settings["theme"]
+                settings[1]
                 if settings else "light",
         "user": {
             "user_id": current_user_id,
