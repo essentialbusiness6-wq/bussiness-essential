@@ -1,5 +1,6 @@
 from flask_socketio import SocketIO
 from flask_caching import Cache
+from 
 
 socketio = SocketIO(
     cors_allowed_origins="*",
@@ -12,7 +13,8 @@ socketio = SocketIO(
 
 cache = Cache(
     config={
-        "CACHE_TYPE": "SimpleCache",
+        "CACHE_TYPE": "RedisCache",
+        "CACHE_REDIS_URL": os.getenv("REDIS_URL"),
         "CACHE_DEFAULT_TIMEOUT": 60
     }
 )
