@@ -2,6 +2,7 @@ Flask
 gunicorn
 flask-cors
 flask-socketio
+flask-caching
 python-dotenv
 APScheduler
 werkzeug
