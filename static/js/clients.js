@@ -195,6 +195,20 @@ function setupEventListeners() {
         }
     });
 }
+function applyTheme(theme) {
+    const body = document.body;
+
+    if (theme === "dark") {
+        body.classList.add("dark");
+        body.classList.remove("light");
+    } else {
+        body.classList.remove("dark");
+        body.classList.add("light");
+    }
+
+    // optional: persist it
+    localStorage.setItem("theme", theme);
+}
 
 // Function to load sample clients
 function loadSampleClients() {
@@ -212,9 +226,9 @@ function loadSampleClients() {
         if (data.status === "success") {
 
             clients = data.clients || [];
-            console.log("Parsed clients:", clients);
             populateClientsTable(clients);
             populateClientsCards(clients);
+            applyTheme(data.theme);
     
 
             checkEmptyState(clients.length);
