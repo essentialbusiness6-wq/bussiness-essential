@@ -5,7 +5,9 @@
     -webkit-tap-highlight-color: transparent;
 }
 
+/* ================= THEME VARIABLES ================= */
 :root {
+    /* Light Theme (Default) */
     --primary: #4361ee;
     --secondary: #3f37c9;
     --accent: #4895ef;
@@ -16,25 +18,108 @@
     --danger: #e74c3c;
     --warning: #f39c12;
     --info: #3498db;
+    
     --gradient-bg: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
     --gradient-card: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85));
+    
+    /* Glassmorphism */
+    --glass-header: rgba(255, 255, 255, 0.88);
+    --glass-content: rgba(255, 255, 255, 0.8);
+    --glass-card: rgba(255, 255, 255, 0.75);
+    --glass-nav: rgba(255, 255, 255, 0.92);
+    
+    /* Borders & Shadows */
+    --border-glass: rgba(255, 255, 255, 0.6);
+    --border-subtle: rgba(0, 0, 0, 0.05);
+    --border-input: rgba(0, 0, 0, 0.08);
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
     --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.15);
+    
     --transition-fast: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
     --transition: all 0.35s cubic-bezier(0.165, 0.84, 0.44, 1);
     --transition-slow: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+    
     --border-radius-sm: 12px;
     --border-radius: 16px;
     --border-radius-lg: 24px;
     --border-radius-full: 9999px;
+    
     --safe-area-top: env(safe-area-inset-top);
     --safe-area-bottom: env(safe-area-inset-bottom);
     --safe-area-left: env(safe-area-inset-left);
     --safe-area-right: env(safe-area-inset-right);
+
+    /* Modal Defaults (Light) */
+    --modal-bg: #ffffff;
+    --modal-text: #0f172a;
+    --modal-subtext: #475569;
+    --modal-indicator: #cbd5f5;
+    --modal-close: #64748b;
+    --modal-close-hover: #0f172a;
+    --modal-btn-grad: linear-gradient(135deg, #1558B0, #2563eb);
+    --modal-btn-sec-grad: linear-gradient(135deg, #6c757d, #495057);
 }
 
-/* Base styles */
+/* ================= DARK THEME ================= */
+.dark {
+    --primary: #60a5fa;
+    --secondary: #818cf8;
+    --accent: #38bdf8;
+    --success: #34d399;
+    --dark: #f1f5f9;       /* Light text for readability */
+    --light: #0f172a;      /* Dark background base */
+    --gray: #94a3b8;
+    --danger: #f87171;
+    --warning: #fbbf24;
+    --info: #38bdf8;
+    
+    /* Deep, rich dark gradient for the body background */
+    --gradient-bg: linear-gradient(135deg, #020617 0%, #0f172a 100%);
+    --gradient-card: linear-gradient(145deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.6));
+    
+    /* Dark glassmorphism */
+    --glass-header: rgba(15, 23, 42, 0.85);
+    --glass-content: rgba(30, 41, 59, 0.7);
+    --glass-card: rgba(30, 41, 59, 0.6);
+    --glass-nav: rgba(15, 23, 42, 0.9);
+    
+    --border-glass: rgba(148, 163, 184, 0.15);
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-input: rgba(255, 255, 255, 0.1);
+    
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.6);
+    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.7);
+
+    /* Modal Dark Overrides */
+    --modal-bg: #0f172a;
+    --modal-text: #f8fafc;
+    --modal-subtext: #94a3b8;
+    --modal-indicator: #334155;
+    --modal-close: #64748b;
+    --modal-close-hover: #f8fafc;
+    --modal-btn-grad: linear-gradient(135deg, #2563eb, #1d4ed8);
+    --modal-btn-sec-grad: linear-gradient(135deg, #475569, #334155);
+}
+
+/* Auto-detect system preference (optional) */
+@media (prefers-color-scheme: dark) {
+    :root:not(.light) {
+        --primary: #60a5fa; --secondary: #818cf8; --accent: #38bdf8; --success: #34d399;
+        --dark: #f1f5f9; --light: #0f172a; --gray: #94a3b8; --danger: #f87171; --warning: #fbbf24; --info: #38bdf8;
+        --gradient-bg: linear-gradient(135deg, #020617 0%, #0f172a 100%);
+        --gradient-card: linear-gradient(145deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.6));
+        --glass-header: rgba(15, 23, 42, 0.85); --glass-content: rgba(30, 41, 59, 0.7);
+        --glass-card: rgba(30, 41, 59, 0.6); --glass-nav: rgba(15, 23, 42, 0.9);
+        --border-glass: rgba(148, 163, 184, 0.15); --border-subtle: rgba(255, 255, 255, 0.08); --border-input: rgba(255, 255, 255, 0.1);
+        --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.5); --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.6); --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.7);
+        --modal-bg: #0f172a; --modal-text: #f8fafc; --modal-subtext: #94a3b8; --modal-indicator: #334155;
+        --modal-close: #64748b; --modal-close-hover: #f8fafc; --modal-btn-grad: linear-gradient(135deg, #2563eb, #1d4ed8); --modal-btn-sec-grad: linear-gradient(135deg, #475569, #334155);
+    }
+}
+
+/* ================= BASE STYLES ================= */
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     background: var(--gradient-bg);
@@ -50,6 +135,7 @@ body {
     padding-bottom: calc(var(--safe-area-bottom) + 70px);
     padding-top: var(--safe-area-top);
     background-attachment: fixed;
+    transition: background 0.4s ease, color 0.4s ease;
 }
 
 body::before {
@@ -63,6 +149,16 @@ body::before {
     z-index: -1;
     animation: rotate 35s linear infinite;
     pointer-events: none;
+    transition: background 0.4s ease;
+}
+
+.dark body::before {
+    background: radial-gradient(circle, rgba(96, 165, 250, 0.05) 0%, rgba(255,255,255,0) 70%);
+}
+
+/* Explicit override to guarantee body background updates */
+.dark body {
+    background: var(--gradient-bg) !important;
 }
 
 @keyframes rotate {
@@ -70,13 +166,13 @@ body::before {
     to { transform: rotate(360deg); }
 }
 
-/* Header styles */
+/* ================= HEADER ================= */
 .dashboard-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: calc(12px + var(--safe-area-top)) 16px 12px;
-    background: rgba(255, 255, 255, 0.88);
+    background: var(--glass-header);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     box-shadow: var(--shadow-md);
@@ -87,6 +183,7 @@ body::before {
     border-bottom-left-radius: 20px;
     border-bottom-right-radius: 20px;
     margin-bottom: 24px;
+    transition: var(--transition);
 }
 
 .dashboard-header h2 {
@@ -102,7 +199,7 @@ body::before {
     width: 40px;
     height: 40px;
     border-radius: var(--border-radius-full);
-    background: rgba(255, 255, 255, 0.85);
+    background: var(--glass-card);
     border: none;
     display: flex;
     justify-content: center;
@@ -117,7 +214,7 @@ body::before {
 
 .icon-btn:active {
     transform: scale(0.95);
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--glass-content);
 }
 
 .icon-btn:hover {
@@ -134,7 +231,7 @@ body::before {
     transition: var(--transition-fast);
 }
 
-/* Main content */
+/* ================= MAIN CONTENT ================= */
 .dashboard {
     display: flex;
     flex-direction: column;
@@ -157,7 +254,8 @@ body::before {
     position: relative;
     overflow: hidden;
     margin-bottom: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.6);
+    border: 1px solid var(--border-glass);
+    transition: var(--transition);
 }
 
 .content::before {
@@ -172,7 +270,7 @@ body::before {
     animation: rotate 45s linear infinite reverse;
 }
 
-/* Top actions */
+/* ================= TOP ACTIONS & BUTTONS ================= */
 .top-actions {
     margin-bottom: 24px;
 }
@@ -205,9 +303,9 @@ body::before {
 }
 
 .btn.secondary {
-    background: rgba(255, 255, 255, 0.85);
+    background: var(--glass-card);
     color: var(--primary);
-    border: 1px solid rgba(67, 97, 238, 0.2);
+    border: 1px solid var(--border-input);
     box-shadow: var(--shadow-sm);
 }
 
@@ -241,7 +339,7 @@ body::before {
 }
 
 .btn.secondary:hover {
-    background: rgba(255, 255, 255, 0.92);
+    background: var(--glass-content);
     transform: translateY(-1px);
 }
 
@@ -251,7 +349,7 @@ body::before {
     transform: none;
 }
 
-/* Invoice filters */
+/* ================= INVOICE FILTERS ================= */
 .invoice-filters {
     display: flex;
     gap: 8px;
@@ -269,8 +367,8 @@ body::before {
 .filter {
     padding: 8px 16px;
     border-radius: var(--border-radius-full);
-    background: rgba(255, 255, 255, 0.7);
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: var(--glass-card);
+    border: 1px solid var(--border-input);
     color: var(--gray);
     font-family: 'Inter', sans-serif;
     font-weight: 500;
@@ -292,7 +390,7 @@ body::before {
     box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
 }
 
-/* Invoices grid */
+/* ================= INVOICES GRID ================= */
 .invoices-grid {
     display: grid;
     grid-template-columns: 1fr;
@@ -300,11 +398,11 @@ body::before {
 }
 
 .invoice-card {
-    background: rgba(255, 255, 255, 0.85);
+    background: var(--glass-card);
     border-radius: var(--border-radius);
     padding: 20px;
     box-shadow: var(--shadow-md);
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-subtle);
     transition: var(--transition);
     position: relative;
     overflow: hidden;
@@ -321,7 +419,7 @@ body::before {
 .invoice-card:hover {
     transform: translateY(-3px);
     box-shadow: var(--shadow-lg);
-    background: rgba(255, 255, 255, 0.92);
+    background: var(--glass-content);
 }
 
 .invoice-header {
@@ -361,13 +459,9 @@ body::before {
     color: var(--warning);
 }
 
-.status.unpaid {
-    background: rgba(231, 76, 60, 0.1);
-    color: var(--danger);
-}
-
+.status.unpaid,
 .status.overdue {
-    background: rgba(231, 76, 60, 0.15);
+    background: rgba(231, 76, 60, 0.1);
     color: var(--danger);
 }
 
@@ -409,7 +503,7 @@ body::before {
     justify-content: space-between;
     align-items: center;
     padding-top: 16px;
-    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    border-top: 1px solid var(--border-subtle);
     color: var(--primary);
     font-weight: 500;
     font-size: 0.95rem;
@@ -449,8 +543,8 @@ body::before {
     align-items: center;
     cursor: pointer;
     transition: var(--transition-fast);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid var(--border-input);
+    background: var(--glass-card);
     color: var(--gray);
 }
 
@@ -477,13 +571,13 @@ body::before {
     fill: currentColor;
 }
 
-/* Bottom navigation */
+/* ================= BOTTOM NAVIGATION ================= */
 .bottom-nav {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    background: rgba(255, 255, 255, 0.92);
+    background: var(--glass-nav);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     display: flex;
@@ -498,6 +592,7 @@ body::before {
     width: 100%;
     left: 50%;
     transform: translateX(-50%);
+    transition: var(--transition);
 }
 
 .nav-item {
@@ -550,7 +645,7 @@ body::before {
     fill: var(--primary);
 }
 
-/* Particles background */
+/* ================= PARTICLES & ANIMATIONS ================= */
 .particles {
     position: fixed;
     top: 0;
@@ -579,7 +674,140 @@ body::before {
     }
 }
 
-/* Responsive design */
+@keyframes haptic {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    50% { transform: translateX(2px); }
+    75% { transform: translateX(-2px); }
+    100% { transform: translateX(0); }
+}
+
+.haptic-feedback {
+    animation: haptic 0.15s ease-in-out;
+}
+
+/* ================= MODAL OVERLAY ================= */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(2, 6, 23, 0.6);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 9999;
+}
+
+.modal-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.modal-card {
+    background: var(--modal-bg);
+    border-radius: 14px;
+    padding: 32px 28px;
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.15);
+    transform: translateY(100%);
+    opacity: 1;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    color: var(--modal-text);
+}
+
+.modal-overlay.show .modal-card {
+    transform: translateY(0);
+}
+
+.modal-card::before {
+    content: "";
+    width: 42px;
+    height: 4px;
+    background: var(--modal-indicator);
+    border-radius: 999px;
+    display: block;
+    margin: 0 auto 18px;
+}
+
+.modal-icon {
+    width: 58px;
+    height: 58px;
+    margin: 4px auto 16px;
+    color: var(--success);
+    animation: popIcon 0.4s ease-out;
+}
+
+.modal-icon.error {
+    color: var(--danger);
+}
+
+.modal-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.modal-card h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--modal-text);
+    margin-bottom: 8px;
+}
+
+.modal-card p {
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: var(--modal-subtext);
+    margin-bottom: 22px;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.modal-btn {
+    flex: 1;
+    padding: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 14px;
+    border: none;
+    background: var(--modal-btn-grad);
+    color: #fff;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.2s ease;
+}
+
+.modal-btn.secondary {
+    background: var(--modal-btn-sec-grad);
+}
+
+.modal-btn:active {
+    transform: scale(0.97);
+    box-shadow: 0 10px 25px rgba(21, 88, 176, 0.35);
+}
+
+.close {
+    position: absolute;
+    top: 14px;
+    right: 18px;
+    font-size: 1.3rem;
+    color: var(--modal-close);
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.close:hover {
+    color: var(--modal-close-hover);
+}
+
+/* ================= RESPONSIVE DESIGN ================= */
 @media (min-width: 768px) {
     .dashboard-header {
         height: calc(72px + var(--safe-area-top));
@@ -641,7 +869,7 @@ body::before {
     
     .bottom-nav {
         max-width: 1200px;
-        border-radius: 28px 28px 0 0;
+        border-radius: 28px;
         padding: 8px 16px calc(8px + var(--safe-area-bottom)) 16px;
         bottom: auto;
         top: auto;
@@ -649,9 +877,7 @@ body::before {
         right: 0;
         transform: none;
         width: 100%;
-        max-width: 1200px;
         margin: 0 auto;
-        border-radius: 28px;
         position: sticky;
     }
     
@@ -692,145 +918,4 @@ body::before {
     .invoice-id {
         font-size: 1.3rem;
     }
-}
-
-/* Haptic feedback simulation */
-@keyframes haptic {
-    0% { transform: translateX(0); }
-    25% { transform: translateX(-2px); }
-    50% { transform: translateX(2px); }
-    75% { transform: translateX(-2px); }
-    100% { transform: translateX(0); }
-}
-
-.haptic-feedback {
-    animation: haptic 0.15s ease-in-out;
-}
-
-/* ================= MODAL OVERLAY ================= */
-.modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(2, 6, 23, 0.6);
-    backdrop-filter: blur(10px);
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-    z-index: 9999;
-}
-
-/* Show */
-.modal-overlay.show {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-/* ================= MODAL CARD ================= */
-.modal-card {
-    background: #ffffff;
-    border-radius: 14px;
-    padding: 32px 28px;
-    width: 100%;
-    max-width: 420px;
-    text-align: center;
-    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.15);
-    transform: translateY(100%);
-    opacity: 1;
-    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/* Slide-up app motion */
-.modal-overlay.show .modal-card {
-    transform: translateY(0);
-}
-
-/* ================= DRAG INDICATOR ================= */
-.modal-card::before {
-    content: "";
-    width: 42px;
-    height: 4px;
-    background: #cbd5f5;
-    border-radius: 999px;
-    display: block;
-    margin: 0 auto 18px;
-}
-
-/* ================= ICON ================= */
-.modal-icon {
-    width: 58px;
-    height: 58px;
-    margin: 4px auto 16px;
-    color: #16a34a;
-    animation: popIcon 0.4s ease-out;
-}
-
-.modal-icon.error {
-    color: #dc2626;
-}
-
-.modal-icon svg {
-    width: 100%;
-    height: 100%;
-}
-
-/* ================= TEXT ================= */
-.modal-card h2 {
-    font-size: 20px;
-    font-weight: 600;
-    color: #0f172a;
-    margin-bottom: 8px;
-}
-
-.modal-card p {
-    font-size: 14.5px;
-    line-height: 1.6;
-    color: #475569;
-    margin-bottom: 22px;
-}
-
-/* ================= BUTTONS ================= */
-.modal-buttons {
-    display: flex;
-    gap: 12px;
-    margin-top: 16px;
-}
-
-.modal-btn {
-    flex: 1;
-    padding: 14px;
-    font-size: 15px;
-    font-weight: 600;
-    border-radius: 14px;
-    border: none;
-    background: linear-gradient(135deg, #1558B0, #2563eb);
-    color: #fff;
-    cursor: pointer;
-    transition: transform 0.12s ease, box-shadow 0.2s ease;
-}
-
-.modal-btn.secondary {
-    background: linear-gradient(135deg, #6c757d, #495057);
-}
-
-.modal-btn:active {
-    transform: scale(0.97);
-    box-shadow: 0 10px 25px rgba(21, 88, 176, 0.35);
-}
-
-/* ================= CLOSE BUTTON ================= */
-.close {
-    position: absolute;
-    top: 14px;
-    right: 18px;
-    font-size: 1.3rem;
-    color: #64748b;
-    cursor: pointer;
-    transition: color 0.2s ease;
-}
-
-.close:hover {
-    color: #0f172a;
 }
