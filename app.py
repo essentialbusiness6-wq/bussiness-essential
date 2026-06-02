@@ -1345,7 +1345,7 @@ def clients_page_data(current_user_id, current_user_role):
                 "message": "Settings not found"
             }), 404
 
-        currency, currency_symbol = settings
+        currency, currency_symbol, theme = settings
 
     return jsonify({
         "status": "success",
