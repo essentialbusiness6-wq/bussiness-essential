@@ -1198,7 +1198,7 @@ def invoice_drafts_list_data(current_user_id, current_user_role):
 
         cursor.execute(
             """
-            SELECT currency_symbol
+            SELECT currency_symbol, theme
             FROM user_settings
             WHERE user_id=%s
             """,
@@ -1217,6 +1217,9 @@ def invoice_drafts_list_data(current_user_id, current_user_role):
         "status": "success",
         "drafts": draft_list,
         "currency_symbol": currency_symbol,
+          "theme":
+                settings["theme"]
+                if settings else "light",
         "user": {
             "user_id": current_user_id,
             "role": current_user_role
