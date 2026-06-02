@@ -1481,7 +1481,7 @@ def payment_page_data(current_user_id,current_user_role):
 @token_required
 def me_page_data(current_user_id,current_user_role):
 
-    with db_cursor() as (_, cursor):
+    with db_cursor(dictionary=True) as (_, cursor):
 
         cursor.execute(
             """
