@@ -192,6 +192,31 @@
                     <input type="text" id="currency_symbol" value="{{ currency_symbol }}" data-setting="currency_symbol" maxlength="3">
                     <p class="field-hint">Symbol displayed with amounts</p>
                 </div>
+                <div class="settings-grid">
+                    <div class="field">
+                        <label for="theme">
+
+    <svg xmlns="http://www.w3.org/2000/svg"
+         viewBox="0 0 24 24"
+         fill="none"
+         stroke="currentColor"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         width="24"
+         height="24">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M12 16v-4"></path>
+        <circle cx="12" cy="8" r="1" fill="currentColor" stroke="none"></circle>
+    </svg>
+
+                        Theme
+                    </label>
+                    <select id="theme" data-setting="theme">
+                        <option value="light" {{ 'selected' if theme == 'light' else '' }}>Light Theme</option>
+                        <option value="dark" {{ 'selected' if theme == 'dark' else '' }}>Dark Theme</option>
+                    </select>
+                </div>
 
                 <div class="field">
                     <label for="timezone">
