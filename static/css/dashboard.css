@@ -118,7 +118,7 @@
 /* ================= BASE STYLES ================= */
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background-color: var(--gradient-bg);
+  background: var(--gradient-bg);
   color: var(--dark);
   min-height: 100vh;
   display: flex;
@@ -153,7 +153,17 @@ body::before {
 }
 
 
+.dark {
+  --page-bg: #020617;
+}
 
+:root {
+  --page-bg: #f8fafc;
+}
+
+body {
+  background: var(--page-bg);
+}
 /* ================= HEADER ================= */
 .dashboard-header {
   display: flex;
