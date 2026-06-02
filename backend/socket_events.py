@@ -2,21 +2,18 @@ from flask_socketio import emit, join_room
 from flask import request
 
 from backend.utils import (
-    get_db,
-    get_user_from_token_cookie
+    get_user_from_token_cookie,
+    db_cursor
 )
 
 from backend.support_ai import get_support_reply
 from backend.rate_limit import check_chat_rate_limit
 
 
-
 def register_socket_events(socketio):
-
 
     @socketio.on("join_support_room")
     def join_support(data):
-      
 
         room_id = data.get("room_id")
 
@@ -25,210 +22,271 @@ def register_socket_events(socketio):
 
         join_room(room_id)
 
-        emit("system_message", {
-            "message": "Connected to AI support."
-        }, room=room_id)
-
+        emit(
+            "system_message",
+            {
+                "message": "Connected to AI support."
+            },
+            room=room_id
+        )
 
     @socketio.on("send_support_message")
     def handle_support_message(data):
 
-        # =========================
-        # AUTH FROM COOKIE TOKEN
-        # =========================
+        try:
 
-        auth_data = get_user_from_token_cookie(request)
+            # =========================
+            # AUTH
+            # =========================
 
-        if not auth_data["success"]:
-            emit("receive_support_message", {
-                "sender": "system",
-                "message": "Authentication failed."
-            })
-            return
-        
-     
-        current_user_id = auth_data["user_id"]
-        current_user_role = auth_data["role"]
+            auth_data = get_user_from_token_cookie(request)
 
-        # =========================
-        # RATE LIMIT
-        # =========================
+            if not auth_data["success"]:
+                emit(
+                    "receive_support_message",
+                    {
+                        "sender": "system",
+                        "message": "Authentication failed."
+                    }
+                )
+                return
 
-        allowed = check_chat_rate_limit(current_user_id)
+            current_user_id = auth_data["user_id"]
+            current_user_role = auth_data["role"]
 
-        if not allowed:
-            emit("receive_support_message", {
-                "sender": "system",
-                "message": "Too many messages. Please wait a few seconds."
-            })
-            return
+            # =========================
+            # RATE LIMIT
+            # =========================
 
-        room_id = data.get("room_id")
-        message = data.get("message")
+            allowed = check_chat_rate_limit(current_user_id)
 
-        if not room_id or not message:
-            return
+            if not allowed:
+                emit(
+                    "receive_support_message",
+                    {
+                        "sender": "system",
+                        "message": "Too many messages. Please wait a few seconds."
+                    }
+                )
+                return
 
-        conn = get_db()
-        cursor = conn.cursor(dictionary=True, buffered=True)
+            room_id = data.get("room_id")
+            message = data.get("message")
 
-        # =========================
-        # USER INFO
-        # =========================
+            if not room_id or not message:
+                return
 
-        cursor.execute("""
-            SELECT
-                username,
-                email,
-                plan,
-                role,
-                trials_ends_at,
-                account_status,
-                active
-            FROM user_base
-            WHERE user_id = %s
-        """, (current_user_id,))
+            # =========================
+            # LOAD USER DATA
+            # =========================
 
-        user_info = cursor.fetchone()
+            with db_cursor(dictionary=True) as (conn, cursor):
 
-        if not user_info:
-            emit("receive_support_message", {
-                "sender": "system",
-                "message": "User account not found."
-            })
-            return
+                cursor.execute("""
+                    SELECT
+                        username,
+                        email,
+                        plan,
+                        role,
+                        trials_ends_at,
+                        account_status,
+                        active
+                    FROM user_base
+                    WHERE user_id = %s
+                """, (current_user_id,))
 
-        # =========================
-        # COUNTS
-        # =========================
+                user_info = cursor.fetchone()
 
-        cursor.execute("""
-            SELECT COUNT(*) AS total
-            FROM invoices
-            WHERE user_id = %s
-        """, (current_user_id,))
-        invoice_count = cursor.fetchone()["total"]
+                if not user_info:
+                    emit(
+                        "receive_support_message",
+                        {
+                            "sender": "system",
+                            "message": "User account not found."
+                        }
+                    )
+                    return
 
-        cursor.execute("""
-            SELECT COUNT(*) AS total
-            FROM clients
-            WHERE user_id = %s
-        """, (current_user_id,))
-        client_count = cursor.fetchone()["total"]
+                # ---------------------
+                # Counts
+                # ---------------------
 
-        cursor.execute("""
-            SELECT COUNT(*) AS total
-            FROM transactions
-            WHERE user_id = %s
-        """, (current_user_id,))
-        transaction_count = cursor.fetchone()["total"]
+                cursor.execute("""
+                    SELECT
+                        (
+                            SELECT COUNT(*)
+                            FROM invoices
+                            WHERE user_id=%s
+                        ) AS invoice_count,
 
-        # =========================
-        # SUBSCRIPTION
-        # =========================
+                        (
+                            SELECT COUNT(*)
+                            FROM clients
+                            WHERE user_id=%s
+                        ) AS client_count,
 
-        cursor.execute("""
-            SELECT
-                billing_cycle,
-                status,
-                started_at,
-                expires_at
-            FROM user_subscriptions
-            WHERE user_id = %s
-            ORDER BY id DESC
-            LIMIT 1
-        """, (current_user_id,))
+                        (
+                            SELECT COUNT(*)
+                            FROM transactions
+                            WHERE user_id=%s
+                        ) AS transaction_count
+                """, (
+                    current_user_id,
+                    current_user_id,
+                    current_user_id
+                ))
 
-        subscription_info = cursor.fetchone()
+                counts = cursor.fetchone()
 
-        # =========================
-        # CHAT MEMORY
-        # =========================
+                invoice_count = counts["invoice_count"]
+                client_count = counts["client_count"]
+                transaction_count = counts["transaction_count"]
 
-        cursor.execute("""
-            SELECT sender_type, message
-            FROM support_chat_messages
-            WHERE room_id = %s
-            ORDER BY created_at DESC
-            LIMIT 10
-        """, (room_id,))
+                # ---------------------
+                # Subscription
+                # ---------------------
 
-        history = cursor.fetchall()
+                cursor.execute("""
+                    SELECT
+                        billing_cycle,
+                        status,
+                        started_at,
+                        expires_at
+                    FROM user_subscriptions
+                    WHERE user_id = %s
+                    ORDER BY id DESC
+                    LIMIT 1
+                """, (current_user_id,))
 
-        history.reverse()
+                subscription_info = cursor.fetchone()
 
-        # =========================
-        # USER DATA FOR AI
-        # =========================
+                # ---------------------
+                # Chat History
+                # ---------------------
 
-        user_data = {
-            "user_id": current_user_id,
-            "username": user_info["username"],
-            "email": user_info["email"],
-            "plan": user_info["plan"],
-            "role": current_user_role,
-            "trial_ends_at": str(user_info["trials_ends_at"]),
-            "account_status": user_info["account_status"],
-            "active": user_info["active"],
-            "invoice_count": invoice_count,
-            "client_count": client_count,
-            "transaction_count": transaction_count,
-            "subscription": subscription_info
-        }
+                cursor.execute("""
+                    SELECT
+                        sender_type,
+                        message
+                    FROM support_chat_messages
+                    WHERE room_id = %s
+                    ORDER BY created_at DESC
+                    LIMIT 10
+                """, (room_id,))
 
-        # =========================
-        # SAVE USER MESSAGE
-        # =========================
+                history = cursor.fetchall()
 
-        cursor.execute("""
-            INSERT INTO support_chat_messages
-            (room_id, sender_type, sender_id, message)
-            VALUES (%s,%s,%s,%s)
-        """, (
-            room_id,
-            "user",
-            current_user_id,
-            message
-        ))
+                history.reverse()
 
-        conn.commit()
+                # ---------------------
+                # Save User Message
+                # ---------------------
 
-        emit("receive_support_message", {
-            "sender": "user",
-            "message": message
-        }, room=room_id)
+                cursor.execute("""
+                    INSERT INTO support_chat_messages
+                    (
+                        room_id,
+                        sender_type,
+                        sender_id,
+                        message
+                    )
+                    VALUES (%s,%s,%s,%s)
+                """, (
+                    room_id,
+                    "user",
+                    current_user_id,
+                    message
+                ))
 
-        # =========================
-        # AI REPLY
-        # =========================
+                conn.commit()
 
-        bot_reply = get_support_reply(
-            message=message,
-            user_data=user_data,
-            chat_history=history
-        )
+            # =========================
+            # EMIT USER MESSAGE
+            # =========================
 
-        # =========================
-        # SAVE AI REPLY
-        # =========================
+            emit(
+                "receive_support_message",
+                {
+                    "sender": "user",
+                    "message": message
+                },
+                room=room_id
+            )
 
-        cursor.execute("""
-            INSERT INTO support_chat_messages
-            (room_id, sender_type, sender_id, message)
-            VALUES (%s,%s,%s,%s)
-        """, (
-            room_id,
-            "system",
-            current_user_id,
-            bot_reply
-        ))
+            # =========================
+            # USER DATA FOR AI
+            # =========================
 
-        conn.commit()
+            user_data = {
+                "user_id": current_user_id,
+                "username": user_info["username"],
+                "email": user_info["email"],
+                "plan": user_info["plan"],
+                "role": current_user_role,
+                "trial_ends_at": str(user_info["trials_ends_at"]),
+                "account_status": user_info["account_status"],
+                "active": user_info["active"],
+                "invoice_count": invoice_count,
+                "client_count": client_count,
+                "transaction_count": transaction_count,
+                "subscription": subscription_info
+            }
 
-        emit("receive_support_message", {
-            "sender": "ai",
-            "message": bot_reply
-        }, room=room_id)
+            # =========================
+            # AI REPLY
+            # =========================
 
-        cursor.close()
-        conn.close()
+            bot_reply = get_support_reply(
+                message=message,
+                user_data=user_data,
+                chat_history=history
+            )
+
+            # =========================
+            # SAVE AI MESSAGE
+            # =========================
+
+            with db_cursor() as (conn, cursor):
+
+                cursor.execute("""
+                    INSERT INTO support_chat_messages
+                    (
+                        room_id,
+                        sender_type,
+                        sender_id,
+                        message
+                    )
+                    VALUES (%s,%s,%s,%s)
+                """, (
+                    room_id,
+                    "system",
+                    current_user_id,
+                    bot_reply
+                ))
+
+                conn.commit()
+
+            # =========================
+            # SEND AI MESSAGE
+            # =========================
+
+            emit(
+                "receive_support_message",
+                {
+                    "sender": "ai",
+                    "message": bot_reply
+                },
+                room=room_id
+            )
+
+        except Exception as e:
+
+            print("Support chat error:", e)
+
+            emit(
+                "receive_support_message",
+                {
+                    "sender": "system",
+                    "message": "An unexpected error occurred. Please try again."
+                }
+            )
