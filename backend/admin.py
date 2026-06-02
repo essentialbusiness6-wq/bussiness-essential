@@ -7,7 +7,8 @@ from backend.utils import(
     token_required_admin,
     save_audit_activity, 
     log_admin_session,
-    update_admin_session_activity
+    update_admin_session_activity,
+    db_cursor
 )
 import pyotp
 import qrcode
@@ -659,16 +660,25 @@ def execute_database_api_page(current_user_id, current_user_role,current_user_de
             "message": "Unauthorized"
         }), 403
     
-    conn = get_db()
-    cursor = conn.cursor(dictionary=True, buffered=True)
-    cursor.execute("""
-        SELECT id, fullname
-        FROM admins
-        WHERE id = %s
-    """, (current_user_id,))
-    adminName = cursor.fetchone()['fullname']
-    initials = "".join(word[0].upper() for word in adminName.split())
-    return render_template("admins/execute/database-api.html",initials=initials, adminName=adminName)
+    conn = None
+    cursor = None
+    try:
+      conn = get_db()
+      cursor = conn.cursor(dictionary=True, buffered=True)
+      cursor.execute("""
+          SELECT id, fullname
+          FROM admins
+          WHERE id = %s
+      """, (current_user_id,))
+      adminName = cursor.fetchone()['fullname']
+      initials = "".join(word[0].upper() for word in adminName.split())
+      return render_template("admins/execute/database-api.html",initials=initials, adminName=adminName)
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
 
 @admin_bp.route("/supprt/dashboard")
 @token_required_admin
@@ -685,16 +695,24 @@ def support_dahsboard_page(    current_user_id,
             "message": "Unauthorized"
         }), 403
     
-    conn = get_db()
-    cursor = conn.cursor(dictionary=True, buffered=True)
-    cursor.execute("""
-        SELECT id, fullname
-        FROM admins
-        WHERE id = %s
-    """, (current_user_id,))
-    adminName = cursor.fetchone()['fullname']
-    initials = "".join(word[0].upper() for word in adminName.split())
-    return render_template("admins/support/support-dashboard.html",initials=initials, adminName=adminName)
+    conn = None
+    cursor = None
+    try:
+      conn = get_db()
+      cursor = conn.cursor(dictionary=True, buffered=True)
+      cursor.execute("""
+          SELECT id, fullname
+          FROM admins
+          WHERE id = %s
+      """, (current_user_id,))
+      adminName = cursor.fetchone()['fullname']
+      initials = "".join(word[0].upper() for word in adminName.split())
+      return render_template("admins/support/support-dashboard.html",initials=initials, adminName=adminName)
+    finally:
+      if cursor:
+          cursor.close()
+      if conn:
+          conn.close()
 
 @admin_bp.route("/logout")
 def logout():
@@ -724,236 +742,229 @@ def support_dashboard(
     current_user_department
 ):
     if (
-        current_user_role != 'support'
-        or
-        current_user_department != 'support'
+        current_user_role != "support"
+        or current_user_department != "support"
     ):
         return jsonify({
             "success": False,
             "message": "Unauthorized"
         }), 403
-    
-    conn = get_db()
-    cursor = conn.cursor(dictionary=True)
 
-    # =========================
-    # Stats
-    # =========================
+    with db_cursor(dictionary=True) as (conn, cursor):
 
-    cursor.execute("""
-        SELECT COUNT(*) total
-        FROM feedback
-    """)
-    total_feedback = cursor.fetchone()["total"]
+        # =========================
+        # Stats
+        # =========================
 
-    cursor.execute("""
-        SELECT COUNT(*) total
-        FROM feedback
-        WHERE status='In Review'
-    """)
-    review_count = cursor.fetchone()["total"]
-
-    cursor.execute("""
-        SELECT COUNT(*) total
-        FROM support_tickets
-        WHERE status='resolved'
-    """)
-    resolved_count = cursor.fetchone()["total"]
-
-    cursor.execute("""
-        SELECT COUNT(*) total
-        FROM support_tickets
-        WHERE status NOT IN ('resolved','closed')
-        AND created_at < NOW() - INTERVAL 48 HOUR
-    """)
-    sla_breach = cursor.fetchone()["total"]
-
-    cursor.execute("""
-        SELECT
-            ROUND(
-                AVG(
-                    TIMESTAMPDIFF(
-                        HOUR,
-                        created_at,
-                        updated_at
-                    )
-                ),
-                1
-            ) avg_response
-        FROM support_tickets
-        WHERE status IN (
-            'pending',
-            'resolved',
-            'closed'
-        )
-    """)
-
-    avg_row = cursor.fetchone()
-    avg_response = avg_row["avg_response"] or 0
-
-    # =========================
-    # Feedback Volume
-    # =========================
-
-    cursor.execute("""
-        SELECT
-            DAYNAME(created_at) day,
-            feedback_type,
-            COUNT(*) total
-        FROM feedback
-        WHERE created_at >= NOW() - INTERVAL 7 DAY
-        GROUP BY DAYNAME(created_at), feedback_type
-    """)
-
-    volume_rows = cursor.fetchall()
-
-    days = [
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-        "Sunday"
-    ]
-
-    volume_map = {
-        d: {
-            "day": d[:3],
-            "bug": 0,
-            "sug": 0
-        }
-        for d in days
-    }
-
-    for row in volume_rows:
-
-        ftype = (row["feedback_type"] or "").lower()
-
-        if "bug" in ftype:
-            volume_map[row["day"]]["bug"] = row["total"]
-
-        else:
-            volume_map[row["day"]]["sug"] = row["total"]
-
-    volume_data = list(volume_map.values())
-
-    # =========================
-    # Status Distribution
-    # =========================
-
-    cursor.execute("""
-        SELECT
-            status,
-            COUNT(*) total
-        FROM feedback
-        GROUP BY status
-    """)
-
-    status_rows = cursor.fetchall()
-
-    color_map = {
-        "In Review": "#f39c12",
-        "Resolved": "#2ecc71",
-        "Closed": "#95a5a6"
-    }
-
-    status_data = []
-
-    for row in status_rows:
-        status_data.append({
-            "name": row["status"],
-            "count": row["total"],
-            "color": color_map.get(
-                row["status"],
-                "#3498db"
-            )
-        })
-
-    # =========================
-    # Priority Queue
-    # =========================
-
-    cursor.execute("""
-        SELECT
-            f.id,
-            f.subject,
-            c.fullname,
-            f.created_at
-        FROM feedback f
-        LEFT JOIN cust_base c
-            ON f.user_id = c.user_id
-        WHERE f.status='In Review'
-        ORDER BY f.created_at DESC
-        LIMIT 10
-    """)
-
-    priority_rows = cursor.fetchall()
-
-    priority_data = []
-
-    for row in priority_rows:
-
-        priority_data.append({
-            "id": f"FB-{row['id']}",
-            "title": row["subject"],
-            "user": row["fullname"] or "Unknown User",
-            "time": row["created_at"].strftime("%Y-%m-%d"),
-            "priority": "high"
-        })
-
-    # =========================
-    # Activity Feed
-    # =========================
-
-    cursor.execute("""
-        (
-            SELECT
-                'new' type,
-                CONCAT(
-                    'New feedback submitted: ',
-                    subject
-                ) text,
-                created_at activity_time
+        cursor.execute("""
+            SELECT COUNT(*) total
             FROM feedback
-        )
+        """)
+        total_feedback = cursor.fetchone()["total"]
 
-        UNION ALL
+        cursor.execute("""
+            SELECT COUNT(*) total
+            FROM feedback
+            WHERE status='In Review'
+        """)
+        review_count = cursor.fetchone()["total"]
 
-        (
-            SELECT
-                'status' type,
-                CONCAT(
-                    'Support ticket #',
-                    id,
-                    ' changed to ',
-                    status
-                ) text,
-                updated_at activity_time
+        cursor.execute("""
+            SELECT COUNT(*) total
             FROM support_tickets
-        )
+            WHERE status='resolved'
+        """)
+        resolved_count = cursor.fetchone()["total"]
 
-        ORDER BY activity_time DESC
-        LIMIT 20
-    """)
+        cursor.execute("""
+            SELECT COUNT(*) total
+            FROM support_tickets
+            WHERE status NOT IN ('resolved','closed')
+            AND created_at < NOW() - INTERVAL 48 HOUR
+        """)
+        sla_breach = cursor.fetchone()["total"]
 
-    activity_rows = cursor.fetchall()
-
-    activity_data = []
-
-    for row in activity_rows:
-
-        activity_data.append({
-            "type": row["type"],
-            "text": row["text"],
-            "time": row["activity_time"].strftime(
-                "%Y-%m-%d %H:%M"
+        cursor.execute("""
+            SELECT
+                ROUND(
+                    AVG(
+                        TIMESTAMPDIFF(
+                            HOUR,
+                            created_at,
+                            updated_at
+                        )
+                    ),
+                    1
+                ) avg_response
+            FROM support_tickets
+            WHERE status IN (
+                'pending',
+                'resolved',
+                'closed'
             )
-        })
+        """)
+
+        avg_row = cursor.fetchone()
+        avg_response = avg_row["avg_response"] or 0
+
+        # =========================
+        # Feedback Volume
+        # =========================
+
+        cursor.execute("""
+            SELECT
+                DAYNAME(created_at) day,
+                feedback_type,
+                COUNT(*) total
+            FROM feedback
+            WHERE created_at >= NOW() - INTERVAL 7 DAY
+            GROUP BY DAYNAME(created_at), feedback_type
+        """)
+
+        volume_rows = cursor.fetchall()
+
+        days = [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday"
+        ]
+
+        volume_map = {
+            d: {
+                "day": d[:3],
+                "bug": 0,
+                "sug": 0
+            }
+            for d in days
+        }
+
+        for row in volume_rows:
+            ftype = (row["feedback_type"] or "").lower()
+
+            if "bug" in ftype:
+                volume_map[row["day"]]["bug"] = row["total"]
+            else:
+                volume_map[row["day"]]["sug"] = row["total"]
+
+        volume_data = list(volume_map.values())
+
+        # =========================
+        # Status Distribution
+        # =========================
+
+        cursor.execute("""
+            SELECT
+                status,
+                COUNT(*) total
+            FROM feedback
+            GROUP BY status
+        """)
+
+        status_rows = cursor.fetchall()
+
+        color_map = {
+            "In Review": "#f39c12",
+            "Resolved": "#2ecc71",
+            "Closed": "#95a5a6"
+        }
+
+        status_data = [
+            {
+                "name": row["status"],
+                "count": row["total"],
+                "color": color_map.get(
+                    row["status"],
+                    "#3498db"
+                )
+            }
+            for row in status_rows
+        ]
+
+        # =========================
+        # Priority Queue
+        # =========================
+
+        cursor.execute("""
+            SELECT
+                f.id,
+                f.subject,
+                c.fullname,
+                f.created_at
+            FROM feedback f
+            LEFT JOIN cust_base c
+                ON f.user_id = c.user_id
+            WHERE f.status='In Review'
+            ORDER BY f.created_at DESC
+            LIMIT 10
+        """)
+
+        priority_rows = cursor.fetchall()
+
+        priority_data = [
+            {
+                "id": f"FB-{row['id']}",
+                "title": row["subject"],
+                "user": row["fullname"] or "Unknown User",
+                "time": row["created_at"].strftime("%Y-%m-%d"),
+                "priority": "high"
+            }
+            for row in priority_rows
+        ]
+
+        # =========================
+        # Activity Feed
+        # =========================
+
+        cursor.execute("""
+            (
+                SELECT
+                    'new' type,
+                    CONCAT(
+                        'New feedback submitted: ',
+                        subject
+                    ) text,
+                    created_at activity_time
+                FROM feedback
+            )
+
+            UNION ALL
+
+            (
+                SELECT
+                    'status' type,
+                    CONCAT(
+                        'Support ticket #',
+                        id,
+                        ' changed to ',
+                        status
+                    ) text,
+                    updated_at activity_time
+                FROM support_tickets
+            )
+
+            ORDER BY activity_time DESC
+            LIMIT 20
+        """)
+
+        activity_rows = cursor.fetchall()
+
+        activity_data = [
+            {
+                "type": row["type"],
+                "text": row["text"],
+                "time": row["activity_time"].strftime(
+                    "%Y-%m-%d %H:%M"
+                )
+            }
+            for row in activity_rows
+        ]
 
     return jsonify({
         "success": True,
-
         "stats": {
             "total": total_feedback,
             "review": review_count,
@@ -961,16 +972,11 @@ def support_dashboard(
             "response": f"{avg_response}h",
             "breach": sla_breach
         },
-
         "volume": volume_data,
-
         "status": status_data,
-
         "priority": priority_data,
-
         "activity": activity_data
     })
-
 @admin_bp.route("/support/feedback-center")
 @token_required_admin
 def feedback_center_page(  current_user_id,
@@ -986,17 +992,16 @@ def feedback_center_page(  current_user_id,
             "message": "Unauthorized"
         }), 403
     
-    conn = get_db()
-    cursor = conn.cursor(dictionary=True, buffered=True)
-    cursor.execute("""
-        SELECT id, fullname
-        FROM admins
-        WHERE id = %s
-    """, (current_user_id,))
-    adminName = cursor.fetchone()['fullname']
-    initials = "".join(word[0].upper() for word in adminName.split())
+    with db_cursor(dictionary=True) as (conn, cursor):
+      cursor.execute("""
+          SELECT id, fullname
+          FROM admins
+          WHERE id = %s
+      """, (current_user_id,))
+      adminName = cursor.fetchone()['fullname']
+      initials = "".join(word[0].upper() for word in adminName.split())
 
-    return render_template("admins/support/feedback-management.html",initials=initials,adminName=adminName)
+      return render_template("admins/support/feedback-management.html",initials=initials,adminName=adminName)
 
 @admin_bp.route('/api/support/items', methods=['GET'])
 @token_required_admin
@@ -1060,6 +1065,7 @@ def get_support_items(current_user_id,
     finally:
         cursor.close()
         conn.close()
+      
 # ===== FUNCTIONS
 
 from werkzeug.security import check_password_hash
@@ -1303,18 +1309,12 @@ def setup_2fa():
         buffer.getvalue()
     ).decode()
 
-    conn = get_db()
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        UPDATE admins
-        SET two_factor_secret=%s, qr=%s
-        WHERE email = %s
-    """, (secret, qr_base64, email))
-
-    conn.commit()
-    cursor.close()
-    conn.close()
+    with db_cursor(dictionary=True) as (conn, cursor):
+      cursor.execute("""
+          UPDATE admins
+          SET two_factor_secret=%s, qr=%s
+          WHERE email = %s
+      """, (secret, qr_base64, email))
 
 
     # =========================================
@@ -1345,56 +1345,55 @@ def verify_2fa():
 
     code = data.get('code')
 
-    conn = get_db()
-    cursor = conn.cursor(dictionary=True)
+    with db_cursor(dictionary=True) as (conn, cursor):
 
-    cursor.execute(
-        "SELECT * FROM admins WHERE id=%s",
-        (admin_id,)
-    )
+      cursor.execute(
+          "SELECT * FROM admins WHERE id=%s",
+          (admin_id,)
+      )
 
-    admin = cursor.fetchone()
+      admin = cursor.fetchone()
 
-    totp = pyotp.TOTP(
+      totp = pyotp.TOTP(
         admin['two_factor_secret']
-    )
+      )
 
-    if not totp.verify(code):
+      if not totp.verify(code):
 
-        return jsonify({
-            "success": False,
-            "message": "Invalid code"
-        }), 401
+          return jsonify({
+              "success": False,
+              "message": "Invalid code"
+          }), 401
 
-    # FULL LOGIN
-    payload = {
+      # FULL LOGIN
+      payload = {
         "admin_id": admin['id'],
         "role": admin['role'],
         "department": admin['department'],
         "exp": datetime.utcnow() + timedelta(hours=24)
-    }
-    token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
+      }
+      token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
 
-    session.pop('pending_admin_id')
+      session.pop('pending_admin_id')
 
-    if (admin['role'] != 'super_admin' or admin['department'] != 'executive'):
-        _ip_address = request.remote_addr
-        save_audit_activity(
+      if (admin['role'] != 'super_admin' or admin['department'] != 'executive'):
+          _ip_address = request.remote_addr
+          save_audit_activity(
             admin['id'],
             "Success",
             "2FA Success",
             f"{admin['fullname']} successfully completed 2FA from {_ip_address}",
             _ip_address
-        )
+          )
 
-    response = make_response(jsonify({
+      response = make_response(jsonify({
             "success": True,
             "requires_2fa": False,
             "message": "Login successful",
             "role": admin['role'],
             "department": admin['department']
-    }))
-    response.set_cookie(
+      }))
+      response.set_cookie(
             "access_token",
             token,
             httponly=True,
@@ -1403,7 +1402,7 @@ def verify_2fa():
             max_age=60 * 60 * 24 * 7
         )
 
-    return response, 200
+      return response, 200
 
 @admin_bp.route('/generate-invite-key', methods=['POST'])
 @token_required_admin
@@ -1425,36 +1424,38 @@ def generate_invite_key(current_user_id, current_user_role, current_user_departm
 
 
     # Check if invite key already exists
-    conn = get_db()
-    cursor = conn.cursor(dictionary=True)
-
-    cursor.execute(
+    conn = None
+    cursor = None
+    try:
+      conn = get_db()
+      cursor = conn.cursor(dictionary=True,buffered-=True)
+      cursor.execute(
         "SELECT * FROM admin_invites WHERE email=%s",
         (email,)
-    )
+      )
 
-    existing_invite = cursor.fetchone()
+      existing_invite = cursor.fetchone()
 
-    if existing_invite:
+      if existing_invite:
         return jsonify({
             "status": "error",
             "message": "An invite key already exists for this email"
         }), 400
 
-    # Generate unique invite key
-    invite_key = secrets.token_urlsafe(14)
+      # Generate unique invite key
+      invite_key = secrets.token_urlsafe(14)
 
-    employee_id = "EMP" + secrets.token_hex(4).upper()  # Example employee ID generation
+      employee_id = "EMP-" + secrets.token_hex(4).upper() 
 
-    # Save to database
-    cursor.execute("""
+    
+      cursor.execute("""
         INSERT INTO admin_invites (email, invite_key, employee_id, created_by, role)
         VALUES (%s, %s, %s, %s, %s)
-    """, (email, invite_key, employee_id, current_user_id, 'N/A'))
+      """, (email, invite_key, employee_id, current_user_id, 'N/A'))
 
-    conn.commit()
+      conn.commit()
 
-    invite_key_generated_email = f"""
+      invite_key_generated_email = f"""
 
 
 <html>
@@ -1587,9 +1588,8 @@ def generate_invite_key(current_user_id, current_user_role, current_user_departm
 
 """
 
-    cursor.close()
-    conn.close()
-    send_email(
+
+      send_email(
         email,
         "Your Admin Invitation for Business Essential",
         invite_key_generated_email.format(
@@ -1598,13 +1598,26 @@ def generate_invite_key(current_user_id, current_user_role, current_user_departm
             invite_key=invite_key
         ),
         html=True
-    )
+      )
 
-    return jsonify({
+      return jsonify({
         "status": "success",
         "message": "Invite key generated successfully",
         "invite_key": invite_key
-    }), 201
+      }), 201
+    except Exception as e:
+      conn.rollback()
+      print(f"Failed to generate Key: {e}")
+      return jsonify({
+        "status": "error",
+        "message": "Failed to generate invite key.",
+        "detials": str(e)
+      }), 201
+    finally:
+      if cursor:
+        cursor.close()
+      if conn:
+        conn.close()
 
 
 @admin_bp.route('/create-admin', methods=['POST'])
