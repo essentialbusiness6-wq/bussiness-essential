@@ -22,6 +22,7 @@ from typing import Optional
 from backend.extentions import socketio
 import base64
 from mysql.connector.pooling import MySQLConnectionPool
+import hashlib
 
 
 load_dotenv()
