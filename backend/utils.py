@@ -44,32 +44,35 @@ def get_db():
 
 
 def get_user_id(username):
-    conn = get_db()
-    cursor = conn.cursor(buffered=True)
+    conn = None
+    cursor = None
+
     try:
-        cursor.execute("SELECT user_id, username FROM user_base WHERE username=%s", (username,))
+        conn = get_db()
+        cursor = conn.cursor(buffered=True)
+
+        cursor.execute(
+            "SELECT user_id, username FROM user_base WHERE username=%s",
+            (username,)
+        )
+
         user = cursor.fetchone()
 
         if not user:
-            return jsonify({
-                "status": "error",
-                "message": "User not found"
-            }), 400
-    
-    
-        user_id = user[0]
-        return user_id
-    execpt Execption as e:
-        conn.rollback()
+            return None
+
+        return user[0]
+
+    except Exception as e:
         print(f"Failed to get user id: {e}")
+        return None
+
     finally:
-        cursor.close()
-        conn.close()
-
-    
-
-
-
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+            
 def token_required(f):
 
     @wraps(f)
@@ -226,7 +229,7 @@ def save_security_activity(user_id, type_, title, description,severity, ip_addre
         )
 
         conn.commit()
-    execpt Execption as e:
+    except Exception as e:
         conn.rollback()
         print(f"Failed to save security activity: {e}")
     finally:
@@ -291,7 +294,7 @@ def expire_old_sessions():
             LIMIT 500
         """)
         conn.commit()
-    execpt Execption as e:
+    except Exception as e:
         conn.rollback()
         print(f"Failed to update old sessions: {e}")
     finally:
