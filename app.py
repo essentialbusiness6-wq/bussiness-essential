@@ -29,7 +29,8 @@ from backend.utils import (
     update_session_activity,
     parse_user_agent1,
     get_user_from_token_cookie,
-    send_notification
+    send_notification,
+    db_cursor
 )
 from backend.admin import admin_bp
 import hashlib
@@ -145,20 +146,24 @@ def test_email():
 
 @app.route("/")
 def home():
-    conn = get_db()
-    cursor = conn.cursor(buffered=True, dictionary=True)
-    cursor.execute(
-        """
-            SELECT COUNT(*) as total_user
+
+    with db_cursor(dictionary=True) as (_, cursor):
+
+        cursor.execute(
+            """
+            SELECT COUNT(*) AS total_user
             FROM user_base
-            WHERE account_status=%s
-        """,
-        ("active",)
+            WHERE account_status = %s
+            """,
+            ("active",)
+        )
+
+        total_users = cursor.fetchone()["total_user"]
+
+    return render_template(
+        "index.html",
+        totalUsers=total_users
     )
-    totalUsers = cursor.fetchone()['total_user']
-    
-        
-    return render_template("index.html",totalUsers=totalUsers)
 
 @app.route("/about")
 def about():
@@ -203,81 +208,75 @@ def dashboard():
 @app.route("/dashboard/create-invoice")
 @token_required
 def create_invoice_page(current_user_id,current_user_role):
-    conn = get_db()
-    cursor = conn.cursor(buffered=True, dictionary=True)
+    with db_cursor(dictionary=True) as (_, cursor):
 
-    cursor.execute(
-        """
-        SELECT currency_symbol
-        FROM user_settings
-        WHERE user_id=%s
-        """,
-        (current_user_id,)
-    )
-    currencySymbol = cursor.fetchone()['currency_symbol']
-    
+        cursor.execute(
+            """
+            SELECT currency_symbol
+            FROM user_settings
+            WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+        currencySymbol = cursor.fetchone()['currency_symbol']
 
     return render_template("users/create-invoice.html",currencySymbol=currencySymbol)
 
 @app.route("/invoice/edit/<int:invoiceId>")
 @token_required
 def edit_invoice_page(current_user_id,current_user_role,invoiceId):
-    conn = get_db()
-    cursor = conn.cursor(buffered=True, dictionary=True)
+    with db_cursor(dictionary=True) as (_, cursor):
 
-    cursor.execute(
-    "SELECT role FROM user_base WHERE user_id=%s",
-    (current_user_id,)
-)
+        cursor.execute(
+            "SELECT role FROM user_base WHERE user_id=%s",
+            (current_user_id,)
+        )
 
-    user = cursor.fetchone()
+        user = cursor.fetchone()
 
-    if not user:
-        return jsonify({
-        "status": "error",
-        "message": "User not found"
-    }), 401
-
-    cursor.execute(
-        """
-        SELECT 
-            invoices.id,
-            invoices.client_id,
-            invoices.invoice_number,
-            invoices.invoice_date,
-            invoices.due_date,
-            invoices.total AS amount,
-            invoices.status,
-            invoices.subtotal,
-            invoices.tax,
-            invoices.amount_paid,
-            invoices.balance,
-            invoices.note,
-            clients.client_name AS clientName,
-            clients.client_email AS clientEmail
-        FROM invoices
-        JOIN clients ON clients.id = invoices.client_id
-        WHERE invoices.user_id=%s AND invoices.id=%s
-        """,
-        (current_user_id,invoiceId)
-    )
-    invoice = cursor.fetchone()
-    if not invoice:
-        return jsonify({
+        if not user:
+            return jsonify({
             "status": "error",
-            "message": "Invoice not found"
-        }), 404
-    
-    cursor.execute("""
-        SELECT description, quantity, price
-        FROM invoice_items
-        WHERE invoice_id=%s
-    """, (invoiceId,))
-    items = cursor.fetchall()
-    items_list = [{"desc": i['description'], "qty": i['quantity'], "price": i['price']} for i in items]
-    
+            "message": "User not found"
+        }), 401
 
-
+        cursor.execute(
+            """
+            SELECT 
+                invoices.id,
+                invoices.client_id,
+                invoices.invoice_number,
+                invoices.invoice_date,
+                invoices.due_date,
+                invoices.total AS amount,
+                invoices.status,
+                invoices.subtotal,
+                invoices.tax,
+                invoices.amount_paid,
+                invoices.balance,
+                invoices.note,
+                clients.client_name AS clientName,
+                clients.client_email AS clientEmail
+            FROM invoices
+            JOIN clients ON clients.id = invoices.client_id
+            WHERE invoices.user_id=%s AND invoices.id=%s
+            """,
+            (current_user_id,invoiceId)
+        )
+        invoice = cursor.fetchone()
+        if not invoice:
+            return jsonify({
+                "status": "error",
+                "message": "Invoice not found"
+            }), 404
+    
+        cursor.execute("""
+            SELECT description, quantity, price
+            FROM invoice_items
+            WHERE invoice_id=%s
+        """, (invoiceId,))
+        items = cursor.fetchall()
+        items_list = [{"desc": i['description'], "qty": i['quantity'], "price": i['price']} for i in items]
 
     return render_template(
         "users/edit-invoice.html", 
@@ -301,118 +300,116 @@ def edit_invoice_page(current_user_id,current_user_role,invoiceId):
 @app.route("/dashboard/view-invoices/full/<int:invoiceId>")
 @token_required
 def view_invoices_page(current_user_id,current_user_role,invoiceId):
-    conn = get_db()
-    cursor = conn.cursor(buffered=True, dictionary=True)
+    with db_cursor(dictionary=True) as (_, cursor):
 
-    cursor.execute(
-    "SELECT role FROM user_base WHERE user_id=%s",
-    (current_user_id,)
-)
+        cursor.execute(
+            "SELECT role FROM user_base WHERE user_id=%s",
+            (current_user_id,)
+        )
 
-    user = cursor.fetchone()
+        user = cursor.fetchone()
 
-    if not user:
-        return jsonify({
-        "status": "error",
-        "message": "User not found"
-    }), 401
-
-    cursor.execute(
-        """
-        SELECT 
-            invoices.id,
-            invoices.client_id,
-            invoices.invoice_number,
-            invoices.invoice_date,
-            invoices.due_date,
-            invoices.total AS amount,
-            invoices.status,
-            invoices.subtotal,
-            invoices.tax,
-            invoices.amount_paid,
-            invoices.balance,
-            invoices.note
-        FROM invoices
-        WHERE invoices.user_id=%s AND invoices.id=%s
-        """,
-        (current_user_id,invoiceId)
-    )
-
-    invoice = cursor.fetchone()
-    if not invoice:
-        return jsonify({
+        if not user:
+            return jsonify({
             "status": "error",
-            "message": "Invoice not found"
-        }), 404
-    
-    cursor.execute("""
-        SELECT description, quantity, price
-        FROM invoice_items
-        WHERE invoice_id=%s
-    """, (invoiceId,))
-    items = cursor.fetchall()
-    items_list = [{"desc": i['description'], "qty": i['quantity'], "price": i['price'], "total": i['quantity'] * i['price']} for i in items]
+            "message": "User not found"
+        }), 401
 
-    cursor.execute(
-        """
-        SELECT client_name, client_email, client_address
-        FROM clients
-        WHERE user_id=%s AND id=%s
-        """,
-        (current_user_id, invoice['client_id'])
-    )
-    client = cursor.fetchone()
-    if not client:
-        return jsonify({"error": "Client not found"}), 404
-    
-    cursor.execute(
-        """
-        SELECT currency, currency_symbol
-        FROM user_settings
-        WHERE user_id=%s
-        """,
-        (current_user_id,)
-    )
-    settings = cursor.fetchone()
-    if not settings:
-        return jsonify({"error": "Settings not found"}), 404
+        cursor.execute(
+            """
+            SELECT 
+                invoices.id,
+                invoices.client_id,
+                invoices.invoice_number,
+                invoices.invoice_date,
+                invoices.due_date,
+                invoices.total AS amount,
+                invoices.status,
+                invoices.subtotal,
+                invoices.tax,
+                invoices.amount_paid,
+                invoices.balance,
+                invoices.note
+            FROM invoices
+            WHERE invoices.user_id=%s AND invoices.id=%s
+            """,
+            (current_user_id,invoiceId)
+        )
 
-    cursor.execute(
-        """
-        SELECT profilename, address, alternateemail, phone, website
-        FROM cust_base
-        WHERE user_id=%s
-        """,
-        (current_user_id,)
-    )
-    profile = cursor.fetchone()
-    if not profile:
-        return jsonify({"error": "Profile not found"}), 404
+        invoice = cursor.fetchone()
+        if not invoice:
+            return jsonify({
+                "status": "error",
+                "message": "Invoice not found"
+            }), 404
+    
+        cursor.execute("""
+            SELECT description, quantity, price
+            FROM invoice_items
+            WHERE invoice_id=%s
+        """, (invoiceId,))
+        items = cursor.fetchall()
+        items_list = [{"desc": i['description'], "qty": i['quantity'], "price": i['price'], "total": i['quantity'] * i['price']} for i in items]
+
+        cursor.execute(
+            """
+            SELECT client_name, client_email, client_address
+            FROM clients
+            WHERE user_id=%s AND id=%s
+            """,
+            (current_user_id, invoice['client_id'])
+        )
+        client = cursor.fetchone()
+        if not client:
+            return jsonify({"error": "Client not found"}), 404
+    
+        cursor.execute(
+            """
+            SELECT currency, currency_symbol
+            FROM user_settings
+            WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+        settings = cursor.fetchone()
+        if not settings:
+            return jsonify({"error": "Settings not found"}), 404
+
+        cursor.execute(
+            """
+            SELECT profilename, address, alternateemail, phone, website
+            FROM cust_base
+            WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+        profile = cursor.fetchone()
+        if not profile:
+            return jsonify({"error": "Profile not found"}), 404
 
    
 
-    invoice_date =invoice["invoice_date"]
-    due_date = invoice["due_date"]
+        invoice_date =invoice["invoice_date"]
+        due_date = invoice["due_date"]
 
-    days = (due_date - invoice_date).days
+        days = (due_date - invoice_date).days
 
-    if days <= 0:
-        payment_term = "Due on Receipt"
-    elif days == 7:
-        payment_term = "Net 7"
-    elif days == 15:
-        payment_term = "Net 15"
-    elif days == 30:
-        payment_term = "Net 30"
-    elif days == 60:
-        payment_term = "Net 60"
-    elif days == 90:
-        payment_term = "Net 90"
-    else:
-        payment_term = f"Net {days}"
+        if days <= 0:
+            payment_term = "Due on Receipt"
+        elif days == 7:
+            payment_term = "Net 7"
+        elif days == 15:
+            payment_term = "Net 15"
+        elif days == 30:
+            payment_term = "Net 30"
+        elif days == 60:
+            payment_term = "Net 60"
+        elif days == 90:
+            payment_term = "Net 90"
+        else:
+            payment_term = f"Net {days}"
 
-    taxAmount = float(invoice['subtotal']) * float(invoice['tax']) / 100
-
+        taxAmount = float(invoice['subtotal']) * float(invoice['tax']) / 100
 
     return render_template(
         "users/view-full-invoice.html", 
@@ -452,72 +449,71 @@ def view_drafts_list_page():
 
 @app.route("/invoice/draft/edit/<int:draftId>")
 @token_required
-def edit_draft_page(current_user_id,current_user_role,draftId):
-    conn = get_db()
-    cursor = conn.cursor(buffered=True, dictionary=True)
-    cursor.execute(
-    "SELECT role FROM user_base WHERE user_id=%s",
-    (current_user_id,)
-)
+def edit_draft_page(current_user_id, current_user_role, draftId):
 
-    user = cursor.fetchone()
+    with db_cursor(dictionary=True) as (_, cursor):
 
-    if not user:
-        return jsonify({
-        "status": "error",
-        "message": "User not found"
-    }), 401
+        cursor.execute("""
+            SELECT
+                id,
+                client_name,
+                client_email,
+                invoice_date,
+                due_date,
+                total,
+                status,
+                subtotal,
+                tax,
+                description,
+                quantity,
+                price,
+                note
+            FROM invoice_drafts
+            WHERE user_id=%s
+            AND id=%s
+        """, (current_user_id, draftId))
 
-    cursor.execute(
-        """
-        SELECT 
-            invoice_drafts.id,
-            invoice_drafts.client_name,
-            invoice_drafts.client_email,
-            invoice_drafts.invoice_date,
-            invoice_drafts.due_date,
-            invoice_drafts.total AS total,
-            invoice_drafts.status,
-            invoice_drafts.subtotal,
-            invoice_drafts.tax,
-            invoice_drafts.description,
-            invoice_drafts.quantity,
-            invoice_drafts.price,
-            invoice_drafts.note
-        FROM invoice_drafts
-        WHERE invoice_drafts.user_id=%s AND invoice_drafts.id=%s
-        """,
-        (current_user_id,draftId)
-    )
-    draft = cursor.fetchone()
+        draft = cursor.fetchone()
 
-    cursor.execute(
-        """
-        SELECT currency_symbol
-        FROM  user_settings
-        WHERE user_id=%s
-        """,
-        (current_user_id,)
-    )
-    currency_symbol = cursor.fetchone()["currency_symbol"]
-    cursor.close()
-    conn.close()
+        if not draft:
+            return jsonify({
+                "status": "error",
+                "message": "Draft not found"
+            }), 404
+
+        cursor.execute("""
+            SELECT currency_symbol
+            FROM user_settings
+            WHERE user_id=%s
+        """, (current_user_id,))
+
+        settings = cursor.fetchone()
+        currency_symbol = (
+            settings["currency_symbol"]
+            if settings else "$"
+        )
 
     return render_template(
         "users/edit-draft.html",
-        draftId = draft['id'],
-        clientName = draft['client_name'],
-        clientEmail = draft['client_email'],
-        invoiceDate = draft['invoice_date'],
-        dueDate = draft['due_date'],
-        totalAmount = draft['total'],
-        status = draft['status'],
-        subTotal = draft['subtotal'],
-        tax = draft['tax'],
-        taxAmount = draft['tax'] * draft['subtotal'] / 100,
-        items = [{"desc": draft['description'], "qty": draft['quantity'], "price": float(draft['price'])}],
-        note = draft['note'],
-        currencySymbol = currency_symbol
+        draftId=draft["id"],
+        clientName=draft["client_name"],
+        clientEmail=draft["client_email"],
+        invoiceDate=draft["invoice_date"],
+        dueDate=draft["due_date"],
+        totalAmount=draft["total"],
+        status=draft["status"],
+        subTotal=draft["subtotal"],
+        tax=draft["tax"],
+        taxAmount=(draft["tax"] * draft["subtotal"] / 100),
+        items=[
+            {
+                "desc": draft["description"],
+                "qty": draft["quantity"],
+                "price": float(draft["price"])
+            }
+        ],
+        note=draft["note"],
+        currencySymbol=currency_symbol
     )
 
 
@@ -529,38 +525,35 @@ def view_clients_page():
 @app.route("/clients/edit/<int:clientId>")
 @token_required
 def edit_client_page(current_user_id,current_user_role,clientId):
-    conn = get_db()
-    cursor = conn.cursor(buffered=True, dictionary=True)
+    with db_cursor(dictionary=True) as (_, cursor):
 
-    cursor.execute(
-        """
-        SELECT 
-            id,
-            client_name,
-            client_email,
-            client_address,
-            client_phone,
-            client_company,
-            client_notes
-        FROM clients
-        WHERE user_id =%s AND id=%s
-        ORDER BY client_name ASC
-        """,
-        (current_user_id, clientId)
-    )
-    client = cursor.fetchone()
+        cursor.execute(
+            """
+            SELECT 
+                id,
+                client_name,
+                client_email,
+                client_address,
+                client_phone,
+                client_company,
+                client_notes
+            FROM clients
+            WHERE user_id =%s AND id=%s
+            ORDER BY client_name ASC
+            """,
+            (current_user_id, clientId)
+        )
+        client = cursor.fetchone()
 
-    if not client:
-        return jsonify({
-            "status": "error",
-            "message": "Client not found."
-        }), 401 
+        if not client:
+            return jsonify({
+                "status": "error",
+                "message": "Client not found."
+            }), 401 
 
-    parts = client['client_name'].split()
-    intials = parts[0][0] + parts[1][0]
+        parts = client['client_name'].split()
+        intials = parts[0][0] + parts[1][0]
 
-    cursor.close()
-    conn.close()
     return render_template(
         "users/edit-client.html", 
         clientId=clientId,
@@ -599,18 +592,22 @@ def rate_us_page():
 @token_required
 def share_page(current_user_id, current_user_role):
 
-    conn = get_db()
-    cursor = conn.cursor(buffered=True, dictionary=True)
+    with db_cursor(dictionary=True) as (_, cursor):
 
-    cursor.execute(
-        """
-        SELECT referral_code,invite_sent, signups, earned
-        FROM referrals
-        WHERE user_id=%s
-        """,
-        (current_user_id,)
-    )
-    referral = cursor.fetchone()
+        cursor.execute(
+            """
+            SELECT referral_code,invite_sent, signups, earned
+            FROM referrals
+            WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+        referral = cursor.fetchone()
+        if not referral:
+            return jsonify({
+                "status":"error",
+                "message":"Referral not found."
+            }), 400
     return render_template("users/share.html",referralCode = referral['referral_code'], inviteSent = referral['invite_sent'], signups = referral['signups'], earned = referral['earned'])
 
 
@@ -619,57 +616,56 @@ def share_page(current_user_id, current_user_role):
 @app.route("/billing")
 @token_required
 def billing_share(current_user_id,current_user_role):
-    conn = get_db()
-    cursor = conn.cursor(dictionary=True)
+    with db_cursor(dictionary=True) as (_, cursor):
 
-    cursor.execute("""
-        SELECT *
-        FROM user_subscriptions
-        WHERE user_id = %s
-        ORDER BY id DESC
-        LIMIT 1
-    """, (current_user_id,))
+        cursor.execute("""
+            SELECT *
+            FROM user_subscriptions
+            WHERE user_id = %s
+            ORDER BY id DESC
+            LIMIT 1
+        """, (current_user_id,))
 
-    subscription = cursor.fetchone()
+        subscription = cursor.fetchone()
 
 
-    # Default trial if user has no subscription yet
-    if not subscription:
+        # Default trial if user has no subscription yet
+        if not subscription:
 
-        trial_days = 7
+            trial_days = 7
 
-        subscription = {
-            "plan": "trial",
-            "billing_cycle": "monthly",
-            "status": "active",
-            "expires_at": None
-        }
+            subscription = {
+                "plan": "trial",
+                "billing_cycle": "monthly",
+                "status": "active",
+                "expires_at": None
+            }
 
-        days_left = trial_days
-        hours_left = 0
-        minutes_left = 0
+            days_left = trial_days
+            hours_left = 0
+            minutes_left = 0
+    
+        else:
 
-    else:
+            days_left = 0
+            hours_left = 0
+            minutes_left = 0
 
-        days_left = 0
-        hours_left = 0
-        minutes_left = 0
+            expires_at = subscription.get("expires_at")
 
-        expires_at = subscription.get("expires_at")
+            if expires_at:
 
-        if expires_at:
+                now = datetime.utcnow()
 
-            now = datetime.utcnow()
+                remaining = expires_at - now
 
-            remaining = expires_at - now
+                total_seconds = int(remaining.total_seconds())
 
-            total_seconds = int(remaining.total_seconds())
+                if total_seconds > 0:
 
-            if total_seconds > 0:
-
-                days_left = total_seconds // 86400
-                hours_left = (total_seconds % 86400) // 3600
-                minutes_left = (total_seconds % 3600) // 60
+                    days_left = total_seconds // 86400
+                    hours_left = (total_seconds % 86400) // 3600
+                    minutes_left = (total_seconds % 3600) // 60
 
     return render_template(
         "users/billing.html",
@@ -683,28 +679,25 @@ def billing_share(current_user_id,current_user_role):
 @app.route("/settings")
 @token_required
 def settings_page(current_user_id, current_user_role):
-    conn  = get_db()
-    cursor = conn.cursor(dictionary=True, buffered=True)
-    cursor.execute(
-        """
-        SELECT 
-            invoice_prefix, next_invoice_number, default_due_date, default_tax_rate, show_tax, show_discount, footer_note,
-            currency, currency_symbol, timezone, date_format, email_notifications, due_date_reminder, reminder_days_before,
-            theme, language, auto_logout_minutes, require_pin_for_delete, auto_logout_on_inactivity
-        FROM user_settings
-        WHERE user_id=%s
-        """,
-        (current_user_id,)
-    )
-    settings = cursor.fetchone()
-    if not settings:
-        return jsonify({
-            "status": "error",
-            "message": "An error occured while trying to fetch settings"
-        }), 400
+    with db_cursor(dictionary=True) as (_, cursor):
+        cursor.execute(
+            """
+            SELECT 
+                invoice_prefix, next_invoice_number, default_due_date, default_tax_rate, show_tax, show_discount, footer_note,
+                currency, currency_symbol, timezone, date_format, email_notifications, due_date_reminder, reminder_days_before,
+                theme, language, auto_logout_minutes, require_pin_for_delete, auto_logout_on_inactivity
+            FROM user_settings
+            WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+        settings = cursor.fetchone()
+        if not settings:
+            return jsonify({
+                "status": "error",
+                "message": "An error occured while trying to fetch settings"
+            }), 400
 
-    cursor.close()
-    conn.close()
     return render_template(
         "users/settings.html",
         invoice_prefix=settings['invoice_prefix'],
@@ -735,21 +728,16 @@ def feedback_page():
 @app.route("/api/my-feedback")
 @token_required
 def my_feedback(current_user_id, current_user_role):
-    conn = get_db()
-    cursor = conn.cursor(dictionary=True, buffered=True)
+    with db_cursor(dictionary=True) as (_, cursor):
 
-    cursor.execute("""
-        SELECT *
-        FROM feedback
-        WHERE user_id = %s
-        ORDER BY created_at DESC
-    """, (current_user_id,))
+        cursor.execute("""
+            SELECT *
+            FROM feedback
+            WHERE user_id = %s
+            ORDER BY created_at DESC
+        """, (current_user_id,))
 
-    feedbacks = cursor.fetchall()
-
-    cursor.close()
-    conn.close()
-
+        feedbacks = cursor.fetchall()
 
     return jsonify(feedbacks)
 
@@ -761,20 +749,16 @@ def support_page():
 @token_required
 def get_my_tickets(current_user_id, current_user_role):
 
-    conn = get_db()
-    cursor = conn.cursor(buffered=True,dictionary=True)
+    with db_cursor(dictionary=True) as (_, cursor):
 
-    cursor.execute("""
-        SELECT *
-        FROM support_tickets
-        WHERE user_id = %s
-        ORDER BY created_at DESC
-    """, (current_user_id,))
+        cursor.execute("""
+            SELECT *
+            FROM support_tickets
+            WHERE user_id = %s
+            ORDER BY created_at DESC
+        """, (current_user_id,))
 
-    tickets = cursor.fetchall()
-
-    cursor.close()
-    conn.close()
+        tickets = cursor.fetchall()
 
     return jsonify(tickets)
 
@@ -819,44 +803,40 @@ def get_notifications(current_user_id,current_user_role):
     if not current_user_id:
         return jsonify({"error": "Invalid token"}), 401
 
-    conn = get_db()
-    cursor = conn.cursor(buffered=True, dictionary=True)
+    with db_cursor(dictionary=True) as (_, cursor):
 
-    cursor.execute("""
-        SELECT *
-        FROM log_activity
-        WHERE user_id=%s
-        ORDER BY created_at DESC
-    """, (current_user_id,))
+        cursor.execute("""
+            SELECT *
+            FROM log_activity
+            WHERE user_id=%s
+            ORDER BY created_at DESC
+        """, (current_user_id,))
 
-    notifications = cursor.fetchall()
-
-    conn.close()
+        notifications = cursor.fetchall()
 
     return jsonify(notifications)
 
 @app.route("/profile")
 @token_required
 def profile_page(current_user_id,current_user_role):
-    conn = get_db()
-    cursor = conn.cursor(buffered=True, dictionary=True)
-    cursor.execute("""
-        SELECT
-            user_base.username, 
-            cust_base.fullname,
-            cust_base.profilename, 
-            cust_base.profilepicurl AS profile_pic, 
-            cust_base.address, 
-            cust_base.alternateemail, 
-            cust_base.phone, 
-            cust_base.website,
-            cust_base.bio,
-            cust_base.country
-        FROM cust_base
-        JOIN user_base ON user_base.user_id = cust_base.user_id
-        WHERE cust_base.user_id=%s
-    """, (current_user_id,))
-    profile_data = cursor.fetchone()
+    with db_cursor(dictionary=True) as (_, cursor):)
+        cursor.execute("""
+            SELECT
+                user_base.username, 
+                cust_base.fullname,
+                cust_base.profilename, 
+                cust_base.profilepicurl AS profile_pic, 
+                cust_base.address, 
+                cust_base.alternateemail, 
+                cust_base.phone, 
+                cust_base.website,
+                cust_base.bio,
+                cust_base.country
+            FROM cust_base
+            JOIN user_base ON user_base.user_id = cust_base.user_id
+            WHERE cust_base.user_id=%s
+        """, (current_user_id,))
+        profile_data = cursor.fetchone()
 
     return render_template("users/profile.html", profile_data=profile_data)
 
@@ -866,150 +846,148 @@ def profile_page(current_user_id,current_user_role):
 def dashboard_data(current_user_id, current_user_role):
 
     try:
+
         # ================= CACHE =================
+
         cache_key = f"dashboard_{current_user_id}"
 
         cached_data = session.get(cache_key)
         cached_time = session.get(f"{cache_key}_time")
 
         if (
-            cached_data and
-            cached_time and
-            time.time() - cached_time < 60
+            cached_data
+            and cached_time
+            and time.time() - cached_time < 60
         ):
             return jsonify(cached_data)
 
         start = time.time()
 
-        conn = get_db()
-        cursor = conn.cursor(dictionary=True)
+        with db_cursor(dictionary=True) as (_, cursor):
 
-        print("Connection took:", time.time() - start)
+            # ================= USER =================
 
-        # ================= USER =================
+            cursor.execute("""
+                SELECT
+                    ub.username,
+                    ub.plan,
+                    cb.profilepicurl,
+                    cb.profilename
+                FROM user_base ub
+                LEFT JOIN cust_base cb
+                    ON cb.user_id = ub.user_id
+                WHERE ub.user_id=%s
+                LIMIT 1
+            """, (current_user_id,))
 
-        cursor.execute("""
-            SELECT
-                ub.username,
-                ub.plan,
-                cb.profilepicurl,
-                cb.profilename
-            FROM user_base ub
-            LEFT JOIN cust_base cb
-                ON cb.user_id = ub.user_id
-            WHERE ub.user_id=%s
-            LIMIT 1
-        """, (current_user_id,))
+            user_data = cursor.fetchone()
 
-        user_data = cursor.fetchone()
+            if not user_data:
+                return jsonify({
+                    "status": "error",
+                    "message": "User not found"
+                }), 404
 
-        if not user_data:
-            return jsonify({
-                "status": "error",
-                "message": "User not found"
-            }), 404
+            print("User query took:", time.time() - start)
 
-        print("User query took:", time.time() - start)
+            # ================= INVOICE STATS =================
 
-        # ================= INVOICE STATS =================
+            cursor.execute("""
+                SELECT
+                    COUNT(*) AS total_invoices,
 
-        cursor.execute("""
-            SELECT
-                COUNT(*) AS total_invoices,
-
-                SUM(
-                    CASE
-                        WHEN status='paid'
-                        THEN 1
-                        ELSE 0
-                    END
-                ) AS paid_invoices,
-
-                SUM(
-                    CASE
-                        WHEN status='pending'
-                        THEN 1
-                        ELSE 0
-                    END
-                ) AS pending_invoices,
-
-                COALESCE(
                     SUM(
                         CASE
                             WHEN status='paid'
-                            THEN total
+                            THEN 1
                             ELSE 0
                         END
-                    ),
-                    0
-                ) AS total_revenue
+                    ) AS paid_invoices,
 
-            FROM invoices
-            WHERE user_id=%s
-        """, (current_user_id,))
+                    SUM(
+                        CASE
+                            WHEN status='pending'
+                            THEN 1
+                            ELSE 0
+                        END
+                    ) AS pending_invoices,
 
-        invoice_stats = cursor.fetchone()
+                    COALESCE(
+                        SUM(
+                            CASE
+                                WHEN status='paid'
+                                THEN total
+                                ELSE 0
+                            END
+                        ),
+                        0
+                    ) AS total_revenue
 
-        print("Invoice query took:", time.time() - start)
+                FROM invoices
+                WHERE user_id=%s
+            """, (current_user_id,))
 
-        # ================= SETTINGS + WALLET =================
+            invoice_stats = cursor.fetchone()
 
-        cursor.execute("""
-            SELECT
-                us.currency,
-                us.currency_symbol,
-                wb.wallet_balance
-            FROM user_settings us
-            LEFT JOIN wallet_base wb
-                ON wb.user_id = us.user_id
-            WHERE us.user_id=%s
-            LIMIT 1
-        """, (current_user_id,))
+            print("Invoice query took:", time.time() - start)
 
-        account_data = cursor.fetchone()
+            # ================= SETTINGS + WALLET =================
 
-        if not account_data:
-            return jsonify({
-                "status": "error",
-                "message": "Account settings missing"
-            }), 404
+            cursor.execute("""
+                SELECT
+                    us.currency,
+                    us.currency_symbol,
+                    wb.wallet_balance
+                FROM user_settings us
+                LEFT JOIN wallet_base wb
+                    ON wb.user_id = us.user_id
+                WHERE us.user_id=%s
+                LIMIT 1
+            """, (current_user_id,))
 
-        print("Settings query took:", time.time() - start)
+            account_data = cursor.fetchone()
 
-        # ================= UNREAD COUNT =================
+            if not account_data:
+                return jsonify({
+                    "status": "error",
+                    "message": "Account settings missing"
+                }), 404
 
-        cursor.execute("""
-            SELECT COUNT(*) AS unread_count
-            FROM log_activity
-            WHERE user_id=%s
-            AND is_read=FALSE
-        """, (current_user_id,))
+            print("Settings query took:", time.time() - start)
 
-        unread_count = cursor.fetchone()["unread_count"]
+            # ================= UNREAD COUNT =================
 
-        print("Unread query took:", time.time() - start)
+            cursor.execute("""
+                SELECT COUNT(*) AS unread_count
+                FROM log_activity
+                WHERE user_id=%s
+                AND is_read=FALSE
+            """, (current_user_id,))
 
-        # ================= RECENT ACTIVITIES =================
+            unread_count = cursor.fetchone()["unread_count"]
 
-        cursor.execute("""
-            SELECT
-                type,
-                title,
-                description,
-                amount,
-                created_at
-            FROM log_activity
-            WHERE user_id=%s
-            ORDER BY created_at DESC
-            LIMIT 10
-        """, (current_user_id,))
+            print("Unread query took:", time.time() - start)
 
-        activities = cursor.fetchall()
+            # ================= RECENT ACTIVITIES =================
 
-        print("Activity query took:", time.time() - start)
+            cursor.execute("""
+                SELECT
+                    type,
+                    title,
+                    description,
+                    amount,
+                    created_at
+                FROM log_activity
+                WHERE user_id=%s
+                ORDER BY created_at DESC
+                LIMIT 10
+            """, (current_user_id,))
 
-        cursor.close()
-        conn.close()
+            activities = cursor.fetchall()
+
+            print("Activity query took:", time.time() - start)
+
+        # DB connection automatically closed here
 
         response_data = {
             "status": "success",
@@ -1057,6 +1035,7 @@ def dashboard_data(current_user_id, current_user_role):
         return jsonify(response_data)
 
     except Exception as e:
+
         print("Dashboard error:", e)
 
         return jsonify({
@@ -1064,71 +1043,95 @@ def dashboard_data(current_user_id, current_user_role):
             "message": str(e)
         }), 500
 
+
 @app.route("/dashboard/invoices/list/data")
 @token_required
-def invoice_list_data(current_user_id,current_user_role):
-    conn = get_db()
-    cursor = conn.cursor(buffered=True)
-    cursor.execute(
-    "SELECT role FROM user_base WHERE user_id=%s",
-    (current_user_id,)
-)
+def invoice_list_data(current_user_id, current_user_role):
 
-    user = cursor.fetchone()
+    with db_cursor() as (_, cursor):
 
-    if not user:
-        return jsonify({
-        "status": "error",
-        "message": "User not found"
-    }), 401
+        cursor.execute(
+            """
+            SELECT 1
+            FROM user_base
+            WHERE user_id=%s
+            LIMIT 1
+            """,
+            (current_user_id,)
+        )
 
-    cursor.execute(
-        """
-        SELECT 
-            invoices.id,
-            invoices.client_id,
-            invoices.invoice_number,
-            invoices.invoice_date,
-            invoices.due_date,
-            invoices.total AS amount,
-            invoices.status,
-            clients.client_name AS client
-        FROM invoices
-        JOIN clients ON clients.id = invoices.client_id
-        WHERE invoices.user_id=%s
-        """,
-        (current_user_id,)
-    )
-    invoices = cursor.fetchall()
-    invoice_list = []
-    for invoice in invoices:
-        invoice_list.append({
-            "id": invoice[0],
-            "client_id": invoice[1],
-            "invoice_number": invoice[2],
-            "invoice_date": invoice[3].strftime("%Y-%m-%d"),
-            "due_date": invoice[4].strftime("%Y-%m-%d"),
-            "amount": float(invoice[5]),
-            "status": invoice[6],
-            "client": invoice[7]
-        })
+        user = cursor.fetchone()
 
-    cursor.execute(
-        """
-        SELECT currency_symbol
-        FROM  user_settings
-        WHERE user_id=%s
-        """,
-        (current_user_id,)
-    )
-    currency_symbol = cursor.fetchone()[0]
-    cursor.close()
-    conn.close()
+        if not user:
+            return jsonify({
+                "status": "error",
+                "message": "User not found"
+            }), 401
+
+        cursor.execute(
+            """
+            SELECT
+                invoices.id,
+                invoices.client_id,
+                invoices.invoice_number,
+                invoices.invoice_date,
+                invoices.due_date,
+                invoices.total AS amount,
+                invoices.status,
+                clients.client_name AS client
+            FROM invoices
+            JOIN clients
+                ON clients.id = invoices.client_id
+            WHERE invoices.user_id=%s
+            """,
+            (current_user_id,)
+        )
+
+        invoices = cursor.fetchall()
+
+        invoice_list = []
+
+        for invoice in invoices:
+
+            invoice_list.append({
+                "id": invoice[0],
+                "client_id": invoice[1],
+                "invoice_number": invoice[2],
+                "invoice_date": (
+                    invoice[3].strftime("%Y-%m-%d")
+                    if invoice[3] else None
+                ),
+                "due_date": (
+                    invoice[4].strftime("%Y-%m-%d")
+                    if invoice[4] else None
+                ),
+                "amount": float(invoice[5] or 0),
+                "status": invoice[6],
+                "client": invoice[7]
+            })
+
+        cursor.execute(
+            """
+            SELECT currency_symbol
+            FROM user_settings
+            WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+
+        settings = cursor.fetchone()
+
+        currency_symbol = (
+            settings[0]
+            if settings
+            else "$"
+        )
+
     return jsonify({
-        "status":"success",
+        "status": "success",
         "invoices": invoice_list,
         "currency_symbol": currency_symbol,
-        "user":{
+        "user": {
             "user_id": current_user_id,
             "role": current_user_role
         }
@@ -1137,180 +1140,214 @@ def invoice_list_data(current_user_id,current_user_role):
 
 @app.route("/invoice/drafts/list/data")
 @token_required
-def invoice_drafts_list_data(current_user_id,current_user_role):
-    conn = get_db()
-    cursor = conn.cursor(buffered=True)
-    cursor.execute(
-    "SELECT role FROM user_base WHERE user_id=%s",
-    (current_user_id,)
-)
+def invoice_drafts_list_data(current_user_id, current_user_role):
 
-    user = cursor.fetchone()
+    with db_cursor() as (_, cursor):
 
-    if not user:
-        return jsonify({
-        "status": "error",
-        "message": "User not found"
-    }), 401
+        cursor.execute(
+            """
+            SELECT
+                id,
+                client_name,
+                client_email,
+                invoice_date,
+                due_date,
+                total,
+                status,
+                subtotal,
+                tax,
+                description,
+                quantity,
+                price,
+                note
+            FROM invoice_drafts
+            WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
 
-    cursor.execute(
-        """
-        SELECT 
-            invoice_drafts.id,
-            invoice_drafts.client_name,
-            invoice_drafts.client_email,
-            invoice_drafts.invoice_date,
-            invoice_drafts.due_date,
-            invoice_drafts.total AS total,
-            invoice_drafts.status,
-            invoice_drafts.subtotal,
-            invoice_drafts.tax,
-            invoice_drafts.description,
-            invoice_drafts.quantity,
-            invoice_drafts.price,
-            invoice_drafts.note
-        FROM invoice_drafts
-        WHERE invoice_drafts.user_id=%s
-        """,
-        (current_user_id,)
-    )
-    drafts = cursor.fetchall()
-    draft_list = []
-    for draft in drafts:
-        draft_list.append({
-            "id": draft[0],
-            "client_name": draft[1],
-            "client_email": draft[2],
-            "invoice_date": draft[3].strftime("%Y-%m-%d"),
-            "due_date": draft[4].strftime("%Y-%m-%d"),
-            "total": float(draft[5]),
-            "status": draft[6],
-            "subtotal": float(draft[7]),
-            "tax": float(draft[8]),
-            "taxAmount": float(draft[7]) * float(draft[8]) / 100,
-            "items": {"desc": draft[9], "qty": draft[10], "price": float(draft[11])},
-            "note": draft[12],
-        })
+        drafts = cursor.fetchall()
 
-    cursor.execute(
-        """
-        SELECT currency_symbol
-        FROM  user_settings
-        WHERE user_id=%s
-        """,
-        (current_user_id,)
-    )
-    currency_symbol = cursor.fetchone()[0]
-    cursor.close()
-    conn.close()
+        draft_list = []
+
+        for draft in drafts:
+
+            draft_list.append({
+                "id": draft[0],
+                "client_name": draft[1],
+                "client_email": draft[2],
+                "invoice_date": (
+                    draft[3].strftime("%Y-%m-%d")
+                    if draft[3] else None
+                ),
+                "due_date": (
+                    draft[4].strftime("%Y-%m-%d")
+                    if draft[4] else None
+                ),
+                "total": float(draft[5] or 0),
+                "status": draft[6],
+                "subtotal": float(draft[7] or 0),
+                "tax": float(draft[8] or 0),
+                "taxAmount": (
+                    float(draft[7] or 0)
+                    * float(draft[8] or 0)
+                    / 100
+                ),
+                "items": {
+                    "desc": draft[9],
+                    "qty": draft[10],
+                    "price": float(draft[11] or 0)
+                },
+                "note": draft[12]
+            })
+
+        cursor.execute(
+            """
+            SELECT currency_symbol
+            FROM user_settings
+            WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+
+        settings = cursor.fetchone()
+
+        currency_symbol = (
+            settings[0]
+            if settings
+            else "$"
+        )
+
     return jsonify({
-        "status":"success",
+        "status": "success",
         "drafts": draft_list,
         "currency_symbol": currency_symbol,
-        "user":{
+        "user": {
             "user_id": current_user_id,
             "role": current_user_role
         }
     })
 
-
 @app.route("/dashboard/clients/data")
 @token_required
 def clients_page_data(current_user_id, current_user_role):
-    conn = get_db()
-    cursor = conn.cursor(buffered=True)
 
-    cursor.execute(
-    """
-    SELECT 
-        id,
-        client_name,
-        client_email,
-        client_address,
-        client_phone,
-        client_company,
-        client_notes
-    FROM clients
-    WHERE user_id = %s
-    ORDER BY client_name ASC
-    """,
-    (current_user_id,)
-    )
+    with db_cursor() as (_, cursor):
 
-    clients_raw = cursor.fetchall()
+        cursor.execute(
+            """
+            SELECT
+                id,
+                client_name,
+                client_email,
+                client_address,
+                client_phone,
+                client_company,
+                client_notes
+            FROM clients
+            WHERE user_id=%s
+            ORDER BY client_name ASC
+            """,
+            (current_user_id,)
+        )
 
+        clients_raw = cursor.fetchall()
 
-    cursor.execute(
-    """
-    SELECT
-        client_id,
-        COUNT(*) AS total_invoices,
-        COALESCE(
-            SUM(
-                CASE 
-                    WHEN status != 'paid' THEN total
-                    ELSE 0
-                END
-            ), 0
-        ) AS outstanding_amount
-    FROM invoices
-    WHERE user_id = %s
-    GROUP BY client_id
-    """,
-    (current_user_id,)
-    )
+        cursor.execute(
+            """
+            SELECT
+                client_id,
+                COUNT(*) AS total_invoices,
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN status != 'paid'
+                            THEN total
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS outstanding_amount
+            FROM invoices
+            WHERE user_id=%s
+            GROUP BY client_id
+            """,
+            (current_user_id,)
+        )
 
-    invoice_aggregates_raw = cursor.fetchall()
+        invoice_aggregates_raw = cursor.fetchall()
 
-    invoice_map = {
-    row[0]: {
-        "total_invoices": row[1],
-        "outstanding": row[2]
-    }
-    for row in invoice_aggregates_raw
-    }
+        invoice_map = {
+            row[0]: {
+                "total_invoices": row[1],
+                "outstanding": float(row[2] or 0)
+            }
+            for row in invoice_aggregates_raw
+        }
 
-    clients = []
+        clients = []
 
-    for c in clients_raw:
-        client_id, name, email, address, phone, company, notes = c
+        for c in clients_raw:
 
-        invoice_data = invoice_map.get(client_id, {
-            "total_invoices": 0,
-            "outstanding": 0
-        })
-        s_name = name[:2].upper()
+            (
+                client_id,
+                name,
+                email,
+                address,
+                phone,
+                company,
+                notes
+            ) = c
 
-        clients.append({
-            "id": client_id,
-            "name": name,
-            "initials": s_name,
-            "email": email,
-            "address": address,
-            "totalInvoices": invoice_data["total_invoices"],
-            "outstanding": invoice_data["outstanding"],
-            "status": "paid" if invoice_data["outstanding"] == 0 else "unpaid" ,
-            "company": company,
-            "note": notes,
-            "phone": phone
-        })
+            invoice_data = invoice_map.get(
+                client_id,
+                {
+                    "total_invoices": 0,
+                    "outstanding": 0
+                }
+            )
 
-    cursor.execute(
-        """
-        SELECT currency, currency_symbol
-        FROM user_settings
-        WHERE user_id=%s
-        """,
-        (current_user_id,)
-    )
-    settings = cursor.fetchone()
-    if not settings:
-        return jsonify({"error": "Settings not found"}), 404
-    currency, currency_symbol = settings
+            initials = (
+                "".join(word[0] for word in name.split()[:2]).upper()
+                if name else "NA"
+            )
 
-    cursor.close()
-    conn.close()
+            clients.append({
+                "id": client_id,
+                "name": name,
+                "initials": initials,
+                "email": email,
+                "address": address,
+                "totalInvoices": invoice_data["total_invoices"],
+                "outstanding": invoice_data["outstanding"],
+                "status": (
+                    "paid"
+                    if invoice_data["outstanding"] == 0
+                    else "unpaid"
+                ),
+                "company": company,
+                "note": notes,
+                "phone": phone
+            })
 
+        cursor.execute(
+            """
+            SELECT currency, currency_symbol
+            FROM user_settings
+            WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+
+        settings = cursor.fetchone()
+
+        if not settings:
+            return jsonify({
+                "status": "error",
+                "message": "Settings not found"
+            }), 404
+
+        currency, currency_symbol = settings
 
     return jsonify({
         "status": "success",
@@ -1325,111 +1362,108 @@ def clients_page_data(current_user_id, current_user_role):
 @app.route("/dashboard/payment/data")
 @token_required
 def payment_page_data(current_user_id,current_user_role):
-    conn = get_db()
-    cursor = conn.cursor(buffered=True, dictionary=True)
+    with db_cursor() as (_, cursor):
 
-    # Total recieved
-    cursor.execute(
-        """
-        SELECT COALESCE(SUM(total), 0) AS total_received
-        FROM invoices
-        WHERE user_id=%s AND status=%s
-        """,
-        (current_user_id, "paid")
-    )
-    total_received = cursor.fetchone()["total_received"]
-
-    # total outstanding
-    cursor.execute(
-        """
-        SELECT COALESCE(SUM(total), 0) AS total_pending
-        FROM invoices
-        WHERE user_id=%s AND status=%s
-        """,
-        (current_user_id, "pending")
-    )
-    total_pending = cursor.fetchone()["total_pending"]
-
-    cursor.execute(
-        """
-        SELECT COALESCE(SUM(total), 0) AS total_unpaid
-        FROM invoices
-        WHERE user_id=%s AND status=%s
-        """,
-        (current_user_id, "unpaid")
-    )
-    total_unpaid = cursor.fetchone()["total_unpaid"]
-
-    total_outstanding = total_pending + total_unpaid
-
-    # total overdue
-    cursor.execute(
-        """
-        SELECT COALESCE(SUM(total), 0) AS total_overdue
-        FROM invoices
-        WHERE user_id=%s AND due_date < %s AND status IN (%s, %s, %s)
-        """,
-        (current_user_id, datetime.now(), "pending", "unpaid", "overdue")
-    )
-    total_overdue = cursor.fetchone()["total_overdue"]
-
-    cursor.execute(
-        """
-        SELECT 
-            invoices.id,
-            invoices.invoice_number ,
-            invoices.client_id,
-            invoices.invoice_date,
-            invoices.total AS amount,
-            invoices.status,
-            invoices.due_date,
-            invoices.note,
-            clients.client_name AS clientName,
-            clients.client_email AS clientEmail
-        FROM invoices
-        JOIN clients ON clients.id = invoices.client_id
-        WHERE invoices.user_id=%s 
-        """,
-        (current_user_id,)
-    )
-    payments_raw = cursor.fetchall()
-    payments = []
-    for p in payments_raw:
+        # Total recieved
         cursor.execute(
             """
-            SELECT description, quantity, price
-            FROM invoice_items
-            WHERE invoice_id=%s
+            SELECT COALESCE(SUM(total), 0) AS total_received
+            FROM invoices
+            WHERE user_id=%s AND status=%s
             """,
-            (p['id'],)
+            (current_user_id, "paid")
         )
-        items = cursor.fetchall()
+        total_received = cursor.fetchone()["total_received"]
+
+        # total outstanding
+        cursor.execute(
+            """
+            SELECT COALESCE(SUM(total), 0) AS total_pending
+            FROM invoices
+            WHERE user_id=%s AND status=%s
+            """,
+            (current_user_id, "pending")
+        )
+        total_pending = cursor.fetchone()["total_pending"]
+
+        cursor.execute(
+            """
+            SELECT COALESCE(SUM(total), 0) AS total_unpaid
+            FROM invoices
+            WHERE user_id=%s AND status=%s
+            """,
+            (current_user_id, "unpaid")
+        )
+        total_unpaid = cursor.fetchone()["total_unpaid"]
+
+        total_outstanding = total_pending + total_unpaid
+
+        # total overdue
+        cursor.execute(
+            """
+            SELECT COALESCE(SUM(total), 0) AS total_overdue
+            FROM invoices
+            WHERE user_id=%s AND due_date < %s AND status IN (%s, %s, %s)
+            """,
+            (current_user_id, datetime.now(), "pending", "unpaid", "overdue")
+        )
+        total_overdue = cursor.fetchone()["total_overdue"]
+
+        cursor.execute(
+            """
+            SELECT 
+                invoices.id,
+                invoices.invoice_number ,
+                invoices.client_id,
+                invoices.invoice_date,
+                invoices.total AS amount,
+                invoices.status,
+                invoices.due_date,
+                invoices.note,
+                clients.client_name AS clientName,
+                clients.client_email AS clientEmail
+            FROM invoices
+            JOIN clients ON clients.id = invoices.client_id
+            WHERE invoices.user_id=%s 
+            """,
+            (current_user_id,)
+        )
+        payments_raw = cursor.fetchall()
+        payments = []
+        for p in payments_raw:
+            cursor.execute(
+                """
+                SELECT description, quantity, price
+                FROM invoice_items
+                WHERE invoice_id=%s
+                """,
+                (p['id'],)
+            )
+            items = cursor.fetchall()
         
-        payments.append({
-            "id": p['invoice_number'],
-            "client": p['clientName'],
-            "email": p['clientEmail'],
-            "date": p['invoice_date'].strftime("%Y-%m-%d"),
-            "amount": float(p['amount']),
-            "status": p['status'],
-            "dueDate": p['due_date'].strftime("%Y-%m-%d"),
-            "items": [{"desc": i['description'], "qty": i['quantity'], "price": float(i['price'])} for i in items],
-            "notes": p['note']
+            payments.append({
+                "id": p['invoice_number'],
+                "client": p['clientName'],
+                "email": p['clientEmail'],
+                "date": p['invoice_date'].strftime("%Y-%m-%d"),
+                "amount": float(p['amount']),
+                "status": p['status'],
+                "dueDate": p['due_date'].strftime("%Y-%m-%d"),
+                "items": [{"desc": i['description'], "qty": i['quantity'], "price": float(i['price'])} for i in items],
+                "notes": p['note']
+            })
 
-        })
-
-    cursor.execute(
-        """
-        SELECT currency, currency_symbol
-        FROM user_settings
-        WHERE user_id=%s
-        """,
-        (current_user_id,)
+        cursor.execute(
+            """
+            SELECT currency, currency_symbol
+            FROM user_settings
+            WHERE user_id=%s
+            """,
+            (current_user_id,)
     
-    )
-    currency_info = cursor.fetchone()
-    cursor.close()
-    conn.close()
+        )
+        currency_info = cursor.fetchone()
+
     return jsonify({
         "status": "success",
         "total_received": float(total_received),
@@ -1444,45 +1478,52 @@ def payment_page_data(current_user_id,current_user_role):
 @app.route("/dashboard/me/data")
 @token_required
 def me_page_data(current_user_id,current_user_role):
-    conn = get_db()
-    cursor = conn.cursor(buffered=True, dictionary=True)
 
-    cursor.execute(
-        """
-        SELECT 
-            fullname,
-            profilepicurl
-        FROM cust_base
-        WHERE user_id=%s
-        """,
-        (current_user_id,)
-    )
-    user_data = cursor.fetchone()
+    with db_cursor() as (_, cursor):
 
-    cursor.execute(
-        """ 
-        SELECT wallet_balance
-        FROM wallet_base 
-        WHERE user_id=%s
-        """,
-        (current_user_id,)
-    )
-    balance = cursor.fetchone()['wallet_balance']
+        cursor.execute(
+            """
+            SELECT 
+                fullname,
+                profilepicurl
+            FROM cust_base
+            WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+        user_data = cursor.fetchone()
+        if not user_data:
+            return jsonify({
+                "status":"error",
+                "message":"Profile not found."
+            }), 400
 
-    cursor.execute(
-        """
-        SELECT currency_symbol
-        FROM user_settings
-        WHERE user_id=%s
-        """,
-        (current_user_id,)
-    )
-    currencySymbol = cursor.fetchone()['currency_symbol']
+        cursor.execute(
+            """ 
+            SELECT wallet_balance
+            FROM wallet_base 
+            WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+        balance = cursor.fetchone()['wallet_balance']
+        if not balance:
+            balance = 0.00
 
-    if user_data['fullname'] :
-        name = user_data['fullname'] 
-    else: 
-        name = ""
+        cursor.execute(
+            """
+            SELECT currency_symbol
+            FROM user_settings
+            WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+        currencySymbol = cursor.fetchone()['currency_symbol']
+
+        if user_data['fullname'] :
+            name = user_data['fullname'] 
+        else: 
+            name = ""
 
     return jsonify({
         "status": "success",
@@ -1497,137 +1538,130 @@ def me_page_data(current_user_id,current_user_role):
 @app.route("/transactions/data")
 @token_required
 def transactions_page_data(current_user_id, current_user_role):
-    conn = get_db()
-    cursor = conn.cursor(buffered=True, dictionary=True)
 
+    with db_cursor(dictionary=True) as (_, cursor):
 
-    # total transactions 
-    cursor.execute(
-        """
-        SELECT COUNT(*) AS total_transactions
-        FROM transactions
-        WHERE user_id=%s
-        """,
-        (current_user_id,)
-    )
-    totalTransactions = cursor.fetchone()['total_transactions']
+        # ================= TOTAL =================
+        cursor.execute("""
+            SELECT COUNT(*) AS total_transactions
+            FROM transactions
+            WHERE user_id=%s
+        """, (current_user_id,))
+        total_transactions = cursor.fetchone()["total_transactions"]
 
-    # paid 
-    cursor.execute(
-        """
-        SELECT COUNT(*) AS paid_transactions
-        FROM transactions
-        WHERE user_id=%s AND status=%s
-        """,
-        (current_user_id, "paid")
-    )
-    paid_transactions = cursor.fetchone()['paid_transactions']
+        # ================= PAID =================
+        cursor.execute("""
+            SELECT COUNT(*) AS paid_transactions
+            FROM transactions
+            WHERE user_id=%s AND status=%s
+        """, (current_user_id, "paid"))
+        paid_transactions = cursor.fetchone()["paid_transactions"]
 
-    # pending 
-    cursor.execute(
-        """
-        SELECT COUNT(*) AS pending_transactions
-        FROM transactions
-        WHERE user_id=%s AND status in (%s, %s)
-        """,
-        (current_user_id, "pending", "unpaid")
-    )
-    pending_transactions = cursor.fetchone()['pending_transactions']
+        # ================= PENDING =================
+        cursor.execute("""
+            SELECT COUNT(*) AS pending_transactions
+            FROM transactions
+            WHERE user_id=%s AND status IN (%s, %s)
+        """, (current_user_id, "pending", "unpaid"))
+        pending_transactions = cursor.fetchone()["pending_transactions"]
 
-    # overdue
-    cursor.execute(
-        """
-        SELECT COUNT(*) AS overdue_transactions
-        FROM transactions
-        WHERE user_id=%s AND status=%s
-        """,
-        (current_user_id, "overdue")
-    )
-    overdue_transactions = cursor.fetchone()['overdue_transactions']
+        # ================= OVERDUE =================
+        cursor.execute("""
+            SELECT COUNT(*) AS overdue_transactions
+            FROM transactions
+            WHERE user_id=%s AND status=%s
+        """, (current_user_id, "overdue"))
+        overdue_transactions = cursor.fetchone()["overdue_transactions"]
 
-    cursor.execute("""
-    SELECT
-        t.id,
-        t.reference,
-        t.amount,
-        t.status,
-        t.transaction_type,
-        t.paid_at,
-        t.created_at,
-        t.note,
+        # ================= TRANSACTIONS LIST =================
+        cursor.execute("""
+            SELECT
+                t.id,
+                t.reference,
+                t.amount,
+                t.status,
+                t.transaction_type,
+                t.paid_at,
+                t.created_at,
+                t.note,
 
-        c.client_company AS client,
-        c.client_email AS email,
+                c.client_company AS client,
+                c.client_email AS email,
 
-        i.due_date
+                i.due_date
+            FROM transactions t
+            LEFT JOIN invoices i ON t.invoice_id = i.id
+            LEFT JOIN clients c ON i.client_id = c.id
+            WHERE t.user_id = %s
+            ORDER BY t.created_at DESC
+        """, (current_user_id,))
 
-    FROM transactions t
-    LEFT JOIN invoices i
-        ON t.invoice_id = i.id
-    LEFT JOIN clients c
-        ON i.client_id = c.id
+        transactions_raw = cursor.fetchall()
 
-    WHERE t.user_id = %s
-    ORDER BY t.created_at DESC
-    """, (current_user_id,))
-    transactions_raw = cursor.fetchall()
-    transactions = []
+        transactions = []
 
-    for tx in transactions_raw:
-        transactions.append({
-            "id": tx["reference"],
-            "client": tx["client"],
-            "email": tx["email"],
-            "date": tx["created_at"].strftime("%b %d, %Y"),
-            "dueDate": (
-                tx["due_date"].strftime("%b %d, %Y")
-                if tx.get("due_date")
-                else "N/A"
-            ),
-            "amount": float(tx["amount"]),
-            "status": tx["status"],
-            "type": tx["transaction_type"],
-            "notes": tx.get("notes") or ""
-    })
+        for tx in transactions_raw:
 
-    from collections import defaultdict
+            transactions.append({
+                "id": tx["reference"],
+                "client": tx["client"],
+                "email": tx["email"],
+                "date": tx["created_at"].strftime("%b %d, %Y"),
+                "dueDate": (
+                    tx["due_date"].strftime("%b %d, %Y")
+                    if tx["due_date"]
+                    else "N/A"
+                ),
+                "amount": float(tx["amount"] or 0),
+                "status": tx["status"],
+                "type": tx["transaction_type"],
+                "notes": tx["note"] or ""
+            })
 
-    grouped_transactions = defaultdict(list)
+        # ================= GROUP BY MONTH =================
+        from collections import defaultdict
 
-    for tx in transactions_raw:
+        grouped_transactions = defaultdict(list)
 
-        month_key = tx["created_at"].strftime("%B %Y")
+        for tx in transactions_raw:
 
-        grouped_transactions[month_key].append({
-            "id": tx["reference"],
-            "client": tx["client"],
-            "date": tx["created_at"].strftime("%b %d, %Y"),
-            "amount": float(tx["amount"]),
-            "status": tx["status"],
-            "type": tx["transaction_type"]
-        })
+            month_key = tx["created_at"].strftime("%B %Y")
 
-    transactions_by_month = dict(grouped_transactions)
-    
-    cursor.execute(
-        """
-        SELECT currency_symbol
-        FROM user_settings
-        WHERE user_id=%s
-        """,
-        (current_user_id,)
-    )
-    currencySymbol = cursor.fetchone()['currency_symbol']
+            grouped_transactions[month_key].append({
+                "id": tx["reference"],
+                "client": tx["client"],
+                "date": tx["created_at"].strftime("%b %d, %Y"),
+                "amount": float(tx["amount"] or 0),
+                "status": tx["status"],
+                "type": tx["transaction_type"]
+            })
+
+        transactions_by_month = dict(grouped_transactions)
+
+        # ================= CURRENCY =================
+        cursor.execute("""
+            SELECT currency_symbol
+            FROM user_settings
+            WHERE user_id=%s
+        """, (current_user_id,))
+
+        settings = cursor.fetchone()
+
+        currency_symbol = (
+            settings["currency_symbol"]
+            if settings
+            else "$"
+        )
 
     return jsonify({
         "status": "success",
-        "total_transactions": totalTransactions,
+        "total_transactions": total_transactions,
         "paid_transactions": paid_transactions,
         "pending_transactions": pending_transactions,
         "overdue_transactions": overdue_transactions,
         "transactions": transactions,
         "transactions_by_month": transactions_by_month,
-        "currencySymbol": currencySymbol
+        "currencySymbol": currency_symbol
     })
 
 @app.route("/api/sessions")
@@ -1674,37 +1708,36 @@ def get_sessions(current_user_id, current_user_role):
 @token_required
 def security_status(current_user_id, current_user_role):
 
-    conn = get_db()
-    cursor = conn.cursor(dictionary=True)
+    with db_cursor(dictionary=True) as (_, cursor):
 
-    cursor.execute("""
-        SELECT
-            two_factor_enabled,
-            biometric_enabled,
-            is_email_verified AS email_verified,
-            pin,
-            last_password_change
-        FROM user_base
-        WHERE user_id=%s
-    """, (current_user_id,))
+        cursor.execute("""
+            SELECT
+                two_factor_enabled,
+                biometric_enabled,
+                is_email_verified AS email_verified,
+                pin,
+                last_password_change
+            FROM user_base
+            WHERE user_id=%s
+        """, (current_user_id,))
 
-    user = cursor.fetchone()
+        user = cursor.fetchone()
 
-    score = 0
+        score = 0
 
-    if user["two_factor_enabled"]:
-        score += 30
+        if user["two_factor_enabled"]:
+            score += 30
+    
+        if user["email_verified"]:
+            score += 20
 
-    if user["email_verified"]:
-        score += 20
+        if user["pin"]:
+            score += 20
 
-    if user["pin"]:
-        score += 20
+        if user["biometric_enabled"]:
+            score += 15
 
-    if user["biometric_enabled"]:
         score += 15
-
-    score += 15
 
     return jsonify({
         "status": "success",
@@ -2025,6 +2058,7 @@ def create_user():
 
 @app.route("/verify", methods=["POST"])
 def verify_user():
+
     data = request.get_json()
 
     if not data:
@@ -2039,7 +2073,6 @@ def verify_user():
         "username"
     ]
 
-    # Validate required fields
     for field in required_fields:
         if not data.get(field):
             return jsonify({
@@ -2047,47 +2080,67 @@ def verify_user():
                 "message": f"Missing field: {field}"
             }), 400
 
-    conn = get_db()
-    cursor = conn.cursor()
-    user_id = get_user_id(data['username'])
-    if data["generated_code"] != data["verification_code"]:
-      
+    username = data["username"]
+
+    with db_cursor(dictionary=True) as (_, cursor):
+
+        # ================= GET USER IN SAME CONNECTION =================
+        cursor.execute(
+            """
+            SELECT user_id
+            FROM user_base
+            WHERE username=%s
+            """,
+            (username,)
+        )
+
+        user_row = cursor.fetchone()
+
+        if not user_row:
+            return jsonify({
+                "status": "error",
+                "message": "User not found"
+            }), 404
+
+        user_id = user_row["user_id"]
+
+        # ================= VERIFY CODE =================
+        if data["generated_code"] != data["verification_code"]:
+
+            save_security_activity(
+                user_id=user_id,
+                type_="Verification",
+                title="Email verification",
+                description="Email verification failed",
+                severity="MEDIUM",
+                ip_address=get_client_ip()
+            )
+
+            return jsonify({
+                "status": "error",
+                "message": "Invalid verification code"
+            }), 400
+
+        # ================= SUCCESS LOG =================
         save_security_activity(
-            user_id= user_id ,
+            user_id=user_id,
             type_="Verification",
             title="Email verification",
-            description="Email verification failed",
-            severity="MEDIUM",
+            description="Email verified successfully",
+            severity="LOW",
             ip_address=get_client_ip()
         )
-    
-        return jsonify({
-            "status": "error",
-            "message": "Invalid verification code"
-        }), 400
 
-    save_security_activity(
-        user_id= user_id,
-        type_="Verification",
-        title="Email verification",
-        description="Email verified successfully",
-        severity="LOW",
-        ip_address=get_client_ip()
-    )
+        # ================= UPDATE USER =================
+        cursor.execute(
+            """
+            UPDATE user_base
+            SET is_email_verified = %s
+            WHERE user_id = %s
+            """,
+            (True, user_id)
+        )
 
-    cursor.execute(
-        """
-        UPDATE user_base 
-        SET is_email_verified=%s
-        WHERE user_id=%s
-        """,
-        (True, user_id)
-    )
-
-    conn.commit()
-
-    cursor.close()
-    conn.close()
     return jsonify({
         "status": "success",
         "message": "User verified successfully"
@@ -3992,23 +4045,21 @@ def delete_client(current_user_id, current_user_role, client_id):
 @token_required
 def logout_session(current_user, session_id):
 
-    conn = get_db()
-    cursor = conn.cursor()
+    with db_cursor() as (_, cursor):
 
-    cursor.execute("""
-        DELETE FROM user_sessions
-        WHERE id=%s
-        AND user_id=%s
-    """, (session_id, current_user["user_id"]))
-
-    conn.commit()
-
-    cursor.close()
-    conn.close()
+        cursor.execute("""
+            DELETE FROM user_sessions
+            WHERE id=%s
+            AND user_id=%s
+        """, (
+            session_id,
+            current_user["user_id"]
+        ))
 
     return jsonify({
         "status": "success"
     }), 200
+    
 
 @app.route("/logout-all-other-devices", methods=["POST"])
 @token_required
@@ -4016,22 +4067,22 @@ def logout_all_other_devices(current_user):
 
     current_token = session.get("session_token")
 
-    conn = get_db()
-    cursor = conn.cursor()
+    if not current_token:
+        return jsonify({
+            "status": "error",
+            "message": "Session token missing"
+        }), 400
 
-    cursor.execute("""
-        DELETE FROM user_sessions
-        WHERE user_id=%s
-        AND session_token != %s
-    """, (
-        current_user["user_id"],
-        current_token
-    ))
+    with db_cursor() as (_, cursor):
 
-    conn.commit()
-
-    cursor.close()
-    conn.close()
+        cursor.execute("""
+            DELETE FROM user_sessions
+            WHERE user_id=%s
+            AND session_token != %s
+        """, (
+            current_user["user_id"],
+            current_token
+        ))
 
     return jsonify({
         "status": "success"
@@ -4126,77 +4177,69 @@ def update_settings(current_user_id, current_user_role):
 
 @app.route("/submit-feedback", methods=["POST"])
 @token_required
-def submit_feedback(current_user_id,current_user_role):
+def submit_feedback(current_user_id, current_user_role):
 
-
-    print("Form data:", request.form)
     feedback_type = request.form.get("feedback_type", "general")
     rating = request.form.get("rating")
     subject = request.form.get("subject")
     message = request.form.get("message")
     notify_me = request.form.get("notify_me") == "on"
 
-    # FILE UPLOAD
     attachment_url = None
 
+    # ================= FILE UPLOAD =================
     if "attachment" in request.files:
 
         file = request.files["attachment"]
 
-        if file and file.filename != "":
+        if file and file.filename:
 
             try:
-
-                # ALLOWED FILE TYPES
                 allowed_extensions = {
                     "png", "jpg", "jpeg",
                     "pdf", "doc", "docx"
                 }
 
                 filename = file.filename.lower()
-
                 extension = filename.rsplit(".", 1)[-1]
 
                 if extension not in allowed_extensions:
-
                     return jsonify({
                         "status": "error",
                         "message": "Invalid file type"
                     }), 400
 
-                # IMAGE FILES
                 image_extensions = {"png", "jpg", "jpeg"}
+
+                public_id = f"user_{current_user_id}_{int(time.time())}"
 
                 if extension in image_extensions:
 
                     result = cloudinary.uploader.upload(
                         file,
                         folder="feedback_attachments/images",
-
                         transformation=[
-                            {   
+                            {
                                 "width": 1200,
                                 "crop": "limit",
                                 "quality": "auto"
                             }
                         ],
-
-                        public_id=f"user_{current_user_id}_{int(time.time())}",
+                        public_id=public_id,
                         resource_type="image"
                     )
+
                 else:
 
-                    # PDF / DOC / DOCX
                     result = cloudinary.uploader.upload(
                         file,
                         folder="feedback_attachments/documents",
-
-                        public_id=f"user_{current_user_id}_{int(time.time())}",
-
+                        public_id=public_id,
                         resource_type="raw"
                     )
 
-                    attachment_url = result["secure_url"]
+                attachment_url = result.get("secure_url")
+
             except Exception as e:
 
                 print("Cloudinary upload error:", str(e))
@@ -4206,34 +4249,30 @@ def submit_feedback(current_user_id,current_user_role):
                     "message": "Unable to upload file. Please try again."
                 }), 500
 
-    conn = get_db()
-    cursor = conn.cursor(buffered=True)
+    # ================= DB =================
+    with db_cursor() as (_, cursor):
 
-    cursor.execute("""
-        INSERT INTO feedback
-        (
-            user_id,
+        cursor.execute("""
+            INSERT INTO feedback
+            (
+                user_id,
+                feedback_type,
+                rating,
+                subject,
+                message,
+                attachment,
+                notify_me
+            )
+            VALUES (%s,%s,%s,%s,%s,%s,%s)
+        """, (
+            current_user_id,
             feedback_type,
             rating,
             subject,
             message,
-            attachment,
+            attachment_url,
             notify_me
-        )
-        VALUES (%s,%s,%s,%s,%s,%s,%s)
-    """, (
-        current_user_id,
-        feedback_type,
-        rating,
-        subject,
-        message,
-        attachment_url,
-        notify_me
-    ))
-
-    conn.commit()
-    cursor.close()
-    conn.close()
+        ))
 
     return jsonify({
         "status": "success",
@@ -4244,39 +4283,41 @@ def submit_feedback(current_user_id,current_user_role):
 @token_required
 def create_support_ticket(current_user_id, current_user_role):
 
-
     data = request.get_json()
+
+    if not data:
+        return jsonify({
+            "status": "error",
+            "message": "Invalid JSON"
+        }), 400
 
     category = data.get("category")
     subject = data.get("subject")
     message = data.get("message")
 
-    if not category or not subject or not message:
+    if not all([category, subject, message]):
         return jsonify({
             "status": "error",
             "message": "All fields are required"
         }), 400
 
-    conn = get_db()
-    cursor = conn.cursor(buffered=True)
+    with db_cursor() as (_, cursor):
 
-    cursor.execute("""
-        INSERT INTO support_tickets
-        (user_id, category, subject, message)
-        VALUES (%s,%s,%s,%s)
-    """, (
-        current_user_id,
-        category,
-        subject,
-        message
-    ))
-
-    conn.commit()
+        cursor.execute("""
+            INSERT INTO support_tickets
+            (user_id, category, subject, message)
+            VALUES (%s,%s,%s,%s)
+        """, (
+            current_user_id,
+            category,
+            subject,
+            message
+        ))
 
     return jsonify({
         "status": "success",
         "message": "Support ticket submitted"
-    }), 200 
+    }), 200
 
 @app.route("/account/delete", methods=["DELETE"])
 @token_required
@@ -4486,22 +4527,31 @@ def mark_notifications_as_read(current_user_id, current_user_role):
 
     data = request.get_json()
 
+    if not data:
+        return jsonify({
+            "success": False,
+            "message": "Invalid JSON"
+        }), 400
+
     notification_id = data.get("notification_id")
 
-    conn = get_db()
-    cursor = conn.cursor()
+    if not notification_id:
+        return jsonify({
+            "success": False,
+            "message": "Notification ID is required"
+        }), 400
 
-    cursor.execute("""
-        UPDATE log_activity
-        SET is_read = 1
-        WHERE id = %s
-        AND user_id = %s
-    """, (notification_id, current_user_id))
+    with db_cursor() as (_, cursor):
 
-    conn.commit()
-
-    cursor.close()
-    conn.close()
+        cursor.execute("""
+            UPDATE log_activity
+            SET is_read = TRUE
+            WHERE id = %s
+            AND user_id = %s
+        """, (
+            notification_id,
+            current_user_id
+        ))
 
     return jsonify({
         "success": True,
