@@ -45,227 +45,319 @@ def login_page():
 @admin_bp.route('/execute/super-admin-dashboard')
 @token_required_admin
 def execute_super_admin_dashboard(current_user_id, current_user_role, current_user_department):
+
     if current_user_role != 'super_admin' and current_user_department != 'executive':
         return jsonify({
             "success": False,
             "message": "Unauthorized"
         }), 403
 
-    conn = get_db()
-    cursor = conn.cursor(dictionary=True, buffered=True)
+    conn = None
+    cursor = None
 
-    cursor.execute("""
-        SELECT id, fullname
-        FROM admins
-        WHERE id = %s
-    """, (current_user_id,))
-    adminName = cursor.fetchone()['fullname']
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True, buffered=True)
 
-    # Get total admins before the current week
-    cursor.execute("""
-        SELECT COUNT(*) AS total_admins_before
-        FROM admins
-        WHERE created_at < DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY) AND role != 'super_admin' AND department != 'executive'
-    """)
-    total_admins_before = cursor.fetchone()['total_admins_before']
+        # Admin name
+        cursor.execute("""
+            SELECT fullname
+            FROM admins
+            WHERE id = %s
+        """, (current_user_id,))
+        adminName = cursor.fetchone()['fullname']
 
-    # Get total admins created in the current week
-    cursor.execute("""
-        SELECT COUNT(*) AS total_admins_this_week
-        FROM admins
-        WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY) AND role != 'super_admin' AND department != 'executive'
-    """)
-    total_admins_this_week = cursor.fetchone()['total_admins_this_week']
+        # Stats
+        cursor.execute("""
+            SELECT COUNT(*) AS total_admins_before
+            FROM admins
+            WHERE created_at < DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY)
+            AND role != 'super_admin'
+            AND department != 'executive'
+        """)
+        total_admins_before = cursor.fetchone()['total_admins_before']
 
-    # Get last failed login withn 24 hours
-    cursor.execute("""
-        SELECT  email, last_failed_login
-        FROM admins
-        WHERE last_failed_login >= DATE_SUB(NOW(), INTERVAL 24 HOUR) AND role != 'super_admin' AND department != 'executive'
-    """)
-    last_failed_logins = cursor.fetchall()
+        cursor.execute("""
+            SELECT COUNT(*) AS total_admins_this_week
+            FROM admins
+            WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL WEEKDAY(CURDATE()) DAY)
+            AND role != 'super_admin'
+            AND department != 'executive'
+        """)
+        total_admins_this_week = cursor.fetchone()['total_admins_this_week']
 
-    # Get active sessions (for simplicity, we will just count admins who logged in within the last hour)
-    cursor.execute("""
-        SELECT COUNT(*) AS active_sessions
-        FROM admins
-        WHERE last_login >= DATE_SUB(NOW(), INTERVAL 1 HOUR) AND role != 'super_admin' AND department != 'executive'
-    """)
-    active_sessions = cursor.fetchone()['active_sessions']
+        cursor.execute("""
+            SELECT email, last_failed_login
+            FROM admins
+            WHERE last_failed_login >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+            AND role != 'super_admin'
+            AND department != 'executive'
+        """)
+        last_failed_logins = cursor.fetchall()
 
-    # FETCH ADMINS 
-    cursor.execute("""
-        SELECT id,fullname, role,email, department, status,last_login AS last_active, two_factor_enabled, created_at
-        FROM admins
-        WHERE role != 'super_admin' AND department != 'executive'
-        ORDER BY created_at DESC
-    """)
-    admin_raw = cursor.fetchall()
+        cursor.execute("""
+            SELECT COUNT(*) AS active_sessions
+            FROM admins
+            WHERE last_login >= DATE_SUB(NOW(), INTERVAL 1 HOUR)
+            AND role != 'super_admin'
+            AND department != 'executive'
+        """)
+        active_sessions = cursor.fetchone()['active_sessions']
 
-    admins = []
-    for admin in admin_raw:
-        admins.append({
-            "id": admin['id'],
-            "name": admin['fullname'],
-            "email": admin['email'],
-            "role": admin['role'],
-            "department": admin['department'],
-            "status": admin['status'],
-            # change last active to days ago, months, years ago
-            "last_active": (datetime.now() - admin['last_active']).days if admin['last_active'] else "Never",
-            "two_factor_enabled": admin['two_factor_enabled'],
-            "created_at": admin['created_at'].strftime("%Y-%m-%d %H:%M:%S")
-        })
+        # Admin list
+        cursor.execute("""
+            SELECT id, fullname, role, email, department, status,
+                   last_login AS last_active,
+                   two_factor_enabled, created_at
+            FROM admins
+            WHERE role != 'super_admin'
+            AND department != 'executive'
+            ORDER BY created_at DESC
+        """)
+        admin_raw = cursor.fetchall()
 
-    # get audit logs for the last 5 activities
-    cursor.execute("""
-        SELECT type,description, created_at,ip_address
-        FROM audit_activity
-        WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-        ORDER BY created_at DESC
-        LIMIT 5
-    """)
-    audit_logs = cursor.fetchall()
+        admins = []
+        for admin in admin_raw:
+            last_active = admin['last_active']
 
-    return render_template("admins/execute/super-admin-dashboard.html",adminName=adminName, total_admins_before=total_admins_before, total_admins_this_week=total_admins_this_week, last_failed_logins=last_failed_logins, active_sessions=active_sessions, admins=admins, audit_logs=audit_logs)
+            if last_active:
+                try:
+                    delta_days = (datetime.now() - last_active).days
+                except:
+                    delta_days = "Unknown"
+            else:
+                delta_days = "Never"
 
+            admins.append({
+                "id": admin['id'],
+                "name": admin['fullname'],
+                "email": admin['email'],
+                "role": admin['role'],
+                "department": admin['department'],
+                "status": admin['status'],
+                "last_active": delta_days,
+                "two_factor_enabled": admin['two_factor_enabled'],
+                "created_at": admin['created_at'].strftime("%Y-%m-%d %H:%M:%S")
+            })
+
+        # Audit logs
+        cursor.execute("""
+            SELECT type, description, created_at, ip_address
+            FROM audit_activity
+            WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+            ORDER BY created_at DESC
+            LIMIT 5
+        """)
+        audit_logs = cursor.fetchall()
+
+        return render_template(
+            "admins/execute/super-admin-dashboard.html",
+            adminName=adminName,
+            total_admins_before=total_admins_before,
+            total_admins_this_week=total_admins_this_week,
+            last_failed_logins=last_failed_logins,
+            active_sessions=active_sessions,
+            admins=admins,
+            audit_logs=audit_logs
+        )
+
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+          
 @admin_bp.route('/execute/invite-keys')
 @token_required_admin
 def execute_invite_keys(current_user_id, current_user_role, current_user_department):
+
     if (
         current_user_role != 'super_admin'
-        or
-        current_user_department != 'executive'
+        or current_user_department != 'executive'
     ):
         return jsonify({
             "success": False,
             "message": "Unauthorized"
         }), 403
-    conn = get_db()
-    cursor = conn.cursor(dictionary=True, buffered=True)
 
-    cursor.execute("""
-        SELECT email, invite_key, employee_id, role, department, used
-        FROM admin_invites
-        ORDER BY created_at DESC
-    """)
-    invite_keys = cursor.fetchall()
-        
-    return render_template("admins/execute/invite-keys.html", invite_keys=invite_keys)
+    conn = None
+    cursor = None
+
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
+
+        cursor.execute("""
+            SELECT email, invite_key, employee_id, role, department, used
+            FROM admin_invites
+            ORDER BY created_at DESC
+        """)
+
+        invite_keys = cursor.fetchall()
+
+        return render_template(
+            "admins/execute/invite-keys.html",
+            invite_keys=invite_keys
+        )
+
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 @admin_bp.route("/execute/admin-management")
 @token_required_admin
-def execute_admin_managemnt_oage(current_user_id, current_user_role,current_user_department):
+def execute_admin_managemnt_oage(current_user_id, current_user_role, current_user_department):
+
     if (
         current_user_role != 'super_admin'
-        or
-        current_user_department != 'executive'
+        or current_user_department != 'executive'
     ):
         return jsonify({
             "success": False,
             "message": "Unauthorized"
         }), 403
-    
-    conn = get_db()
-    cursor = conn.cursor(dictionary=True, buffered=True)
-    cursor.execute("""
-        SELECT id, fullname
-        FROM admins
-        WHERE id = %s
-    """, (current_user_id,))
-    adminName = cursor.fetchone()['fullname']
-    initials = "".join(word[0].upper() for word in adminName.split())
 
-    # Get total admins before the current week
-    cursor.execute("""
-        SELECT COUNT(*) AS total_admins
-        FROM admins
-        WHERE role != 'super_admin' AND department != 'executive'
-    """)
-    total_admins = cursor.fetchone()['total_admins']
+    conn = None
+    cursor = None
 
-    cursor.execute("""
-        SELECT COUNT(*) AS total_suspended
-        FROM admins
-        WHERE status=%s AND role != 'super_admin' AND department != 'executive'
-    """, ("suspended",))
-    suspended_admins = cursor.fetchone()['total_suspended']
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
 
-    cursor.execute("""
-        SELECT COUNT(*) AS total_active
-        FROM admins
-        WHERE status=%s AND role != 'super_admin' AND department != 'executive'
-    """, ("active",))
-    active_admins = cursor.fetchone()['total_active']
+        # Admin name
+        cursor.execute("""
+            SELECT fullname
+            FROM admins
+            WHERE id = %s
+        """, (current_user_id,))
+        adminName = cursor.fetchone()['fullname']
 
-    cursor.execute(
-        """
-        SELECT COUNT(*) AS pending_setup
-        FROM admin_invites
-        WHERE used!=TRUE
-        """
-    )
-    pending_setup = cursor.fetchone()['pending_setup']
+        initials = "".join(word[0].upper() for word in adminName.split())
 
-    return render_template(
-        "admins/execute/admin-management.html",
-        total_admins=total_admins,
-        active_admins=active_admins,
-        suspended_admins=suspended_admins,
-        pending_setup=pending_setup,
-        adminName = adminName,
-        initials=initials
-    )
+        # Total admins
+        cursor.execute("""
+            SELECT COUNT(*) AS total_admins
+            FROM admins
+            WHERE role != 'super_admin'
+            AND department != 'executive'
+        """)
+        total_admins = cursor.fetchone()['total_admins']
 
+        # Suspended
+        cursor.execute("""
+            SELECT COUNT(*) AS total_suspended
+            FROM admins
+            WHERE status=%s
+            AND role != 'super_admin'
+            AND department != 'executive'
+        """, ("suspended",))
+        suspended_admins = cursor.fetchone()['total_suspended']
+
+        # Active
+        cursor.execute("""
+            SELECT COUNT(*) AS total_active
+            FROM admins
+            WHERE status=%s
+            AND role != 'super_admin'
+            AND department != 'executive'
+        """, ("active",))
+        active_admins = cursor.fetchone()['total_active']
+
+        # Pending setup
+        cursor.execute("""
+            SELECT COUNT(*) AS pending_setup
+            FROM admin_invites
+            WHERE used != TRUE
+        """)
+        pending_setup = cursor.fetchone()['pending_setup']
+
+        return render_template(
+            "admins/execute/admin-management.html",
+            total_admins=total_admins,
+            active_admins=active_admins,
+            suspended_admins=suspended_admins,
+            pending_setup=pending_setup,
+            adminName=adminName,
+            initials=initials
+        )
+
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 @admin_bp.route("/execute/admin-management/data")
 @token_required_admin
-def execute_admin_management_data(current_user_id, current_user_role,current_user_department):
+def execute_admin_management_data(current_user_id, current_user_role, current_user_department):
 
     if (
         current_user_role != 'super_admin'
-        or
-        current_user_department != 'executive'
+        or current_user_department != 'executive'
     ):
         return jsonify({
             "success": False,
             "message": "Unauthorized"
         }), 403
-    
-    conn = get_db()
-    cursor = conn.cursor(dictionary=True, buffered=True)
 
+    conn = None
+    cursor = None
 
-    # FETCH ADMINS 
-    cursor.execute("""
-        SELECT id,fullname, role,email, department, status,last_login AS last_active, two_factor_enabled, created_at
-        FROM admins
-        WHERE role != 'super_admin' AND department != 'executive'
-        ORDER BY created_at DESC
-    """)
-    admin_raw = cursor.fetchall()
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
 
-    admins = []
-    for admin in admin_raw:
+        cursor.execute("""
+            SELECT id, fullname, role, email, department, status,
+                   last_login AS last_active,
+                   two_factor_enabled, created_at
+            FROM admins
+            WHERE role != 'super_admin'
+            AND department != 'executive'
+            ORDER BY created_at DESC
+        """)
 
-        initials ="".join(word[0].upper() for word in admin['fullname'].split())
-        admins.append({
-            "id": admin['id'],
-            "name": admin['fullname'],
-            "email": admin['email'],
-            "role": admin['role'],
-            "department": admin['department'],
-            "status": admin['status'],
+        admin_raw = cursor.fetchall()
 
-            # change last active to days ago, months, years ago
-            "last_active": (datetime.now() - admin['last_active']).days if admin['last_active'] else "Never",
-            "two_factor_enabled": admin['two_factor_enabled'],
-            "created_at": admin['created_at'].strftime("%Y-%m-%d %H:%M:%S")
+        admins = []
+        for admin in admin_raw:
+
+            initials = "".join(word[0].upper() for word in admin['fullname'].split())
+
+            last_active = admin['last_active']
+
+            if last_active:
+                try:
+                    days = (datetime.now() - last_active).days
+                except:
+                    days = "Unknown"
+            else:
+                days = "Never"
+
+            admins.append({
+                "id": admin['id'],
+                "name": admin['fullname'],
+                "email": admin['email'],
+                "role": admin['role'],
+                "department": admin['department'],
+                "status": admin['status'],
+                "last_active": days,
+                "two_factor_enabled": admin['two_factor_enabled'],
+                "created_at": admin['created_at'].strftime("%Y-%m-%d %H:%M:%S"),
+                "initials": initials
+            })
+
+        return jsonify({
+            "success": True,
+            "admins": admins
         })
 
-    return jsonify({
-        "success": True,
-        "admins": admins
-    })
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 
 
@@ -282,196 +374,212 @@ def execute_security_audit_page(current_user_id, current_user_role,current_user_
             "message": "Unauthorized"
         }), 403
     
-    conn = get_db()
-    cursor = conn.cursor(dictionary=True, buffered=True)
-    cursor.execute("""
-        SELECT id, fullname
-        FROM admins
-        WHERE id = %s
-    """, (current_user_id,))
-    adminName = cursor.fetchone()['fullname']
-    initials = "".join(word[0].upper() for word in adminName.split())
-    
-    # ========================
-    # TOTAL ADMINS
-    # ========================
-    cursor.execute("""
-        SELECT COUNT(*) AS total
-        FROM admins
-        WHERE is_active = TRUE
-    """)
-    total_admins = cursor.fetchone()["total"]
+    conn = None
+    cursor = None
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True, buffered=True)
+  
+        cursor.execute("""
+          SELECT id, fullname
+          FROM admins
+          WHERE id = %s
+        """, (current_user_id,))
+        adminName = cursor.fetchone()['fullname']
+        initials = "".join(word[0].upper() for word in adminName.split())
 
-    # ========================
-    # ADMINS WITH 2FA
-    # ========================
-    cursor.execute("""
-        SELECT COUNT(*) AS total
-        FROM admins
-        WHERE two_factor_enabled = TRUE
-          AND is_active = TRUE
-    """)
-    admins_2fa = cursor.fetchone()["total"]
+        cursor.execute("""
+          SELECT COUNT(*) AS total
+          FROM admins
+          WHERE is_active = TRUE
+        """)
+        total_admins = cursor.fetchone()["total"]
 
-    # ========================
-    # USERS WITH 2FA
-    # ========================
-    cursor.execute("""
-        SELECT COUNT(*) AS total
-        FROM user_base
-        WHERE two_factor_enabled = TRUE
-          AND active = TRUE
-    """)
-    users_2fa = cursor.fetchone()["total"]
 
-    # ========================
-    # TOTAL ACTIVE USERS
-    # ========================
-    cursor.execute("""
-        SELECT COUNT(*) AS total
-        FROM user_base
-        WHERE active = TRUE
-    """)
-    total_users = cursor.fetchone()["total"]
+        cursor.execute("""
+          SELECT COUNT(*) AS total
+          FROM admins
+          WHERE two_factor_enabled = TRUE
+            AND is_active = TRUE
+        """)
+        admins_2fa = cursor.fetchone()["total"]
 
-    total_accounts = total_admins + total_users
-    total_2fa = admins_2fa + users_2fa
 
-    adoption_rate = round(
-        (total_2fa / total_accounts) * 100,
-        1
-    ) if total_accounts else 0
+        cursor.execute("""
+          SELECT COUNT(*) AS total
+          FROM user_base
+          WHERE two_factor_enabled = TRUE
+            AND active = TRUE
+        """)
+        users_2fa = cursor.fetchone()["total"]
 
-    # ========================
-    # FAILED LOGINS (24H)
-    # ========================
-    cursor.execute("""
-        SELECT COUNT(*) AS total
-        FROM security_activity
-        WHERE type='Login' AND title='Login Failed'
-        AND created_at >= NOW() - INTERVAL 24 HOUR
-    """)
-    failed_logins = cursor.fetchone()["total"]
 
-    # ========================
-    # ACTIVE SESSIONS
-    # ========================
-    cursor.execute("""
-        SELECT COUNT(*) AS total
-        FROM user_sessions
-        WHERE is_active = TRUE
-    """)
-    active_sessions = cursor.fetchone()["total"]
+        cursor.execute("""
+          SELECT COUNT(*) AS total
+          FROM user_base
+          WHERE active = TRUE
+        """)
+        total_users = cursor.fetchone()["total"]
 
-    # ========================
-    # THREATS BLOCKED (7 DAYS)
-    # ========================
-    cursor.execute("""
-        SELECT COUNT(*) AS total
-        FROM security_activity
-        WHERE title IN (
-            'Login Failed'
+        total_accounts = total_admins + total_users
+        total_2fa = admins_2fa + users_2fa
+
+        adoption_rate = round(
+          (total_2fa / total_accounts) * 100,
+          1
+        ) if total_accounts else 0
+
+
+        cursor.execute("""
+          SELECT COUNT(*) AS total
+          FROM security_activity
+          WHERE type='Login' AND title='Login Failed'
+          AND created_at >= NOW() - INTERVAL 24 HOUR
+        """)
+        failed_logins = cursor.fetchone()["total"]
+
+        cursor.execute("""
+          SELECT COUNT(*) AS total
+          FROM user_sessions
+          WHERE is_active = TRUE
+        """)
+        active_sessions = cursor.fetchone()["total"]
+
+
+        cursor.execute("""
+          SELECT COUNT(*) AS total
+          FROM security_activity
+          WHERE title IN (
+              'Login Failed'
+          )
+          AND created_at >= NOW() - INTERVAL 7 DAY
+        """)
+        threats_blocked = cursor.fetchone()["total"]
+        return render_template(
+          "admins/execute/security-audit.html",
+          adminName=adminName,
+          initials=initials,
+          two_factor_rate=adoption_rate,
+          failed_logins=failed_logins,
+          active_sessions=active_sessions,
+          threats_blocked=threats_blocked
         )
-        AND created_at >= NOW() - INTERVAL 7 DAY
-    """)
-    threats_blocked = cursor.fetchone()["total"]
-    return render_template("admins/execute/security-audit.html",adminName=adminName,initials=initials,two_factor_rate=adoption_rate,failed_logins=failed_logins,active_sessions=active_sessions,threats_blocked=threats_blocked)
-
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 @admin_bp.route("/execute/security-audit/logs")
 @token_required_admin
 def get_audit_logs(current_user_id, current_user_role, current_user_department):
 
-    
     if (
         current_user_role != 'super_admin'
-        or
-        current_user_department != 'executive'
+        or current_user_department != 'executive'
     ):
         return jsonify({
             "success": False,
             "message": "Unauthorized"
         }), 403
 
-    conn = get_db()
-    cursor = conn.cursor(dictionary=True)
+    conn = None
+    cursor = None
 
-    cursor.execute("""
-        (
-            SELECT
-                aa.id,
-                'admin' AS type,
-                aa.type AS action,
-                aa.title,
-                aa.description,
-                aa.ip_address,
-                aa.created_at,
-                a.email AS email
-            FROM audit_activity aa
-            LEFT JOIN admins a
-                ON aa.admin_id = a.id
-        )
+    try:
+        conn = get_db()
+        cursor = conn.cursor(dictionary=True)
 
-        UNION ALL
+        cursor.execute("""
+            (
+                SELECT
+                    aa.id,
+                    'admin' AS type,
+                    aa.type AS action,
+                    aa.title,
+                    aa.description,
+                    aa.ip_address,
+                    aa.created_at,
+                    a.email AS email
+                FROM audit_activity aa
+                LEFT JOIN admins a
+                    ON aa.admin_id = a.id
+            )
 
-        (
-            SELECT
-                la.id,
-                'user' AS type,
-                la.type AS action,
-                la.title,
-                NULL AS ip_address,
-                la.description,
-                la.created_at,
-                u.email AS email
-            FROM log_activity la
-            LEFT JOIN user_base u
-                ON la.user_id = u.user_id
-        )
+            UNION ALL
 
-        UNION ALL
+            (
+                SELECT
+                    la.id,
+                    'user' AS type,
+                    la.type AS action,
+                    la.title,
+                    la.description,
+                    NULL AS ip_address,
+                    la.created_at,
+                    u.email AS email
+                FROM log_activity la
+                LEFT JOIN user_base u
+                    ON la.user_id = u.user_id
+            )
 
-        (
-            SELECT
-                sa.id,
-                'security' AS type,
-                sa.type AS action,
-                sa.title,
-                sa.description,
-                sa.ip_address,
-                sa.created_at,
-                u.email AS email
-            FROM security_activity sa
-            LEFT JOIN user_base u
-                ON sa.user_id = u.user_id
-        )
+            UNION ALL
 
-        ORDER BY created_at DESC
-        LIMIT 200
-    """)
+            (
+                SELECT
+                    sa.id,
+                    'security' AS type,
+                    sa.type AS action,
+                    sa.title,
+                    sa.description,
+                    sa.ip_address,
+                    sa.created_at,
+                    u.email AS email
+                FROM security_activity sa
+                LEFT JOIN user_base u
+                    ON sa.user_id = u.user_id
+            )
 
-    rows = cursor.fetchall()
+            ORDER BY created_at DESC
+            LIMIT 200
+        """)
 
-    logs = []
+        rows = cursor.fetchall()
 
-    for row in rows:
+        logs = []
 
-        logs.append({
-            "timestamp": row["created_at"].strftime("%Y-%m-%d %H:%M:%S"),
-            "user": row["email"] or "unknown",
-            "action": row["action"],
-            "type": row["type"],
-            "details": row["description"] or row["title"],
-            "ip": row["ip_address"] or "-",
+        for row in rows:
 
-            # Your JS expects status
-            "status": "success"
+            created_at = row.get("created_at")
+
+            if created_at:
+                try:
+                    timestamp = created_at.strftime("%Y-%m-%d %H:%M:%S")
+                except:
+                    timestamp = str(created_at)
+            else:
+                timestamp = "Unknown"
+
+            logs.append({
+                "timestamp": timestamp,
+                "user": row.get("email") or "unknown",
+                "action": row.get("action"),
+                "type": row.get("type"),
+                "details": row.get("description") or row.get("title"),
+                "ip": row.get("ip_address") or "-",
+                "status": "success"
+            })
+
+        return jsonify({
+            "success": True,
+            "logs": logs
         })
 
-    return jsonify({
-        "success": True,
-        "logs": logs
-    })
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 
 @admin_bp.route("/execute/system-config")
@@ -487,17 +595,25 @@ def execute_system_config_page(current_user_id, current_user_role,current_user_d
             "message": "Unauthorized"
         }), 403
     
-    conn = get_db()
-    cursor = conn.cursor(dictionary=True, buffered=True)
-    cursor.execute("""
-        SELECT id, fullname
-        FROM admins
-        WHERE id = %s
-    """, (current_user_id,))
-    adminName = cursor.fetchone()['fullname']
-    initials = "".join(word[0].upper() for word in adminName.split())
-    return render_template("admins/execute/system-config.html", initials=initials, adminName=adminName)
-
+    conn = None
+    cursor = None
+    try:
+      conn = get_db()
+      cursor = conn.cursor(dictionary=True, buffered=True)
+      cursor.execute("""
+          SELECT id, fullname
+          FROM admins
+          WHERE id = %s
+      """, (current_user_id,))
+      adminName = cursor.fetchone()['fullname']
+      initials = "".join(word[0].upper() for word in adminName.split())
+      return render_template("admins/execute/system-config.html", initials=initials, adminName=adminName)
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+          
 @admin_bp.route("/execute/billing-payout")
 @token_required_admin
 def execute_billing_payout_page(current_user_id, current_user_role,current_user_department):
@@ -511,16 +627,24 @@ def execute_billing_payout_page(current_user_id, current_user_role,current_user_
             "message": "Unauthorized"
         }), 403
     
-    conn = get_db()
-    cursor = conn.cursor(dictionary=True, buffered=True)
-    cursor.execute("""
-        SELECT id, fullname
-        FROM admins
-        WHERE id = %s
-    """, (current_user_id,))
-    adminName = cursor.fetchone()['fullname']
-    initials = "".join(word[0].upper() for word in adminName.split())
-    return render_template("admins/execute/billing-payout.html",initials=initials, adminName=adminName)
+    conn = None
+    cursor = None
+    try:
+      conn = get_db()
+      cursor = conn.cursor(dictionary=True, buffered=True)
+      cursor.execute("""
+          SELECT id, fullname
+          FROM admins
+          WHERE id = %s
+      """, (current_user_id,))
+      adminName = cursor.fetchone()['fullname']
+      initials = "".join(word[0].upper() for word in adminName.split())
+      return render_template("admins/execute/billing-payout.html",initials=initials, adminName=adminName)
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 @admin_bp.route("/execute/database-api")
 @token_required_admin
