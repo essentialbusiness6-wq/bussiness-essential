@@ -1,10 +1,6 @@
 from flask_socketio import SocketIO
 from flask_caching import Cache
-import os
-from dotenv import load_dotenv
 
-
-load_dotenv()
 
 socketio = SocketIO(
     cors_allowed_origins="*",
@@ -14,11 +10,9 @@ socketio = SocketIO(
 )
 
 
-
 cache = Cache(
     config={
-        "CACHE_TYPE": "RedisCache",
-        "CACHE_REDIS_URL": os.getenv("REDIS_URL"),
+        "CACHE_TYPE": "SimpleCache",
         "CACHE_DEFAULT_TIMEOUT": 60
     }
 )
