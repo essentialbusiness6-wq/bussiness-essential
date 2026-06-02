@@ -1217,7 +1217,7 @@ def invoice_drafts_list_data(current_user_id, current_user_role):
         "status": "success",
         "drafts": draft_list,
         "currency_symbol": currency_symbol,
-          "theme":
+        "theme":
                 settings[1]
                 if settings else "light",
         "user": {
@@ -1330,7 +1330,7 @@ def clients_page_data(current_user_id, current_user_role):
 
         cursor.execute(
             """
-            SELECT currency, currency_symbol
+            SELECT currency, currency_symbol, theme
             FROM user_settings
             WHERE user_id=%s
             """,
@@ -1351,6 +1351,10 @@ def clients_page_data(current_user_id, current_user_role):
         "status": "success",
         "clients": clients,
         "currencySymbol": currency_symbol,
+        "theme":(
+                settings[1]
+                if settings else "light"
+        ),
         "user": {
             "user_id": current_user_id,
             "role": current_user_role
