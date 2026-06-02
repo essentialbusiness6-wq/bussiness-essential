@@ -819,7 +819,7 @@ def get_notifications(current_user_id,current_user_role):
 @app.route("/profile")
 @token_required
 def profile_page(current_user_id,current_user_role):
-    with db_cursor(dictionary=True) as (_, cursor):)
+    with db_cursor(dictionary=True) as (_, cursor):
         cursor.execute("""
             SELECT
                 user_base.username, 
