@@ -187,58 +187,199 @@ function setupEventListeners() {
 }
 
 // Function to load sample invoices
-async function loadSampleInvoices() {
-    const invoicesGrid = document.getElementById('invoicesGrid');
+let invoiceController = null;
+let invoiceLoading = false;
 
+async function loadSampleInvoices(forceRefresh = false) {
+
+    const invoicesGrid =
+        document.getElementById("invoicesGrid");
+
+    if (!invoicesGrid || invoiceLoading) return;
+
+    invoiceLoading = true;
 
     try {
-        const response = await fetch('/dashboard/invoices/list/data', {
-            method: "GET",
-            credentials: "include"
-        });
+
+        const CACHE_KEY = "invoice_list_cache";
+        const CACHE_TIME_KEY = "invoice_list_cache_time";
+
+        const CACHE_DURATION = 60 * 1000; // 1 minute
+
+        const cachedData =
+            sessionStorage.getItem(CACHE_KEY);
+
+        const cachedTime =
+            sessionStorage.getItem(CACHE_TIME_KEY);
+
+        const now = Date.now();
+
+        // =========================
+        // LOAD FROM CACHE FIRST
+        // =========================
+
+        if (
+            !forceRefresh &&
+            cachedData &&
+            cachedTime &&
+            now - parseInt(cachedTime) < CACHE_DURATION
+        ) {
+
+            const data = JSON.parse(cachedData);
+
+            renderInvoices(data);
+
+            invoiceLoading = false;
+
+            // Refresh silently in background
+            loadSampleInvoices(true);
+
+            return;
+        }
+
+        // =========================
+        // LOADING STATE
+        // =========================
+
+        invoicesGrid.innerHTML = `
+            <div class="loading-state">
+                Loading invoices...
+            </div>
+        `;
+
+        // Cancel previous request
+        if (invoiceController) {
+            invoiceController.abort();
+        }
+
+        invoiceController =
+            new AbortController();
+
+        const response = await fetch(
+            "/dashboard/invoices/list/data",
+            {
+                method: "GET",
+                credentials: "include",
+                signal: invoiceController.signal
+            }
+        );
 
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(data.message || "Failed to fetch invoices");
+            throw new Error(
+                data.message ||
+                "Failed to fetch invoices"
+            );
         }
-
 
         if (data.status !== "success") {
-            throw new Error(data.message || "Failed to load invoices");
+            throw new Error(
+                data.message ||
+                "Failed to load invoices"
+            );
         }
 
-        invoicesGrid.innerHTML = '';
+        // =========================
+        // SAVE CACHE
+        // =========================
 
-        const invoices = data.invoices || [];
-        const currencySymbol = data.currency_symbol || '$';
-        applyTheme(data.theme)
+        sessionStorage.setItem(
+            CACHE_KEY,
+            JSON.stringify(data)
+        );
 
-        if (invoices.length === 0) {
-            invoicesGrid.innerHTML = `
-                <div class="empty-state">
-                    <h3>No invoices found</h3>
-                    <p>Create your first invoice to get started.</p>
-                </div>
-            `;
+        sessionStorage.setItem(
+            CACHE_TIME_KEY,
+            now.toString()
+        );
+
+        renderInvoices(data);
+
+    } catch (error) {
+
+        if (error.name === "AbortError") {
             return;
         }
 
-        invoices.forEach(invoice => {
-            const card = createInvoiceCard(invoice, currencySymbol);
-            invoicesGrid.appendChild(card);
-        });
+        console.error(
+            "Invoice loading error:",
+            error
+        );
 
-        animateInvoices();
-
-    } catch (error) {
-        console.error(error);
+        invoicesGrid.innerHTML = `
+            <div class="empty-state">
+                <h3>Failed to load invoices</h3>
+                <p>Please try again later.</p>
+            </div>
+        `;
 
         showToast(
             "Failed to load invoices",
             "error"
         );
+
+    } finally {
+
+        invoiceLoading = false;
     }
+}
+
+/* ====================================
+   RENDER FUNCTION
+==================================== */
+
+function renderInvoices(data) {
+
+    const invoicesGrid =
+        document.getElementById("invoicesGrid");
+
+    if (!invoicesGrid) return;
+
+    invoicesGrid.innerHTML = "";
+
+    const invoices =
+        data.invoices || [];
+
+    const currencySymbol =
+        data.currency_symbol || "$";
+
+    if (data.theme) {
+        applyTheme(data.theme);
+    }
+
+    if (!invoices.length) {
+
+        invoicesGrid.innerHTML = `
+            <div class="empty-state">
+                <h3>No invoices found</h3>
+                <p>Create your first invoice to get started.</p>
+            </div>
+        `;
+
+        return;
+    }
+
+    // Build everything first
+    const fragment =
+        document.createDocumentFragment();
+
+    invoices.forEach(invoice => {
+
+        const card =
+            createInvoiceCard(
+                invoice,
+                currencySymbol
+            );
+
+        fragment.appendChild(card);
+    });
+
+    invoicesGrid.appendChild(fragment);
+
+    requestAnimationFrame(() => {
+        animateInvoices();
+    });
 }
 
 
