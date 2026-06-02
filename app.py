@@ -7,7 +7,7 @@ from flask_cors import CORS
 from flask_socketio import SocketIO, emit, join_room
 import time
 from apscheduler.schedulers.background import BackgroundScheduler
-from backend.extentions import socketio
+from backend.extentions import socketio, cache
 from backend.socket_events import register_socket_events
 from werkzeug import Client
 from backend.utils import (
@@ -76,8 +76,7 @@ cloudinary.config(
     api_secret = os.getenv("CLOUDINARY_API_SECRET")
 )
 
-
-
+cache.init_app(app)
 socketio.init_app(app)
 
 @app.route("/test-notification")
@@ -1046,104 +1045,92 @@ def dashboard_data(current_user_id, current_user_role):
         }), 500
 
 
-@app.route("/dashboard/invoices/list/data")
-@token_required
-def invoice_list_data(current_user_id, current_user_role):
+@cache.memoize(timeout=60)
+def get_invoice_list_cached(user_id):
 
-    with db_cursor() as (_, cursor):
+    with db_cursor(dictionary=True) as (_, cursor):
 
-        cursor.execute(
-            """
-            SELECT 1
-            FROM user_base
-            WHERE user_id=%s
-            LIMIT 1
-            """,
-            (current_user_id,)
-        )
-
-        user = cursor.fetchone()
-
-        if not user:
-            return jsonify({
-                "status": "error",
-                "message": "User not found"
-            }), 401
-
-        cursor.execute(
-            """
+        cursor.execute("""
             SELECT
-                invoices.id,
-                invoices.client_id,
-                invoices.invoice_number,
-                invoices.invoice_date,
-                invoices.due_date,
-                invoices.total AS amount,
-                invoices.status,
-                clients.client_name AS client
-            FROM invoices
-            JOIN clients
-                ON clients.id = invoices.client_id
-            WHERE invoices.user_id=%s
-            """,
-            (current_user_id,)
-        )
+                i.id,
+                i.client_id,
+                i.invoice_number,
+                DATE_FORMAT(i.invoice_date, '%Y-%m-%d') AS invoice_date,
+                DATE_FORMAT(i.due_date, '%Y-%m-%d') AS due_date,
+                i.total AS amount,
+                i.status,
+                c.client_name AS client
+            FROM invoices i
+            LEFT JOIN clients c
+                ON c.id = i.client_id
+            WHERE i.user_id=%s
+            ORDER BY i.id DESC
+            LIMIT 100
+        """, (user_id,))
 
         invoices = cursor.fetchall()
 
-        invoice_list = []
-
-        for invoice in invoices:
-
-            invoice_list.append({
-                "id": invoice[0],
-                "client_id": invoice[1],
-                "invoice_number": invoice[2],
-                "invoice_date": (
-                    invoice[3].strftime("%Y-%m-%d")
-                    if invoice[3] else None
-                ),
-                "due_date": (
-                    invoice[4].strftime("%Y-%m-%d")
-                    if invoice[4] else None
-                ),
-                "amount": float(invoice[5] or 0),
-                "status": invoice[6],
-                "client": invoice[7]
-            })
-
-        cursor.execute(
-            """
-            SELECT currency_symbol, theme 
+        cursor.execute("""
+            SELECT
+                currency_symbol,
+                theme
             FROM user_settings
             WHERE user_id=%s
-            """,
-            (current_user_id,)
-        )
+            LIMIT 1
+        """, (user_id,))
 
         settings = cursor.fetchone()
 
-        currency_symbol = (
-            settings[0]
-            if settings
-            else "$"
-        )
-        theme = (
-            settings[1]
-            if settings 
-            else "light"
+        return {
+            "invoices": invoices,
+            "currency_symbol":
+                settings["currency_symbol"]
+                if settings else "$",
+
+            "theme":
+                settings["theme"]
+                if settings else "light"
+        }
+
+@app.route("/dashboard/invoices/list/data")
+@token_required
+def invoice_list_data(
+    current_user_id,
+    current_user_role
+):
+
+    try:
+
+        data = get_invoice_list_cached(
+            current_user_id
         )
 
-    return jsonify({
-        "status": "success",
-        "invoices": invoice_list,
-        "currency_symbol": currency_symbol,
-        "theme":theme,
-        "user": {
-            "user_id": current_user_id,
-            "role": current_user_role
-        }
-    })
+        return jsonify({
+            "status": "success",
+
+            "invoices":
+                data["invoices"],
+
+            "currency_symbol":
+                data["currency_symbol"],
+
+            "theme":
+                data["theme"],
+
+            "user": {
+                "user_id": current_user_id,
+                "role": current_user_role
+            }
+        })
+
+    except Exception as e:
+
+        print("Invoice list error:", e)
+
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 
 
 @app.route("/invoice/drafts/list/data")
@@ -3448,6 +3435,10 @@ def create_invoice(current_user_id, current_user_role):
             amount=total,
             status=status
         )
+        cache.delete_memoized(
+            get_invoice_list_cached,
+            current_user_id
+        )
 
         return jsonify({
             "status": "success",
@@ -3662,6 +3653,10 @@ def update_draft(current_user_id, current_user_role):
             f"Invoice updated for {client_name}",
             total
         )
+        cache.delete_memoized(
+            get_invoice_list_cached,
+            current_user_id
+        )
         return jsonify({
             "status": "success",
             "message": "Invoice updated"
@@ -3712,7 +3707,10 @@ def delete_invoice(current_user_id, current_user_role, invoice_id):
             "Deleted",
             f"Invoice #{invoice_id} deleted"
         )
-
+        cache.delete_memoized(
+            get_invoice_list_cached,
+            current_user_id
+        )
         return jsonify({
             "status": "success",
             "message": "Invoice deleted"
