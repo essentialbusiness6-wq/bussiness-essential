@@ -199,37 +199,108 @@ function setupEventListeners() {
 
 
 // Function to load sample clients
-function loadSampleClients() {
+let clients = [];
 
-    fetch("/dashboard/clients/data", {
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        credentials: "include"
-    })
-    .then(response => response.json())
-    .then(data => {
-        console.log("Received clients data:", data);
-        if (data.status === "success") {
+async function loadSampleClients(forceRefresh = false) {
 
-            clients = data.clients || [];
-            populateClientsTable(clients);
-            populateClientsCards(clients);
-            console.log(data.theme);
-            applyTheme(data.theme);
-    
+    try {
 
-            checkEmptyState(clients.length);
+        const url = forceRefresh
+            ? `/dashboard/clients/data?t=${Date.now()}`
+            : "/dashboard/clients/data";
+
+        const response = await fetch(url, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            credentials: "include"
+        });
+
+        if (!response.ok) {
+            throw new Error(
+                `Server returned ${response.status}`
+            );
         }
-    })
-    .catch(error => {
-        console.error("Error loading clients:", error);
-    });
 
-    
+        const data = await response.json();
 
+        console.log("Received clients data:", data);
 
+        if (data.status !== "success") {
+            throw new Error(
+                data.message || "Failed to load clients"
+            );
+        }
+
+        clients = Array.isArray(data.clients)
+            ? data.clients
+            : [];
+
+        populateClientsTable(clients);
+
+        populateClientsCards(clients);
+
+        if (typeof applyTheme === "function") {
+            applyTheme(
+                data.theme || "light"
+            );
+        }
+
+        checkEmptyState(clients.length);
+
+    } catch (error) {
+
+        console.error(
+            "Error loading clients:",
+            error
+        );
+
+        if (
+            typeof showToast === "function"
+        ) {
+            showToast(
+                error.message ||
+                "Failed to load clients",
+                "error"
+            );
+        }
+
+        const tableBody =
+            document.querySelector(
+                "#clientsTable tbody"
+            );
+
+        const cardsContainer =
+            document.getElementById(
+                "clientCards"
+            );
+
+        if (tableBody) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="100%">
+                        Failed to load clients.
+                    </td>
+                </tr>
+            `;
+        }
+
+        if (cardsContainer) {
+            cardsContainer.innerHTML = `
+                <div class="error-state">
+                    Failed to load clients.
+                    <br><br>
+                    <button
+                        class="btn primary"
+                        onclick="loadSampleClients(true)"
+                    >
+                        Retry
+                    </button>
+                </div>
+            `;
+        }
+    }
 }
 
 function applyTheme(theme) {
