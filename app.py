@@ -587,9 +587,13 @@ def security_center_page():
 @token_required
 def rate_us_page(current_user_id, current_user_role):
     with db_cursor(dictionary=True) as (_, cursor):
-        cursor.execute("SELECT theme FROM user_settings WHERE=%s",(current_user_id,))
+        cursor.execute(
+            "SELECT theme FROM user_settings WHERE user_id=%s",
+            (current_user_id,)
+        )
         settings = cursor.fetchone()
-        theme = settings['theme'] if settings else "light"
+    
+        theme = settings["theme"] if settings and settings.get("theme") else "light"
     return render_template("users/rate.html", theme=theme)
 
 @app.route("/share")
@@ -612,7 +616,15 @@ def share_page(current_user_id, current_user_role):
                 "status":"error",
                 "message":"Referral not found."
             }), 400
-    return render_template("users/share.html",referralCode = referral['referral_code'], inviteSent = referral['invite_sent'], signups = referral['signups'], earned = referral['earned'])
+            
+        cursor.execute(
+            "SELECT theme FROM user_settings WHERE user_id=%s",
+            (current_user_id,)
+        )
+        settings = cursor.fetchone()
+    
+        theme = settings["theme"] if settings and settings.get("theme") else "light"
+    return render_template("users/share.html",theme=theme,referralCode = referral['referral_code'], inviteSent = referral['invite_sent'], signups = referral['signups'], earned = referral['earned'])
 
 
 
