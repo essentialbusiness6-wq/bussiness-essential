@@ -1569,65 +1569,92 @@ def payment_page_data(current_user_id, current_user_role):
             "message": str(e)
         }), 500
 
-@app.route("/dashboard/me/data")
-@token_required
-def me_page_data(current_user_id,current_user_role):
+
+@cache.memoize(timeout=60)
+def get_me_page_data(user_id):
 
     with db_cursor(dictionary=True) as (_, cursor):
 
+        # ================= USER INFO =================
         cursor.execute(
             """
-            SELECT 
-                fullname,
-                profilepicurl
+            SELECT fullname, profilepicurl
             FROM cust_base
             WHERE user_id=%s
             """,
-            (current_user_id,)
+            (user_id,)
         )
         user_data = cursor.fetchone()
-        if not user_data:
-            return jsonify({
-                "status":"error",
-                "message":"Profile not found."
-            }), 400
 
+        if not user_data:
+            return None
+
+        # ================= WALLET =================
         cursor.execute(
-            """ 
+            """
             SELECT wallet_balance
-            FROM wallet_base 
+            FROM wallet_base
             WHERE user_id=%s
             """,
-            (current_user_id,)
+            (user_id,)
         )
-        balance = cursor.fetchone()['wallet_balance']
-        if not balance:
-            balance = 0.00
+        row = cursor.fetchone()
+        balance = row["wallet_balance"] if row and row["wallet_balance"] is not None else 0.00
 
+        # ================= CURRENCY =================
         cursor.execute(
             """
             SELECT currency_symbol
             FROM user_settings
             WHERE user_id=%s
             """,
-            (current_user_id,)
+            (user_id,)
         )
-        currencySymbol = cursor.fetchone()['currency_symbol']
+        settings = cursor.fetchone()
+        currency_symbol = settings["currency_symbol"] if settings else "$"
 
-        if user_data['fullname'] :
-            name = user_data['fullname'] 
-        else: 
-            name = ""
+        # ================= NAME CLEANUP =================
+        name = user_data["fullname"] or ""
 
-    return jsonify({
-        "status": "success",
-        "user": {
-            "name": name,
-            "profilePic": user_data['profilepicurl'],
-            "balance": balance 
-        },
-        "currency_symbol": currencySymbol    
-    })
+        return {
+            "user": {
+                "name": name,
+                "profilePic": user_data["profilepicurl"],
+                "balance": float(balance)
+            },
+            "currency_symbol": currency_symbol
+            
+        }
+
+@app.route("/dashboard/me/data")
+@token_required
+def me_page_data(current_user_id, current_user_role):
+
+    try:
+
+        data = get_me_page_data(current_user_id)
+
+        if not data:
+            return jsonify({
+                "status": "error",
+                "message": "Profile not found."
+            }), 404
+
+        data["status"] = "success"
+        data["user"]["user_id"] = current_user_id
+        data["user"]["role"] = current_user_role
+
+        return jsonify(data)
+
+    except Exception as e:
+
+        print("ME dashboard error:", e)
+
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+
 
 @app.route("/transactions/data")
 @token_required
