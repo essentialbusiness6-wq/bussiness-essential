@@ -28,6 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeSettings();
     setupEventListeners();
     loadSavedSettings();
+    const theme = document.body.dataset.theme;
+    if (theme){
+        applyTheme(theme);
+    }
     
     // Functions
     function initializeSettings() {
@@ -197,7 +201,21 @@ document.addEventListener('DOMContentLoaded', () => {
             saveSetting(settingName, input);
         }, AUTO_SAVE_DELAY);
     }
-    
+
+    function applyTheme(theme) {
+    const body = document.body;
+
+    if (theme === "dark") {
+        body.classList.add("dark");
+        body.classList.remove("light");
+    } else {
+        body.classList.remove("dark");
+        body.classList.add("light");
+    }
+
+    // optional: persist it
+    localStorage.setItem("theme", theme);
+}
     function showSavingIndicator(settingName) {
         // Find the field container
         const field = document.querySelector(`[data-setting="${settingName}"]`).closest('.field, .toggle');
