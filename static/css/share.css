@@ -5,7 +5,9 @@
     -webkit-tap-highlight-color: transparent;
 }
 
+/* ================= THEME VARIABLES ================= */
 :root {
+    /* Light Theme (Default) */
     --primary: #4361ee;
     --secondary: #3f37c9;
     --accent: #4895ef;
@@ -18,25 +20,157 @@
     --danger: #e74c3c;
     --warning: #f39c12;
     --info: #3498db;
+    
     --gradient-bg: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
     --gradient-card: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85));
+    
+    /* Glassmorphism */
+    --glass-header: rgba(255, 255, 255, 0.88);
+    --glass-content: rgba(255, 255, 255, 0.8);
+    --glass-card: rgba(255, 255, 255, 0.75);
+    
+    /* Borders & Shadows */
+    --border-glass: rgba(255, 255, 255, 0.6);
+    --border-subtle: rgba(0, 0, 0, 0.05);
+    --border-input: rgba(0, 0, 0, 0.08);
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
     --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.15);
+    
     --transition-fast: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
     --transition: all 0.35s cubic-bezier(0.165, 0.84, 0.44, 1);
     --transition-slow: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+    
     --border-radius-sm: 12px;
     --border-radius: 16px;
     --border-radius-lg: 24px;
     --border-radius-full: 9999px;
+    
     --safe-area-top: env(safe-area-inset-top);
     --safe-area-bottom: env(safe-area-inset-bottom);
     --safe-area-left: env(safe-area-inset-left);
     --safe-area-right: env(safe-area-inset-right);
 }
 
-/* Base styles */
+/* ================= DARK THEME ================= */
+.dark {
+    --primary: #60a5fa;
+    --secondary: #818cf8;
+    --accent: #38bdf8;
+    --success: #34d399;
+    --dark: #f1f5f9;       /* Light text for readability */
+    --light: #0f172a;      /* Dark background base */
+    --gray: #94a3b8;
+    --danger: #f87171;
+    --warning: #fbbf24;
+    --info: #38bdf8;
+    
+    /* Deep, rich dark gradient for the body background */
+    --gradient-bg: linear-gradient(135deg, #020617 0%, #0f172a 100%);
+    --gradient-card: linear-gradient(
+        145deg,
+        rgba(15,23,42,.95),
+        rgba(2,6,23,.95)
+    );
+    
+    /* Dark glassmorphism */
+    
+    --glass-nav: rgba(15, 23, 42, 0.9);
+    --glass-content: rgba(15,23,42,.9);
+    --glass-card: rgba(15,23,42,.85);
+    --glass-header: rgba(2,6,23,.9);
+
+    
+    --border-glass: rgba(148, 163, 184, 0.15);
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-input: rgba(255, 255, 255, 0.1);
+    
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.6);
+    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.7);
+
+    /* Modal Dark Overrides */
+    --modal-bg: #0f172a;
+    --modal-text: #f8fafc;
+    --modal-subtext: #94a3b8;
+    --modal-indicator: #334155;
+    --modal-close: #64748b;
+    --modal-close-hover: #f8fafc;
+    --modal-btn-grad: linear-gradient(135deg, #2563eb, #1d4ed8);
+    --modal-btn-sec-grad: linear-gradient(135deg, #475569, #334155);
+}
+
+
+/* Auto-detect system preference (optional) */
+@media (prefers-color-scheme: dark) {
+    :root:not(.light) {
+            --primary: #60a5fa;
+    --secondary: #818cf8;
+    --accent: #38bdf8;
+    --success: #34d399;
+    --dark: #f1f5f9;       /* Light text for readability */
+    --light: #0f172a;      /* Dark background base */
+    --gray: #94a3b8;
+    --danger: #f87171;
+    --warning: #fbbf24;
+    --info: #38bdf8;
+    
+    /* Deep, rich dark gradient for the body background */
+    --gradient-bg: linear-gradient(135deg, #020617 0%, #0f172a 100%);
+    --gradient-card: linear-gradient(
+        145deg,
+        rgba(15,23,42,.95),
+        rgba(2,6,23,.95)
+    );
+    
+    /* Dark glassmorphism */
+    
+    --glass-nav: rgba(15, 23, 42, 0.9);
+    --glass-content: rgba(15,23,42,.9);
+    --glass-card: rgba(15,23,42,.85);
+    --glass-header: rgba(2,6,23,.9);
+
+    
+    --border-glass: rgba(148, 163, 184, 0.15);
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-input: rgba(255, 255, 255, 0.1);
+    
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.6);
+    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.7);
+
+    /* Modal Dark Overrides */
+    --modal-bg: #0f172a;
+    --modal-text: #f8fafc;
+    --modal-subtext: #94a3b8;
+    --modal-indicator: #334155;
+    --modal-close: #64748b;
+    --modal-close-hover: #f8fafc;
+    --modal-btn-grad: linear-gradient(135deg, #2563eb, #1d4ed8);
+    --modal-btn-sec-grad: linear-gradient(135deg, #475569, #334155);
+    }
+    .dark body::before {
+    background: radial-gradient(circle, rgba(96, 165, 250, 0.05) 0%, rgba(255,255,255,0) 70%);
+}
+
+
+body.dark {
+    background: linear-gradient(135deg, #020617 0%, #0f172a 100%) !important;
+}
+
+.dark body,
+body.dark {
+    background-color: #020617 !important;
+    background-image: linear-gradient(
+        135deg,
+        #020617 0%,
+        #0f172a 100%
+    ) !important;
+}
+
+}
+
+/* ================= BASE STYLES ================= */
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     background: var(--gradient-bg);
@@ -52,6 +186,7 @@ body {
     padding-bottom: calc(var(--safe-area-bottom) + 20px);
     padding-top: var(--safe-area-top);
     background-attachment: fixed;
+    transition: background 0.4s ease, color 0.4s ease;
 }
 
 body::before {
@@ -65,20 +200,41 @@ body::before {
     z-index: -1;
     animation: rotate 35s linear infinite;
     pointer-events: none;
+    transition: background 0.4s ease;
 }
+
+.dark body::before {
+    background: radial-gradient(circle, rgba(96, 165, 250, 0.05) 0%, rgba(255,255,255,0) 70%);
+}
+
+
+body.dark {
+    background: linear-gradient(135deg, #020617 0%, #0f172a 100%) !important;
+}
+
+.dark body,
+body.dark {
+    background-color: #020617 !important;
+    background-image: linear-gradient(
+        135deg,
+        #020617 0%,
+        #0f172a 100%
+    ) !important;
+}
+
 
 @keyframes rotate {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
 
-/* Header styles */
+/* ================= HEADER STYLES ================= */
 .dashboard-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: calc(12px + var(--safe-area-top)) 16px 12px;
-    background: rgba(255, 255, 255, 0.88);
+    background: var(--glass-header);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     box-shadow: var(--shadow-md);
@@ -89,6 +245,7 @@ body::before {
     border-bottom-left-radius: 20px;
     border-bottom-right-radius: 20px;
     margin-bottom: 24px;
+    transition: var(--transition);
 }
 
 .dashboard-header h2 {
@@ -104,7 +261,7 @@ body::before {
     width: 40px;
     height: 40px;
     border-radius: var(--border-radius-full);
-    background: rgba(255, 255, 255, 0.85);
+    background: var(--glass-card);
     border: none;
     display: flex;
     justify-content: center;
@@ -119,7 +276,7 @@ body::before {
 
 .icon-btn:active {
     transform: scale(0.95);
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--glass-content);
 }
 
 .icon-btn:hover {
@@ -129,6 +286,10 @@ body::before {
     box-shadow: 0 4px 12px rgba(67, 97, 238, 0.4);
 }
 
+.dark .icon-btn:hover {
+    box-shadow: 0 4px 12px rgba(96, 165, 250, 0.4);
+}
+
 .icon-btn svg {
     width: 20px;
     height: 20px;
@@ -136,7 +297,7 @@ body::before {
     transition: var(--transition-fast);
 }
 
-/* Main content */
+/* ================= MAIN CONTENT ================= */
 .dashboard {
     display: flex;
     flex-direction: column;
@@ -159,7 +320,8 @@ body::before {
     position: relative;
     overflow: hidden;
     margin-bottom: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.6);
+    border: 1px solid var(--border-glass);
+    transition: var(--transition);
 }
 
 .content::before {
@@ -174,7 +336,7 @@ body::before {
     animation: rotate 45s linear infinite reverse;
 }
 
-/* Share header */
+/* ================= SHARE HEADER ================= */
 .share-header {
     text-align: center;
     margin-bottom: 32px;
@@ -200,6 +362,11 @@ body::before {
     overflow: hidden;
     box-shadow: 0 8px 20px rgba(67, 97, 238, 0.25);
     z-index: 2;
+}
+
+.dark .share-icon {
+    background: rgba(96, 165, 250, 0.15);
+    box-shadow: 0 8px 20px rgba(96, 165, 250, 0.2);
 }
 
 .share-icon::after {
@@ -252,14 +419,14 @@ body::before {
     line-height: 1.5;
 }
 
-/* Referral card */
+/* ================= REFERRAL CARD ================= */
 .referral-card {
-    background: rgba(255, 255, 255, 0.85);
+    background: var(--glass-card);
     border-radius: var(--border-radius-lg);
     padding: 28px;
     margin-bottom: 28px;
     box-shadow: var(--shadow-md);
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-subtle);
     text-align: center;
     position: relative;
     overflow: hidden;
@@ -352,9 +519,17 @@ body::before {
     box-shadow: 0 4px 12px rgba(67, 97, 238, 0.35);
 }
 
+.dark .copy-btn {
+    box-shadow: 0 4px 12px rgba(96, 165, 250, 0.3);
+}
+
 .copy-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 15px rgba(67, 97, 238, 0.45);
+}
+
+.dark .copy-btn:hover {
+    box-shadow: 0 6px 15px rgba(96, 165, 250, 0.4);
 }
 
 .copy-btn:active {
@@ -373,7 +548,7 @@ body::before {
     font-size: 0.9rem;
 }
 
-/* Share options */
+/* ================= SHARE OPTIONS ================= */
 .share-options {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -382,7 +557,7 @@ body::before {
 }
 
 .share-option {
-    background: rgba(255, 255, 255, 0.85);
+    background: var(--glass-card);
     border-radius: var(--border-radius-lg);
     padding: 20px 12px;
     display: flex;
@@ -391,7 +566,7 @@ body::before {
     justify-content: center;
     gap: 10px;
     box-shadow: var(--shadow-md);
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-subtle);
     transition: var(--transition);
     cursor: pointer;
     position: relative;
@@ -419,7 +594,7 @@ body::before {
 .share-option:hover {
     transform: translateY(-3px);
     box-shadow: var(--shadow-lg);
-    background: rgba(255, 255, 255, 0.92);
+    background: var(--glass-content);
 }
 
 .share-option:active {
@@ -456,7 +631,7 @@ body::before {
     text-align: center;
 }
 
-/* Benefits section */
+/* ================= BENEFITS SECTION ================= */
 .benefits-section {
     margin-bottom: 28px;
 }
@@ -501,6 +676,10 @@ body::before {
     border-left: 3px solid var(--primary);
 }
 
+.dark .benefit-item {
+    background: rgba(96, 165, 250, 0.1);
+}
+
 .benefit-icon {
     width: 36px;
     height: 36px;
@@ -511,6 +690,10 @@ body::before {
     align-items: center;
     flex-shrink: 0;
     margin-top: 2px;
+}
+
+.dark .benefit-icon {
+    background: rgba(96, 165, 250, 0.15);
 }
 
 .benefit-icon svg {
@@ -532,14 +715,14 @@ body::before {
     line-height: 1.5;
 }
 
-/* Stats section */
+/* ================= STATS SECTION ================= */
 .stats-section {
     text-align: center;
     padding: 24px;
-    background: rgba(255, 255, 255, 0.85);
+    background: var(--glass-card);
     border-radius: var(--border-radius-lg);
     box-shadow: var(--shadow-md);
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-subtle);
     margin-bottom: 28px;
 }
 
@@ -562,6 +745,10 @@ body::before {
     background: rgba(67, 97, 238, 0.05);
 }
 
+.dark .stat-item {
+    background: rgba(96, 165, 250, 0.1);
+}
+
 .stat-number {
     font-size: 1.8rem;
     font-weight: 700;
@@ -575,14 +762,14 @@ body::before {
     font-weight: 500;
 }
 
-/* Invite friends section */
+/* ================= INVITE FRIENDS SECTION ================= */
 .invite-friends {
-    background: rgba(255, 255, 255, 0.85);
+    background: var(--glass-card);
     border-radius: var(--border-radius-lg);
     padding: 28px;
     margin-top: 12px;
     box-shadow: var(--shadow-md);
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-subtle);
     text-align: center;
 }
 
@@ -632,7 +819,7 @@ body::before {
     fill: white;
 }
 
-/* Particles background */
+/* ================= PARTICLES & TOAST ================= */
 .particles {
     position: fixed;
     top: 0;
@@ -650,6 +837,10 @@ body::before {
     animation: float 15s infinite linear;
 }
 
+.dark .particle {
+    background: rgba(96, 165, 250, 0.3);
+}
+
 @keyframes float {
     0% {
         transform: translateY(0) translateX(0) rotate(0deg);
@@ -661,7 +852,6 @@ body::before {
     }
 }
 
-/* Toast notification */
 .toast {
     position: fixed;
     bottom: calc(20px + var(--safe-area-bottom));
@@ -678,7 +868,7 @@ body::before {
     max-width: 85%;
     text-align: center;
     backdrop-filter: blur(12px);
-    border: 1px solid rgba(0,0,0,0.08);
+    border: 1px solid var(--border-input);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -709,7 +899,7 @@ body::before {
     fill: white;
 }
 
-/* Haptic feedback */
+/* ================= ANIMATIONS ================= */
 @keyframes haptic {
     0% { transform: translateX(0); }
     25% { transform: translateX(-2px); }
@@ -722,7 +912,7 @@ body::before {
     animation: haptic 0.15s ease-in-out;
 }
 
-/* Responsive Design */
+/* ================= RESPONSIVE DESIGN ================= */
 @media (max-width: 767px) {
     .dashboard-header {
         height: calc(56px + var(--safe-area-top));
