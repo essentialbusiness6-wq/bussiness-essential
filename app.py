@@ -1225,9 +1225,9 @@ def invoice_drafts_list_data(
             "message": str(e)
         }), 500
 
-@app.route("/dashboard/clients/data")
-@token_required
-def clients_page_data(current_user_id, current_user_role):
+
+@cache.memoize(timeout=60)
+def get_clients_page_data(user_id, user_role):
 
     with db_cursor() as (_, cursor):
 
@@ -1245,7 +1245,7 @@ def clients_page_data(current_user_id, current_user_role):
             WHERE user_id=%s
             ORDER BY client_name ASC
             """,
-            (current_user_id,)
+            (user_id,)
         )
 
         clients_raw = cursor.fetchall()
@@ -1269,7 +1269,7 @@ def clients_page_data(current_user_id, current_user_role):
             WHERE user_id=%s
             GROUP BY client_id
             """,
-            (current_user_id,)
+            (user_id,)
         )
 
         invoice_aggregates_raw = cursor.fetchall()
@@ -1333,29 +1333,55 @@ def clients_page_data(current_user_id, current_user_role):
             FROM user_settings
             WHERE user_id=%s
             """,
-            (current_user_id,)
+            (user_id,)
         )
 
         settings = cursor.fetchone()
 
         if not settings:
-            return jsonify({
+            return {
                 "status": "error",
                 "message": "Settings not found"
-            }), 404
+            }, 404
 
         currency, currency_symbol, theme = settings
 
-    return jsonify({
-        "status": "success",
-        "clients": clients,
-        "currencySymbol": currency_symbol,
-        "theme": theme,
-        "user": {
-            "user_id": current_user_id,
-            "role": current_user_role
+        return {
+            "status": "success",
+            "clients": clients,
+            "currencySymbol": currency_symbol,
+            "theme": theme,
+            "user": {
+                "user_id": user_id,
+                "role": user_role
+            }
         }
-    })
+
+
+@app.route("/dashboard/clients/data")
+@token_required
+def clients_page_data(current_user_id, current_user_role):
+
+    try:
+
+        data = get_clients_page_data(
+            current_user_id,
+            current_user_role
+        )
+
+        if isinstance(data, tuple):
+            return jsonify(data[0]), data[1]
+
+        return jsonify(data)
+
+    except Exception as e:
+
+        print("Clients dashboard error:", e)
+
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 
 @app.route("/dashboard/payment/data")
 @token_required
@@ -1453,7 +1479,7 @@ def payment_page_data(current_user_id,current_user_role):
 
         cursor.execute(
             """
-            SELECT currency, currency_symbol
+            SELECT currency, currency_symbol,theme
             FROM user_settings
             WHERE user_id=%s
             """,
@@ -1469,7 +1495,8 @@ def payment_page_data(current_user_id,current_user_role):
         "total_overdue": float(total_overdue),
         "payments": payments,
         "currency": currency_info["currency"] if currency_info else "USD",
-        "currencySymbol": currency_info["currency_symbol"] if currency_info else "$"
+        "currencySymbol": currency_info["currency_symbol"] if currency_info else "$",
+        "theme": currency_info["theme"] if currency_symbol else "light"
     })
 
 
@@ -3447,6 +3474,11 @@ def create_invoice(current_user_id, current_user_role):
             current_user_id,
             current_user_role
         )
+        cache.delete_memoized(
+            get_clients_page_data,
+            current_user_id,
+            current_user_role
+        )
 
         return jsonify({
             "status": "success",
@@ -3957,6 +3989,11 @@ def add_client(current_user_id, current_user_role):
             current_user_id,
             current_user_role
         )
+        cache.delete_memoized(
+            get_clients_page_data,
+            current_user_id,
+            current_user_role
+        )
 
         return jsonify({
             "status": "success",
@@ -4025,6 +4062,12 @@ def update_client(current_user_id, current_user_role):
             f"Updated client {client_name}"
         )
 
+        cache.delete_memoized(
+            get_clients_page_data,
+                current_user_id,
+            current_user_role
+        )
+
         return jsonify({
             "status": "success",
             "message": "Client edited successfully"
@@ -4083,6 +4126,11 @@ def delete_client(current_user_id, current_user_role, client_id):
             "client",
             "Deleted",
             f"Deleted client {client[0]}"
+        )
+        cache.delete_memoized(
+            get_clients_page_data,
+            current_user_id,
+            current_user_role
         )
 
         return jsonify({
