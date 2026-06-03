@@ -22,6 +22,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize
     createParticles();
     loadUserData();
+    const savedTheme = sessionStorage.getItem("theme");
+
+    if (savedTheme) {
+        applyTheme(savedTheme);
+    }
     
     // Event Listeners
     settingsBtn.addEventListener('click', () => {
@@ -69,32 +74,77 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     // Functions
-    function loadUserData() {
-        // In a real app, this would fetch from API
-        fetch("/dashboard/me/data", {
-            methods: "GET",
-            header: {
-                "Content-Type": "application/json"
-            },
-            credentials: "include"
-        })
-        .then(response => response.json())
-        .then(data => {
-            sampleUser = data.user;
-            currencySymbol = data.currency_symbol || "$";
-            userName.textContent = sampleUser.name;
-            balanceDisplay.textContent = formatCurrency(sampleUser.balance);
-            balanceDisplay.dataset.balance = formatCurrency(sampleUser.balance);
-            if (sampleUser.profilePic) {
-             profilePic.src = sampleUser.profilePic;
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching user data:', error);
-        });
-        
-      
+function loadUserData(forceRefresh = false) {
+
+    const cached = sessionStorage.getItem("me_data");
+
+    if (!forceRefresh && cached) {
+        const data = JSON.parse(cached);
+        applyUserData(data);
+        return;
     }
+
+    fetch("/dashboard/me/data", {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        credentials: "include"
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        if (data.status !== "success") {
+            throw new Error(data.message || "Failed to load user data");
+        }
+
+        // CACHE IN SESSION
+        sessionStorage.setItem("me_data", JSON.stringify(data));
+
+        applyUserData(data);
+    })
+    .catch(err => {
+        console.error("Error fetching user data:", err);
+
+        const cached = sessionStorage.getItem("me_data");
+        if (cached) {
+            applyUserData(JSON.parse(cached));
+        }
+    });
+}
+    function applyUserData(data) {
+
+    const user = data.user;
+
+    currencySymbol = data.currency_symbol || "$";
+
+    userName.textContent = user.name || "User";
+
+    balanceDisplay.textContent = formatCurrency(user.balance);
+    balanceDisplay.dataset.balance = formatCurrency(user.balance);
+
+    if (user.profilePic) {
+        profilePic.src = user.profilePic;
+    }
+
+    // APPLY THEME (IMPORTANT FIX)
+    applyTheme(data.theme || "light");
+}
+    
+    function applyTheme(theme) {
+    const body = document.body;
+
+    if (theme === "dark") {
+        body.classList.add("dark");
+        body.classList.remove("light");
+    } else {
+        body.classList.remove("dark");
+        body.classList.add("light");
+    }
+
+    // optional: persist it
+    localStorage.setItem("theme", theme);
+}
     
     function toggleBalanceVisibility() {
         showHapticFeedback(toggleBalance);
