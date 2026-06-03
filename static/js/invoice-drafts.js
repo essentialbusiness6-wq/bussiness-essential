@@ -260,8 +260,6 @@ if (confirmDelete) {
 }
 
 // Function to load sample drafts
-let allDrafts = [];
-let currencySymbol = "$";
 
 async function loadSampleDrafts(forceRefresh = false) {
     const draftsGrid = document.getElementById("draftsGrid");
