@@ -223,7 +223,7 @@ async function loadSampleClients(forceRefresh = false) {
 
         const data = await response.json();
 
-        console.log("Received clients data:", data);
+
 
         if (data.status !== "success") {
             throw new Error(
@@ -386,7 +386,6 @@ function populateClientsCards(clients) {
     
     cardsContainer.innerHTML = '';
 
-    console.log('Populating client cards with clients:', clients);
     
     clients.forEach(client => {
         const card = document.createElement('div');
