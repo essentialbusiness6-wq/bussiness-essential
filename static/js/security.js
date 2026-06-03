@@ -486,7 +486,20 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelector('.security-tips').style.transform = 'translateY(0)';
         }, 1000);
     }, 300);
+    function applyTheme(theme) {
+    const body = document.body;
 
+    if (theme === "dark") {
+        body.classList.add("dark");
+        body.classList.remove("light");
+    } else {
+        body.classList.remove("dark");
+        body.classList.add("light");
+    }
+
+    // optional: persist it
+    localStorage.setItem("theme", theme);
+}
     async function loadSessions() {
     try {
         const response = await fetch("/api/sessions", {
@@ -500,6 +513,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         renderSessions(data.sessions);
+        applyTheme(data.theme);
 
     } catch (err) {
         console.error(err);
