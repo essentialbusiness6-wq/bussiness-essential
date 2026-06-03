@@ -5,7 +5,9 @@
     -webkit-tap-highlight-color: transparent;
 }
 
+/* ================= THEME VARIABLES ================= */
 :root {
+    /* Light Theme (Default) */
     --primary: #4361ee;
     --secondary: #3f37c9;
     --accent: #4895ef;
@@ -16,25 +18,86 @@
     --danger: #e74c3c;
     --warning: #f39c12;
     --info: #3498db;
+    
     --gradient-bg: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
     --gradient-card: linear-gradient(145deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85));
+    
+    /* Glassmorphism */
+    --glass-header: rgba(255, 255, 255, 0.88);
+    --glass-content: rgba(255, 255, 255, 0.8);
+    --glass-card: rgba(255, 255, 255, 0.75);
+    --glass-nav: rgba(255, 255, 255, 0.92);
+    
+    /* Borders & Shadows */
+    --border-glass: rgba(255, 255, 255, 0.6);
+    --border-subtle: rgba(0, 0, 0, 0.05);
+    --border-input: rgba(0, 0, 0, 0.08);
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
     --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.15);
+    
     --transition-fast: all 0.25s cubic-bezier(0.165, 0.84, 0.44, 1);
     --transition: all 0.35s cubic-bezier(0.165, 0.84, 0.44, 1);
     --transition-slow: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
+    
     --border-radius-sm: 12px;
     --border-radius: 16px;
     --border-radius-lg: 24px;
     --border-radius-full: 9999px;
+    
     --safe-area-top: env(safe-area-inset-top);
     --safe-area-bottom: env(safe-area-inset-bottom);
     --safe-area-left: env(safe-area-inset-left);
     --safe-area-right: env(safe-area-inset-right);
 }
 
-/* Base styles */
+/* ================= DARK THEME ================= */
+.dark {
+    --primary: #60a5fa;
+    --secondary: #818cf8;
+    --accent: #38bdf8;
+    --success: #34d399;
+    --dark: #f1f5f9;       /* Light text for readability */
+    --light: #0f172a;      /* Dark background base */
+    --gray: #94a3b8;
+    --danger: #f87171;
+    --warning: #fbbf24;
+    --info: #38bdf8;
+    
+    /* Deep, rich dark gradient for the body background */
+    --gradient-bg: linear-gradient(135deg, #020617 0%, #0f172a 100%);
+    --gradient-card: linear-gradient(145deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.6));
+    
+    /* Dark glassmorphism */
+    --glass-header: rgba(15, 23, 42, 0.85);
+    --glass-content: rgba(30, 41, 59, 0.7);
+    --glass-card: rgba(30, 41, 59, 0.6);
+    --glass-nav: rgba(15, 23, 42, 0.9);
+    
+    --border-glass: rgba(148, 163, 184, 0.15);
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-input: rgba(255, 255, 255, 0.1);
+    
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.6);
+    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.7);
+}
+
+/* Auto-detect system preference (optional) */
+@media (prefers-color-scheme: dark) {
+    :root:not(.light) {
+        --primary: #60a5fa; --secondary: #818cf8; --accent: #38bdf8; --success: #34d399;
+        --dark: #f1f5f9; --light: #0f172a; --gray: #94a3b8; --danger: #f87171; --warning: #fbbf24; --info: #38bdf8;
+        --gradient-bg: linear-gradient(135deg, #020617 0%, #0f172a 100%);
+        --gradient-card: linear-gradient(145deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.6));
+        --glass-header: rgba(15, 23, 42, 0.85); --glass-content: rgba(30, 41, 59, 0.7);
+        --glass-card: rgba(30, 41, 59, 0.6); --glass-nav: rgba(15, 23, 42, 0.9);
+        --border-glass: rgba(148, 163, 184, 0.15); --border-subtle: rgba(255, 255, 255, 0.08); --border-input: rgba(255, 255, 255, 0.1);
+        --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.5); --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.6); --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.7);
+    }
+}
+
+/* ================= BASE STYLES ================= */
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     background: var(--gradient-bg);
@@ -50,6 +113,7 @@ body {
     padding-bottom: calc(var(--safe-area-bottom) + 80px);
     padding-top: var(--safe-area-top);
     background-attachment: fixed;
+    transition: background 0.4s ease, color 0.4s ease;
 }
 
 body::before {
@@ -63,6 +127,11 @@ body::before {
     z-index: -1;
     animation: rotate 35s linear infinite;
     pointer-events: none;
+    transition: background 0.4s ease;
+}
+
+.dark body::before {
+    background: radial-gradient(circle, rgba(96, 165, 250, 0.05) 0%, rgba(255,255,255,0) 70%);
 }
 
 @keyframes rotate {
@@ -70,12 +139,12 @@ body::before {
     to { transform: rotate(360deg); }
 }
 
-/* Header styles */
+/* ================= HEADER STYLES ================= */
 .dashboard-header {
     display: flex;
     flex-direction: column;
     padding: calc(12px + var(--safe-area-top)) 16px 12px;
-    background: rgba(255, 255, 255, 0.88);
+    background: var(--glass-header);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     box-shadow: var(--shadow-md);
@@ -85,6 +154,7 @@ body::before {
     border-bottom-left-radius: 20px;
     border-bottom-right-radius: 20px;
     margin-bottom: 24px;
+    transition: var(--transition);
 }
 
 .top-header {
@@ -118,6 +188,10 @@ body::before {
     box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
 }
 
+.dark .profile-pic-container {
+    box-shadow: 0 4px 12px rgba(96, 165, 250, 0.3);
+}
+
 .profile-pic {
     width: 100%;
     height: 100%;
@@ -140,7 +214,7 @@ body::before {
     width: 40px;
     height: 40px;
     border-radius: var(--border-radius-full);
-    background: rgba(255, 255, 255, 0.85);
+    background: var(--glass-card);
     border: none;
     display: flex;
     justify-content: center;
@@ -155,7 +229,7 @@ body::before {
 
 .icon-btn:active {
     transform: scale(0.95);
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--glass-content);
 }
 
 .icon-btn:hover {
@@ -163,6 +237,10 @@ body::before {
     color: white;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(67, 97, 238, 0.4);
+}
+
+.dark .icon-btn:hover {
+    box-shadow: 0 4px 12px rgba(96, 165, 250, 0.4);
 }
 
 .icon-btn svg {
@@ -177,7 +255,7 @@ body::before {
     justify-content: space-between;
     align-items: center;
     padding: 16px 0;
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    border-top: 1px solid var(--border-input);
 }
 
 .balance-info p {
@@ -209,6 +287,10 @@ body::before {
     box-shadow: 0 8px 25px rgba(67, 97, 238, 0.4);
 }
 
+.dark .icon-with-circle-animation {
+    box-shadow: 0 8px 25px rgba(96, 165, 250, 0.3);
+}
+
 .icon-with-circle-animation::after {
     content: '';
     position: absolute;
@@ -226,7 +308,7 @@ body::before {
     fill: white;
 }
 
-/* Main content */
+/* ================= MAIN CONTENT ================= */
 .content {
     background: var(--gradient-card);
     backdrop-filter: blur(24px);
@@ -237,7 +319,8 @@ body::before {
     position: relative;
     overflow: hidden;
     margin-bottom: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.6);
+    border: 1px solid var(--border-glass);
+    transition: var(--transition);
 }
 
 .content::before {
@@ -252,7 +335,7 @@ body::before {
     animation: rotate 45s linear infinite reverse;
 }
 
-/* Page header */
+/* ================= PAGE HEADER ================= */
 .page-header {
     margin-bottom: 28px;
     text-align: center;
@@ -274,7 +357,7 @@ body::before {
     line-height: 1.5;
 }
 
-/* Action cards */
+/* ================= ACTION CARDS ================= */
 .action-cards {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -282,11 +365,11 @@ body::before {
 }
 
 .action-card {
-    background: rgba(255, 255, 255, 0.85);
+    background: var(--glass-card);
     border-radius: var(--border-radius);
     padding: 20px;
     box-shadow: var(--shadow-md);
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-subtle);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -300,7 +383,7 @@ body::before {
 .action-card:hover {
     transform: translateY(-3px);
     box-shadow: var(--shadow-lg);
-    background: rgba(255, 255, 255, 0.92);
+    background: var(--glass-content);
 }
 
 .action-card svg {
@@ -315,14 +398,14 @@ body::before {
     color: var(--dark);
 }
 
-/* Bottom navigation */
+/* ================= BOTTOM NAVIGATION ================= */
 .bottom-nav {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
     width: 100%;
-    background: rgba(255, 255, 255, 0.96);
+    background: var(--glass-nav);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     display: flex;
@@ -334,6 +417,10 @@ body::before {
     border-top-left-radius: 24px;
     border-top-right-radius: 24px;
     transition: var(--transition-fast);
+}
+
+.dark .bottom-nav {
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
 }
 
 .nav-item {
@@ -358,6 +445,10 @@ body::before {
 .nav-item.active {
     color: var(--primary);
     background: rgba(67, 97, 238, 0.08);
+}
+
+.dark .nav-item.active {
+    background: rgba(96, 165, 250, 0.15);
 }
 
 .nav-item.active::after {
@@ -386,7 +477,7 @@ body::before {
     fill: var(--primary);
 }
 
-/* Particles background */
+/* ================= PARTICLES ================= */
 .particles {
     position: fixed;
     top: 0;
@@ -404,6 +495,10 @@ body::before {
     animation: float 15s infinite linear;
 }
 
+.dark .particle {
+    background: rgba(96, 165, 250, 0.3);
+}
+
 @keyframes float {
     0% {
         transform: translateY(0) translateX(0) rotate(0deg);
@@ -415,7 +510,7 @@ body::before {
     }
 }
 
-/* Toast notification */
+/* ================= TOAST NOTIFICATION ================= */
 .toast {
     position: fixed;
     bottom: calc(90px + var(--safe-area-bottom));
@@ -432,7 +527,7 @@ body::before {
     max-width: 85%;
     text-align: center;
     backdrop-filter: blur(12px);
-    border: 1px solid rgba(0,0,0,0.08);
+    border: 1px solid var(--border-input);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -463,7 +558,7 @@ body::before {
     fill: white;
 }
 
-/* Haptic feedback */
+/* ================= ANIMATIONS ================= */
 @keyframes haptic {
     0% { transform: translateX(0); }
     25% { transform: translateX(-2px); }
@@ -476,7 +571,7 @@ body::before {
     animation: haptic 0.15s ease-in-out;
 }
 
-/* Responsive Design */
+/* ================= RESPONSIVE DESIGN ================= */
 @media (max-width: 767px) {
     .dashboard-header {
         padding: calc(8px + var(--safe-area-top)) 12px 8px;
