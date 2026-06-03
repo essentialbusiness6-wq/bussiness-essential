@@ -66,13 +66,19 @@
     
     /* Deep, rich dark gradient for the body background */
     --gradient-bg: linear-gradient(135deg, #020617 0%, #0f172a 100%);
-    --gradient-card: linear-gradient(145deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.6));
+    --gradient-card: linear-gradient(
+        145deg,
+        rgba(15,23,42,.95),
+        rgba(2,6,23,.95)
+    );
     
     /* Dark glassmorphism */
-    --glass-header: rgba(15, 23, 42, 0.85);
-    --glass-content: rgba(30, 41, 59, 0.7);
-    --glass-card: rgba(30, 41, 59, 0.6);
+    
     --glass-nav: rgba(15, 23, 42, 0.9);
+    --glass-content: rgba(15,23,42,.9);
+    --glass-card: rgba(15,23,42,.85);
+    --glass-header: rgba(2,6,23,.9);
+
     
     --border-glass: rgba(148, 163, 184, 0.15);
     --border-subtle: rgba(255, 255, 255, 0.08);
@@ -81,6 +87,16 @@
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.5);
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.6);
     --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.7);
+
+    /* Modal Dark Overrides */
+    --modal-bg: #0f172a;
+    --modal-text: #f8fafc;
+    --modal-subtext: #94a3b8;
+    --modal-indicator: #334155;
+    --modal-close: #64748b;
+    --modal-close-hover: #f8fafc;
+    --modal-btn-grad: linear-gradient(135deg, #2563eb, #1d4ed8);
+    --modal-btn-sec-grad: linear-gradient(135deg, #475569, #334155);
 }
 
 /* Auto-detect system preference (optional) */
@@ -132,6 +148,20 @@ body::before {
 
 .dark body::before {
     background: radial-gradient(circle, rgba(96, 165, 250, 0.05) 0%, rgba(255,255,255,0) 70%);
+}
+
+body.dark {
+    background: linear-gradient(135deg, #020617 0%, #0f172a 100%) !important;
+}
+
+.dark body,
+body.dark {
+    background-color: #020617 !important;
+    background-image: linear-gradient(
+        135deg,
+        #020617 0%,
+        #0f172a 100%
+    ) !important;
 }
 
 @keyframes rotate {
