@@ -7,8 +7,28 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Calculate initial totals
     calculateTotals();
+    const theme = document.body.dataset.theme;
+    if (theme) {
+        applyTheme(theme);
+    }
+        
 });
 
+
+function applyTheme(theme) {
+    const body = document.body;
+
+    if (theme === "dark") {
+        body.classList.add("dark");
+        body.classList.remove("light");
+    } else {
+        body.classList.remove("dark");
+        body.classList.add("light");
+    }
+
+    // optional: persist it
+    localStorage.setItem("theme", theme);
+}
 
 
 // Function to create floating particles in the background
