@@ -195,20 +195,8 @@ function setupEventListeners() {
         }
     });
 }
-function applyTheme(theme) {
-    const body = document.body;
 
-    if (theme === "dark") {
-        body.classList.add("dark");
-        body.classList.remove("light");
-    } else {
-        body.classList.remove("dark");
-        body.classList.add("light");
-    }
 
-    // optional: persist it
-    localStorage.setItem("theme", theme);
-}
 
 // Function to load sample clients
 function loadSampleClients() {
@@ -228,6 +216,7 @@ function loadSampleClients() {
             clients = data.clients || [];
             populateClientsTable(clients);
             populateClientsCards(clients);
+            console.log(data.theme);
             applyTheme(data.theme);
     
 
@@ -241,6 +230,21 @@ function loadSampleClients() {
     
 
 
+}
+
+function applyTheme(theme) {
+    const body = document.body;
+
+    if (theme === "dark") {
+        body.classList.add("dark");
+        body.classList.remove("light");
+    } else {
+        body.classList.remove("dark");
+        body.classList.add("light");
+    }
+
+    // optional: persist it
+    localStorage.setItem("theme", theme);
 }
 
 // Function to populate clients table
