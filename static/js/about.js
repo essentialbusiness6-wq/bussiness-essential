@@ -71,11 +71,10 @@ document.addEventListener('DOMContentLoaded', () => {
             body.classList.remove("dark");
             body.classList.add("light");
         }
-    }
 
-    // optional: persist it
-    localStorage.setItem("theme", theme);
-}
+        // optional: persist it
+        localStorage.setItem("theme", theme);
+    }
 
     function showToast(message, type = 'info') {
         const existing = document.querySelector('.toast');
