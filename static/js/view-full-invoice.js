@@ -31,6 +31,475 @@ function applyTheme(theme) {
     // optional: persist it
     localStorage.setItem("theme", theme);
 }
+async function generateInvoicePDF(invoiceData) {
+
+    try {
+
+        const { jsPDF } = window.jspdf;
+
+        const pdf = new jsPDF({
+            orientation: "portrait",
+            unit: "mm",
+            format: "a4"
+        });
+
+        const pageWidth =
+            pdf.internal.pageSize.getWidth();
+
+        const primaryColor = [67, 97, 238];
+        const darkColor = [33, 37, 41];
+        const lightGray = [120, 120, 120];
+
+        // =========================
+        // COMPANY
+        // =========================
+
+        pdf.setFont("helvetica", "bold");
+        pdf.setTextColor(...primaryColor);
+        pdf.setFontSize(24);
+
+        pdf.text(
+            invoiceData.companyName || "Business Essential",
+            20,
+            25
+        );
+
+        pdf.setFontSize(10);
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(...lightGray);
+
+        let companyY = 35;
+
+        [
+            invoiceData.companyAddress,
+            invoiceData.companyEmail,
+            invoiceData.companyPhone,
+            invoiceData.companyWebsite
+        ].forEach(line => {
+
+            if (line) {
+
+                pdf.text(
+                    String(line),
+                    20,
+                    companyY
+                );
+
+                companyY += 5;
+            }
+
+        });
+
+        // =========================
+        // TITLE
+        // =========================
+
+        pdf.setTextColor(...darkColor);
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(22);
+
+        pdf.text(
+            "TAX INVOICE",
+            pageWidth - 20,
+            25,
+            {
+                align: "right"
+            }
+        );
+
+        pdf.setTextColor(...primaryColor);
+
+        pdf.setFontSize(14);
+
+        pdf.text(
+            invoiceData.invoiceNumber,
+            pageWidth - 20,
+            35,
+            {
+                align: "right"
+            }
+        );
+
+        // =========================
+        // META
+        // =========================
+
+        pdf.setTextColor(...darkColor);
+
+        pdf.setFontSize(10);
+
+        pdf.text(
+            `Invoice Date: ${invoiceData.invoiceDate}`,
+            pageWidth - 20,
+            48,
+            {
+                align: "right"
+            }
+        );
+
+        pdf.text(
+            `Due Date: ${invoiceData.dueDate}`,
+            pageWidth - 20,
+            55,
+            {
+                align: "right"
+            }
+        );
+
+        pdf.text(
+            `Status: ${invoiceData.status}`,
+            pageWidth - 20,
+            62,
+            {
+                align: "right"
+            }
+        );
+
+        // =========================
+        // BILL TO
+        // =========================
+
+        pdf.setDrawColor(220);
+
+        pdf.line(
+            20,
+            75,
+            pageWidth - 20,
+            75
+        );
+
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(12);
+
+        pdf.text(
+            "BILLED TO",
+            20,
+            85
+        );
+
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(10);
+
+        pdf.text(
+            invoiceData.clientName || "",
+            20,
+            93
+        );
+
+        pdf.text(
+            invoiceData.clientEmail || "",
+            20,
+            100
+        );
+
+        if (invoiceData.clientAddress) {
+
+            const addressLines =
+                pdf.splitTextToSize(
+                    invoiceData.clientAddress,
+                    70
+                );
+
+            pdf.text(
+                addressLines,
+                20,
+                107
+            );
+        }
+
+        // =========================
+        // INVOICE DETAILS
+        // =========================
+
+        pdf.setFont("helvetica", "bold");
+
+        pdf.text(
+            "INVOICE DETAILS",
+            120,
+            85
+        );
+
+        pdf.setFont("helvetica", "normal");
+
+        pdf.text(
+            `Client ID: CL-${invoiceData.clientId}`,
+            120,
+            95
+        );
+
+        pdf.text(
+            `Payment Terms: ${invoiceData.paymentTerms}`,
+            120,
+            102
+        );
+
+        pdf.text(
+            `Status: ${invoiceData.status}`,
+            120,
+            109
+        );
+
+        // =========================
+        // ITEMS TABLE
+        // =========================
+
+        pdf.autoTable({
+
+            startY: 125,
+
+            head: [[
+                "Description",
+                "Qty",
+                "Unit Price",
+                "Amount"
+            ]],
+
+            body: invoiceData.items.map(item => [
+
+                item.desc,
+
+                item.qty,
+
+                `${invoiceData.currencySymbol}${Number(item.price).toFixed(2)}`,
+
+                `${invoiceData.currencySymbol}${Number(item.total).toFixed(2)}`
+            ]),
+
+            theme: "grid",
+
+            headStyles: {
+                fillColor: primaryColor,
+                textColor: 255,
+                fontStyle: "bold"
+            },
+
+            styles: {
+                fontSize: 10,
+                cellPadding: 4
+            }
+        });
+
+        // =========================
+        // TOTALS
+        // =========================
+
+        const finalY =
+            pdf.lastAutoTable.finalY + 15;
+
+        pdf.setFontSize(11);
+
+        pdf.text(
+            "Subtotal:",
+            130,
+            finalY
+        );
+
+        pdf.text(
+            `${invoiceData.currencySymbol}${Number(invoiceData.subtotal).toFixed(2)}`,
+            pageWidth - 20,
+            finalY,
+            {
+                align: "right"
+            }
+        );
+
+        pdf.text(
+            `Tax (${invoiceData.tax}%):`,
+            130,
+            finalY + 8
+        );
+
+        pdf.text(
+            `${invoiceData.currencySymbol}${Number(invoiceData.taxAmount).toFixed(2)}`,
+            pageWidth - 20,
+            finalY + 8,
+            {
+                align: "right"
+            }
+        );
+
+        pdf.setDrawColor(...primaryColor);
+
+        pdf.line(
+            130,
+            finalY + 14,
+            pageWidth - 20,
+            finalY + 14
+        );
+
+        pdf.setTextColor(...primaryColor);
+
+        pdf.setFontSize(16);
+        pdf.setFont("helvetica", "bold");
+
+        pdf.text(
+            "TOTAL",
+            130,
+            finalY + 25
+        );
+
+        pdf.text(
+            `${invoiceData.currencySymbol}${Number(invoiceData.totalAmount).toFixed(2)}`,
+            pageWidth - 20,
+            finalY + 25,
+            {
+                align: "right"
+            }
+        );
+
+        // =========================
+        // PAYMENT INFO
+        // =========================
+
+        let footerY = finalY + 45;
+
+        pdf.setTextColor(...darkColor);
+
+        pdf.setFontSize(12);
+
+        pdf.text(
+            "Payment Information",
+            20,
+            footerY
+        );
+
+        pdf.setFontSize(10);
+
+        const paymentText =
+            "Payment is due within 30 days of the invoice date. This invoice has been paid in full via your Business Essential account.";
+
+        pdf.text(
+            pdf.splitTextToSize(
+                paymentText,
+                170
+            ),
+            20,
+            footerY + 8
+        );
+
+        footerY += 30;
+
+        pdf.setFont("helvetica", "bold");
+
+        pdf.text(
+            "Questions?",
+            20,
+            footerY
+        );
+
+        pdf.setFont("helvetica", "normal");
+
+        pdf.text(
+            "billing@businesse.com",
+            20,
+            footerY + 8
+        );
+
+        pdf.text(
+            "+1 (800) 555-0199",
+            20,
+            footerY + 15
+        );
+
+        // =========================
+        // THANK YOU
+        // =========================
+
+        pdf.setTextColor(...primaryColor);
+
+        pdf.setFontSize(12);
+        pdf.setFont("helvetica", "bold");
+
+        pdf.text(
+            "Thank you for powering your business with Business Essential!",
+            pageWidth / 2,
+            280,
+            {
+                align: "center"
+            }
+        );
+
+        pdf.save(
+            `${invoiceData.invoiceNumber}.pdf`
+        );
+
+    }
+    catch (error) {
+
+        console.error(error);
+
+        showToast(
+            "Failed to generate PDF",
+            "error"
+        );
+
+    }
+
+}
+
+function downloadPDF() {
+
+    generateInvoicePDF({
+
+        companyName:
+            document.getElementById("companyName")?.textContent || "",
+
+        companyEmail:
+            document.getElementById("companyEmail")?.textContent || "",
+
+        companyPhone:
+            document.getElementById("companyPhone")?.textContent || "",
+
+        companyWebsite:
+            document.getElementById("companyWebsite")?.textContent || "",
+
+        companyAddress:
+            document.getElementById("companyAddress")?.textContent || "",
+
+        clientName:
+            document.getElementById("clientName")?.textContent || "",
+
+        clientEmail:
+            document.getElementById("clientEmail")?.textContent || "",
+
+        clientAddress:
+            document.getElementById("clientAddress")?.textContent || "",
+
+        invoiceNumber:
+            document.getElementById("invoiceNumber")?.textContent || "",
+
+        invoiceDate:
+            document.getElementById("invoiceDate")?.textContent || "",
+
+        dueDate:
+            document.getElementById("dueDate")?.textContent || "",
+
+        clientId:
+            document.getElementById("clientId")?.textContent
+                .replace("CL-", ""),
+
+        paymentTerms:
+            document.getElementById("paymentTerms")?.textContent || "",
+
+        status:
+            document.getElementById("invoiceStatus")?.textContent || "",
+
+        currencySymbol,
+
+        subtotal,
+
+        tax,
+
+        taxAmount,
+
+        totalAmount,
+
+        items
+
+    });
+
+}
+
 
 // Function to create floating particles in the background
 function createParticles() {
@@ -117,8 +586,8 @@ if (downloadBtn) {
 
         // small delay ensures DOM updates before print capture
         setTimeout(() => {
-            window.print();
-
+            
+            downloadPDF()
             // restore after print dialog closes
             setTimeout(() => {
                 document.title = oldTitle;
