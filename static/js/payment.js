@@ -157,6 +157,7 @@ function loadSamplePayments() {
             populatePaymentsTable(payments);
             populatePaymentCards(payments);
             checkEmptyState(payments.length);
+            applyTheme(data.theme);
 
                 // Calculate summary values
     const totalReceived = payments
@@ -184,6 +185,21 @@ function loadSamplePayments() {
 
     
 
+}
+
+function applyTheme(theme) {
+    const body = document.body;
+
+    if (theme === "dark") {
+        body.classList.add("dark");
+        body.classList.remove("light");
+    } else {
+        body.classList.remove("dark");
+        body.classList.add("light");
+    }
+
+    // optional: persist it
+    localStorage.setItem("theme", theme);
 }
 
 // Function to populate payments table
