@@ -17,7 +17,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmModal = document.getElementById('confirmModal');
     const particlesContainer = document.getElementById('particles');
     const draftId = document.getElementById('draftId')?.value || '123';
-    
+
+    const theme = document.body.dataset.theme;
+    if (theme) {
+        applyTheme(theme);
+    }
+
+
     // Initialize
     createParticles();
     calculateTotals();
@@ -184,7 +190,20 @@ document.addEventListener('DOMContentLoaded', () => {
         subtotalElement.textContent = formatCurrency(subtotal, currencySymbol);
         totalElement.textContent = formatCurrency(total, currencySymbol);
     }
-    
+    function applyTheme(theme) {
+    const body = document.body;
+
+    if (theme === "dark") {
+        body.classList.add("dark");
+        body.classList.remove("light");
+    } else {
+        body.classList.remove("dark");
+        body.classList.add("light");
+    }
+
+    // optional: persist it
+    localStorage.setItem("theme", theme);
+}
     function calculateBalance() {
         const currencySymbol = getCurrencySymbol();
         const totalText = totalElement.textContent.replace(/[^0-9.]/g, '');
