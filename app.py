@@ -1383,61 +1383,72 @@ def clients_page_data(current_user_id, current_user_role):
             "message": str(e)
         }), 500
 
-@app.route("/dashboard/payment/data")
-@token_required
-def payment_page_data(current_user_id,current_user_role):
+@cache.memoize(timeout=60)
+def get_payment_page_data(user_id):
+
     with db_cursor(dictionary=True) as (_, cursor):
 
-        # Total recieved
+        # Total received
         cursor.execute(
             """
             SELECT COALESCE(SUM(total), 0) AS total_received
             FROM invoices
             WHERE user_id=%s AND status=%s
             """,
-            (current_user_id, "paid")
+            (user_id, "paid")
         )
         total_received = cursor.fetchone()["total_received"]
 
-        # total outstanding
+        # Total pending
         cursor.execute(
             """
             SELECT COALESCE(SUM(total), 0) AS total_pending
             FROM invoices
             WHERE user_id=%s AND status=%s
             """,
-            (current_user_id, "pending")
+            (user_id, "pending")
         )
         total_pending = cursor.fetchone()["total_pending"]
 
+        # Total unpaid
         cursor.execute(
             """
             SELECT COALESCE(SUM(total), 0) AS total_unpaid
             FROM invoices
             WHERE user_id=%s AND status=%s
             """,
-            (current_user_id, "unpaid")
+            (user_id, "unpaid")
         )
         total_unpaid = cursor.fetchone()["total_unpaid"]
 
         total_outstanding = total_pending + total_unpaid
 
-        # total overdue
+        # Total overdue
         cursor.execute(
             """
             SELECT COALESCE(SUM(total), 0) AS total_overdue
             FROM invoices
-            WHERE user_id=%s AND due_date < %s AND status IN (%s, %s, %s)
+            WHERE user_id=%s
+            AND due_date < %s
+            AND status IN (%s,%s,%s)
             """,
-            (current_user_id, datetime.now(), "pending", "unpaid", "overdue")
+            (
+                user_id,
+                datetime.now(),
+                "pending",
+                "unpaid",
+                "overdue"
+            )
         )
+
         total_overdue = cursor.fetchone()["total_overdue"]
 
+        # Payments
         cursor.execute(
             """
-            SELECT 
+            SELECT
                 invoices.id,
-                invoices.invoice_number ,
+                invoices.invoice_number,
                 invoices.client_id,
                 invoices.invoice_date,
                 invoices.total AS amount,
@@ -1447,58 +1458,116 @@ def payment_page_data(current_user_id,current_user_role):
                 clients.client_name AS clientName,
                 clients.client_email AS clientEmail
             FROM invoices
-            JOIN clients ON clients.id = invoices.client_id
-            WHERE invoices.user_id=%s 
+            JOIN clients
+                ON clients.id = invoices.client_id
+            WHERE invoices.user_id=%s
             """,
-            (current_user_id,)
+            (user_id,)
         )
+
         payments_raw = cursor.fetchall()
+
         payments = []
+
         for p in payments_raw:
+
             cursor.execute(
                 """
-                SELECT description, quantity, price
+                SELECT
+                    description,
+                    quantity,
+                    price
                 FROM invoice_items
                 WHERE invoice_id=%s
                 """,
-                (p['id'],)
+                (p["id"],)
             )
+
             items = cursor.fetchall()
-        
+
             payments.append({
-                "id": p['invoice_number'],
-                "client": p['clientName'],
-                "email": p['clientEmail'],
-                "date": p['invoice_date'].strftime("%Y-%m-%d"),
-                "amount": float(p['amount']),
-                "status": p['status'],
-                "dueDate": p['due_date'].strftime("%Y-%m-%d"),
-                "items": [{"desc": i['description'], "qty": i['quantity'], "price": float(i['price'])} for i in items],
-                "notes": p['note']
+                "id": p["invoice_number"],
+                "client": p["clientName"],
+                "email": p["clientEmail"],
+                "date": (
+                    p["invoice_date"].strftime("%Y-%m-%d")
+                    if p["invoice_date"] else None
+                ),
+                "amount": float(p["amount"] or 0),
+                "status": p["status"],
+                "dueDate": (
+                    p["due_date"].strftime("%Y-%m-%d")
+                    if p["due_date"] else None
+                ),
+                "items": [
+                    {
+                        "desc": i["description"],
+                        "qty": i["quantity"],
+                        "price": float(i["price"] or 0)
+                    }
+                    for i in items
+                ],
+                "notes": p["note"]
             })
 
         cursor.execute(
             """
-            SELECT currency, currency_symbol,theme
+            SELECT
+                currency,
+                currency_symbol,
+                theme
             FROM user_settings
             WHERE user_id=%s
             """,
-            (current_user_id,)
-    
+            (user_id,)
         )
+
         currency_info = cursor.fetchone()
 
-    return jsonify({
-        "status": "success",
-        "total_received": float(total_received),
-        "total_outstanding": float(total_outstanding),
-        "total_overdue": float(total_overdue),
-        "payments": payments,
-        "currency": currency_info["currency"] if currency_info else "USD",
-        "currencySymbol": currency_info["currency_symbol"] if currency_info else "$",
-        "theme": currency_info["theme"] if currency_info else "light"
-    })
+        return {
+            "status": "success",
+            "total_received": float(total_received or 0),
+            "total_outstanding": float(total_outstanding or 0),
+            "total_overdue": float(total_overdue or 0),
+            "payments": payments,
+            "currency": (
+                currency_info["currency"]
+                if currency_info else "USD"
+            ),
+            "currencySymbol": (
+                currency_info["currency_symbol"]
+                if currency_info else "$"
+            ),
+            "theme": (
+                currency_info["theme"]
+                if currency_info else "light"
+            )
+        }
 
+
+@app.route("/dashboard/payment/data")
+@token_required
+def payment_page_data(current_user_id, current_user_role):
+
+    try:
+
+        data = get_payment_page_data(current_user_id)
+
+        data["user"] = {
+            "user_id": current_user_id,
+            "role": current_user_role
+        }
+
+        return jsonify(data)
+
+    except Exception as e:
+
+        print("Payment dashboard error:", e)
+
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 
 @app.route("/dashboard/me/data")
 @token_required
@@ -3480,6 +3549,11 @@ def create_invoice(current_user_id, current_user_role):
             current_user_role
         )
 
+        cache.delete_memoized(
+            get_payment_page_data,
+            current_user_id
+        )
+
         return jsonify({
             "status": "success",
             "message": "Invoice created successfully",
@@ -3711,6 +3785,10 @@ def update_draft(current_user_id, current_user_role):
             current_user_id,
             current_user_role
         )
+        cache.delete_memoized(
+            get_payment_page_data,
+            current_user_id
+        )
         return jsonify({
             "status": "success",
             "message": "Invoice updated"
@@ -3769,6 +3847,10 @@ def delete_invoice(current_user_id, current_user_role, invoice_id):
             get_dashboard_data,
             current_user_id,
             current_user_role
+        )
+        cache.delete_memoized(
+            get_payment_page_data,
+            current_user_id
         )
         return jsonify({
             "status": "success",
