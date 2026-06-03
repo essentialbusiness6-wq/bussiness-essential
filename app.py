@@ -840,200 +840,151 @@ def profile_page(current_user_id,current_user_role):
     return render_template("users/profile.html", profile_data=profile_data)
 
 # ========================= DATA ROUTES =========================
+@cache.memoize(timeout=60)
+def get_dashboard_data(user_id, user_role):
+
+    with db_cursor(dictionary=True) as (_, cursor):
+
+        # User
+        cursor.execute("""
+            SELECT
+                ub.username,
+                ub.plan,
+                cb.profilepicurl,
+                cb.profilename
+            FROM user_base ub
+            LEFT JOIN cust_base cb
+                ON cb.user_id = ub.user_id
+            WHERE ub.user_id=%s
+            LIMIT 1
+        """, (user_id,))
+        user_data = cursor.fetchone()
+
+        if not user_data:
+            return None
+
+        # Invoice Stats
+        cursor.execute("""
+            SELECT
+                COUNT(*) AS total_invoices,
+                SUM(CASE WHEN status='paid' THEN 1 ELSE 0 END) AS paid_invoices,
+                SUM(CASE WHEN status='pending' THEN 1 ELSE 0 END) AS pending_invoices,
+                COALESCE(
+                    SUM(
+                        CASE
+                            WHEN status='paid'
+                            THEN total
+                            ELSE 0
+                        END
+                    ),
+                    0
+                ) AS total_revenue
+            FROM invoices
+            WHERE user_id=%s
+        """, (user_id,))
+        invoice_stats = cursor.fetchone()
+
+        # Settings
+        cursor.execute("""
+            SELECT
+                us.currency,
+                us.currency_symbol,
+                us.theme,
+                wb.wallet_balance
+            FROM user_settings us
+            LEFT JOIN wallet_base wb
+                ON wb.user_id = us.user_id
+            WHERE us.user_id=%s
+            LIMIT 1
+        """, (user_id,))
+        account_data = cursor.fetchone()
+
+        if not account_data:
+            return None
+
+        # Notifications
+        cursor.execute("""
+            SELECT COUNT(*) AS unread_count
+            FROM log_activity
+            WHERE user_id=%s
+            AND is_read=FALSE
+        """, (user_id,))
+        unread_count = cursor.fetchone()["unread_count"]
+
+        # Activities
+        cursor.execute("""
+            SELECT
+                type,
+                title,
+                description,
+                amount,
+                created_at
+            FROM log_activity
+            WHERE user_id=%s
+            ORDER BY created_at DESC
+            LIMIT 10
+        """, (user_id,))
+        activities = cursor.fetchall()
+
+    return {
+        "status": "success",
+
+        "username": user_data["username"],
+        "plan": (user_data["plan"] or "").capitalize(),
+        "profilepicurl": user_data["profilepicurl"],
+        "profilename": user_data["profilename"],
+
+        "total_invoices": invoice_stats["total_invoices"] or 0,
+        "paid_invoices": invoice_stats["paid_invoices"] or 0,
+        "pending_invoices": invoice_stats["pending_invoices"] or 0,
+
+        "total_revenue": float(
+            invoice_stats["total_revenue"] or 0
+        ),
+
+        "currency": account_data["currency"],
+        "currency_symbol": account_data["currency_symbol"],
+        "theme": account_data["theme"],
+
+        "balance": float(
+            account_data["wallet_balance"] or 0
+        ),
+
+        "unread_count": unread_count,
+
+        "activities": activities,
+
+        "user": {
+            "id": user_id,
+            "role": user_role
+        }
+    }
+
 @app.route("/dashboard/data")
 @token_required
 def dashboard_data(current_user_id, current_user_role):
 
     try:
 
-        # ================= CACHE =================
-
-        cache_key = f"dashboard_{current_user_id}"
-
-        cached_data = session.get(cache_key)
-        cached_time = session.get(f"{cache_key}_time")
-
-        if (
-            cached_data
-            and cached_time
-            and time.time() - cached_time < 60
-        ):
-            return jsonify(cached_data)
-
         start = time.time()
 
-        with db_cursor(dictionary=True) as (_, cursor):
-
-            # ================= USER =================
-
-            cursor.execute("""
-                SELECT
-                    ub.username,
-                    ub.plan,
-                    cb.profilepicurl,
-                    cb.profilename
-                FROM user_base ub
-                LEFT JOIN cust_base cb
-                    ON cb.user_id = ub.user_id
-                WHERE ub.user_id=%s
-                LIMIT 1
-            """, (current_user_id,))
-
-            user_data = cursor.fetchone()
-
-            if not user_data:
-                return jsonify({
-                    "status": "error",
-                    "message": "User not found"
-                }), 404
-
-            print("User query took:", time.time() - start)
-
-            # ================= INVOICE STATS =================
-
-            cursor.execute("""
-                SELECT
-                    COUNT(*) AS total_invoices,
-
-                    SUM(
-                        CASE
-                            WHEN status='paid'
-                            THEN 1
-                            ELSE 0
-                        END
-                    ) AS paid_invoices,
-
-                    SUM(
-                        CASE
-                            WHEN status='pending'
-                            THEN 1
-                            ELSE 0
-                        END
-                    ) AS pending_invoices,
-
-                    COALESCE(
-                        SUM(
-                            CASE
-                                WHEN status='paid'
-                                THEN total
-                                ELSE 0
-                            END
-                        ),
-                        0
-                    ) AS total_revenue
-
-                FROM invoices
-                WHERE user_id=%s
-            """, (current_user_id,))
-
-            invoice_stats = cursor.fetchone()
-
-            print("Invoice query took:", time.time() - start)
-
-            # ================= SETTINGS + WALLET =================
-
-            cursor.execute("""
-                SELECT
-                    us.currency,
-                    us.currency_symbol,
-                    us.theme,
-                    wb.wallet_balance
-                FROM user_settings us
-                LEFT JOIN wallet_base wb
-                    ON wb.user_id = us.user_id
-                WHERE us.user_id=%s
-                LIMIT 1
-            """, (current_user_id,))
-
-            account_data = cursor.fetchone()
-
-            if not account_data:
-                return jsonify({
-                    "status": "error",
-                    "message": "Account settings missing"
-                }), 404
-
-            print("Settings query took:", time.time() - start)
-
-            # ================= UNREAD COUNT =================
-
-            cursor.execute("""
-                SELECT COUNT(*) AS unread_count
-                FROM log_activity
-                WHERE user_id=%s
-                AND is_read=FALSE
-            """, (current_user_id,))
-
-            unread_count = cursor.fetchone()["unread_count"]
-
-            print("Unread query took:", time.time() - start)
-
-            # ================= RECENT ACTIVITIES =================
-
-            cursor.execute("""
-                SELECT
-                    type,
-                    title,
-                    description,
-                    amount,
-                    created_at
-                FROM log_activity
-                WHERE user_id=%s
-                ORDER BY created_at DESC
-                LIMIT 10
-            """, (current_user_id,))
-
-            activities = cursor.fetchall()
-
-            print("Activity query took:", time.time() - start)
-
-        # DB connection automatically closed here
-
-        response_data = {
-            "status": "success",
-
-            "username": user_data["username"],
-            "plan": (user_data["plan"] or "").capitalize(),
-            "profilepicurl": user_data["profilepicurl"],
-            "profilename": user_data["profilename"],
-
-            "total_invoices": invoice_stats["total_invoices"] or 0,
-            "paid_invoices": invoice_stats["paid_invoices"] or 0,
-            "pending_invoices": invoice_stats["pending_invoices"] or 0,
-
-            "total_revenue": float(
-                invoice_stats["total_revenue"] or 0
-            ),
-
-            "currency": account_data["currency"],
-            "currency_symbol": account_data["currency_symbol"],
-            "theme": account_data['theme'],
-
-            "balance": float(
-                account_data["wallet_balance"] or 0
-            ),
-
-            "unread_count": unread_count,
-
-            "activities": activities,
-
-            "user": {
-                "id": current_user_id,
-                "role": current_user_role
-            }
-        }
-
-        # ================= CACHE =================
-
-        session[cache_key] = response_data
-        session[f"{cache_key}_time"] = time.time()
-
-        print(
-            "Total query took:",
-            time.time() - start
+        data = get_dashboard_data(
+            current_user_id,
+            current_user_role
         )
 
-        return jsonify(response_data)
+        if not data:
+            return jsonify({
+                "status": "error",
+                "message": "User data not found"
+            }), 404
+
+        print(
+            f"Dashboard response took "
+            f"{time.time() - start:.3f}s"
+        )
+
+        return jsonify(data)
 
     except Exception as e:
 
@@ -1043,7 +994,6 @@ def dashboard_data(current_user_id, current_user_role):
             "status": "error",
             "message": str(e)
         }), 500
-
 
 @cache.memoize(timeout=60)
 def get_invoice_list_cached(user_id):
@@ -1133,9 +1083,8 @@ def invoice_list_data(
         }), 500
 
 
-@app.route("/invoice/drafts/list/data")
-@token_required
-def invoice_drafts_list_data(current_user_id, current_user_role):
+@cache.memoize(timeout=60)
+def get_invoice_drafts_data(user_id, user_role):
 
     with db_cursor() as (_, cursor):
 
@@ -1157,8 +1106,9 @@ def invoice_drafts_list_data(current_user_id, current_user_role):
                 note
             FROM invoice_drafts
             WHERE user_id=%s
+            ORDER BY id DESC
             """,
-            (current_user_id,)
+            (user_id,)
         )
 
         drafts = cursor.fetchall()
@@ -1171,38 +1121,52 @@ def invoice_drafts_list_data(current_user_id, current_user_role):
                 "id": draft[0],
                 "client_name": draft[1],
                 "client_email": draft[2],
+
                 "invoice_date": (
                     draft[3].strftime("%Y-%m-%d")
-                    if draft[3] else None
+                    if draft[3]
+                    else None
                 ),
+
                 "due_date": (
                     draft[4].strftime("%Y-%m-%d")
-                    if draft[4] else None
+                    if draft[4]
+                    else None
                 ),
+
                 "total": float(draft[5] or 0),
+
                 "status": draft[6],
+
                 "subtotal": float(draft[7] or 0),
+
                 "tax": float(draft[8] or 0),
+
                 "taxAmount": (
                     float(draft[7] or 0)
                     * float(draft[8] or 0)
                     / 100
                 ),
+
                 "items": {
                     "desc": draft[9],
                     "qty": draft[10],
                     "price": float(draft[11] or 0)
                 },
+
                 "note": draft[12]
             })
 
         cursor.execute(
             """
-            SELECT currency_symbol, theme
+            SELECT
+                currency_symbol,
+                theme
             FROM user_settings
             WHERE user_id=%s
+            LIMIT 1
             """,
-            (current_user_id,)
+            (user_id,)
         )
 
         settings = cursor.fetchone()
@@ -1213,18 +1177,53 @@ def invoice_drafts_list_data(current_user_id, current_user_role):
             else "$"
         )
 
-    return jsonify({
+        theme = (
+            settings[1]
+            if settings
+            else "light"
+        )
+
+    return {
         "status": "success",
+
         "drafts": draft_list,
+
         "currency_symbol": currency_symbol,
-        "theme":
-                settings[1]
-                if settings else "light",
+
+        "theme": theme,
+
         "user": {
-            "user_id": current_user_id,
-            "role": current_user_role
+            "user_id": user_id,
+            "role": user_role
         }
-    })
+    }
+
+@app.route("/invoice/drafts/list/data")
+@token_required
+def invoice_drafts_list_data(
+    current_user_id,
+    current_user_role
+):
+
+    try:
+
+        data = get_invoice_drafts_data(
+            current_user_id,
+            current_user_role
+        )
+
+        return jsonify(data)
+
+    except Exception as e:
+
+        print(
+            f"Invoice drafts error: {e}"
+        )
+
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 
 @app.route("/dashboard/clients/data")
 @token_required
@@ -3443,6 +3442,11 @@ def create_invoice(current_user_id, current_user_role):
             get_invoice_list_cached,
             current_user_id
         )
+        cache.delete_memoized(
+            get_dashboard_data,
+            current_user_id,
+            current_user_role
+        )
 
         return jsonify({
             "status": "success",
@@ -3536,7 +3540,16 @@ def save_draft(current_user_id, current_user_role):
             description=f"Draft saved for {client_name}",
             amount=total
         )
-
+        cache.delete_memoized(
+            get_dashboard_data,
+            current_user_id,
+            current_user_role
+        )
+        cache.delete_memoized(
+            get_invoice_drafts_data,
+            current_user_id,
+            current_user_role
+        )
 
         return jsonify({
             "status": "success",
@@ -3661,6 +3674,11 @@ def update_draft(current_user_id, current_user_role):
             get_invoice_list_cached,
             current_user_id
         )
+        cache.delete_memoized(
+            get_dashboard_data,
+            current_user_id,
+            current_user_role
+        )
         return jsonify({
             "status": "success",
             "message": "Invoice updated"
@@ -3715,6 +3733,11 @@ def delete_invoice(current_user_id, current_user_role, invoice_id):
             get_invoice_list_cached,
             current_user_id
         )
+        cache.delete_memoized(
+            get_dashboard_data,
+            current_user_id,
+            current_user_role
+        )
         return jsonify({
             "status": "success",
             "message": "Invoice deleted"
@@ -3755,7 +3778,16 @@ def delete_draft(current_user_id, current_user_role, draft_id):
             "Deleted",
             f"Draft #{draft_id} deleted"
         )
-
+        cache.delete_memoized(
+            get_dashboard_data,
+            current_user_id,
+            current_user_role
+        )
+        cache.delete_memoized(
+            get_invoice_drafts_data,
+            current_user_id,
+            current_user_role
+        )
         return jsonify({
             "status": "success",
             "message": "Draft deleted"
@@ -3852,6 +3884,16 @@ def update_edit_draft(current_user_id, current_user_role):
             f"Draft #{draft_id} updated for {client_name}",
             total
         )
+        cache.delete_memoized(
+            get_dashboard_data,
+            current_user_id,
+            current_user_role
+        )
+        cache.delete_memoized(
+            get_invoice_drafts_data,
+            current_user_id,
+            current_user_role
+        )
 
         return jsonify({
             "status": "success",
@@ -3909,6 +3951,11 @@ def add_client(current_user_id, current_user_role):
             "client",
             "Added",
             f"Client {client_name} added"
+        )
+        cache.delete_memoized(
+            get_dashboard_data,
+            current_user_id,
+            current_user_role
         )
 
         return jsonify({
@@ -4562,7 +4609,11 @@ def mark_notifications_as_read(current_user_id, current_user_role):
             notification_id,
             current_user_id
         ))
-
+        cache.delete_memoized(
+            get_dashboard_data,
+            current_user_id,
+            current_user_role
+        )
     return jsonify({
         "success": True,
         "message": "Notification marked as read"
@@ -4661,6 +4712,11 @@ def update_profile(current_user_id,current_user_role):
             "Profile Updated",
             f"Updated profile info for {data['fullname']}"
         )
+        cache.delete_memoized(
+            get_dashboard_data,
+            current_user_id,
+            current_user_role
+        )
 
         return jsonify({
             "status": "success",
@@ -4739,6 +4795,11 @@ def change_profile_pic(current_user_id, current_user_role):
             "account",
             "Profile Updated",
             "Profile picture changed"
+        )
+        cache.delete_memoized(
+            get_dashboard_data,
+            current_user_id,
+            current_user_role
         )
 
         return jsonify({
