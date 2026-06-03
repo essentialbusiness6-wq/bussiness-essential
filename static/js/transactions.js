@@ -152,52 +152,133 @@ function setupEventListeners() {
 }
 
 // Function to load sample transactions
-function loadSampleTransactions() {
-    // Sample transaction data grouped by month with type field
+
+function loadSampleTransactions(forceRefresh = false) {
+
+    const cached = sessionStorage.getItem("transactions_data");
+
+    // ========================
+    // USE CACHE FIRST
+    // ========================
+    if (!forceRefresh && cached) {
+        const data = JSON.parse(cached);
+        handleTransactionsResponse(data);
+        return;
+    }
+
     fetch("/transactions/data", {
-        method:"GET",
+        method: "GET",
         headers: {
             "Content-Type": "application/json"
         },
         credentials: "include"
     })
-    .then(response => response.json())
-    
-    .then(data => {
-        if (data.status == "success") {
-            const transactions = data.transactions_by_month;
-            transactionsData = data.transactions || []; // Store for filtering
-            currencySymbol = data.currencySymbol || '$'; // Store currency symbol
-            console.log("Fetched transactions:", transactions);
-            // Calculate summary values
+    .then(async (response) => {
 
-            const allTransactions = Object.values(transactions).flat();
-            const total = allTransactions.length;
-            const paid = allTransactions.filter(t => t.status === 'paid').length;
-            const pending = allTransactions.filter(t => t.status === 'pending').length;
-            const overdue = allTransactions.filter(t => t.status === 'overdue').length;
-
-            document.getElementById('totalTransactions').textContent = total;
-             document.getElementById('paidCount').textContent = paid;
-            document.getElementById('pendingCount').textContent = pending;
-            document.getElementById('overdueCount').textContent = overdue;
-                // Populate transactions
-                populateTransactions(transactions);
-    
-                // Check for empty state
-             checkEmptyState(allTransactions.length);
-        } else{
-            showToast('Failed to load transactions. Please try again later.', 'error');
+        if (!response.ok) {
+            throw new Error(`HTTP error ${response.status}`);
         }
-    }) 
+
+        return response.json();
+    })
+    .then(data => {
+
+        if (data.status !== "success") {
+            throw new Error(data.message || "Failed to load transactions");
+        }
+
+        // ========================
+        // CACHE RESULT
+        // ========================
+        sessionStorage.setItem(
+            "transactions_data",
+            JSON.stringify(data)
+        );
+
+        handleTransactionsResponse(data);
+    })
     .catch(error => {
-        console.error('Error fetching transactions:', error);
-        showToast('Failed to load transactions. Please try again later.', 'error');
+
+        console.error("Error fetching transactions:", error);
+
+        const cached = sessionStorage.getItem("transactions_data");
+
+        if (cached) {
+            handleTransactionsResponse(JSON.parse(cached));
+            showToast("Using cached data", "info");
+            return;
+        }
+
+        showToast(
+            "Failed to load transactions. Please try again later.",
+            "error"
+        );
     });
-
-
 }
 
+function handleTransactionsResponse(data) {
+
+    const transactions = data.transactions_by_month || {};
+    transactionsData = data.transactions || [];
+    currencySymbol = data.currencySymbol || "$";
+
+    console.log("Fetched transactions:", transactions);
+
+    // ========================
+    // FLATTEN SAFELY
+    // ========================
+    const allTransactions = Object.values(transactions).flat() || [];
+
+    const total = allTransactions.length;
+    const paid = allTransactions.filter(t => t.status === "paid").length;
+    const pending = allTransactions.filter(t => t.status === "pending").length;
+    const overdue = allTransactions.filter(t => t.status === "overdue").length;
+
+    // ========================
+    // SAFE DOM UPDATES
+    // ========================
+    const totalEl = document.getElementById("totalTransactions");
+    const paidEl = document.getElementById("paidCount");
+    const pendingEl = document.getElementById("pendingCount");
+    const overdueEl = document.getElementById("overdueCount");
+
+    if (totalEl) totalEl.textContent = total;
+    if (paidEl) paidEl.textContent = paid;
+    if (pendingEl) pendingEl.textContent = pending;
+    if (overdueEl) overdueEl.textContent = overdue;
+
+    // ========================
+    // RENDER LIST
+    // ========================
+    populateTransactions(transactions);
+
+    // ========================
+    // EMPTY STATE
+    // ========================
+    checkEmptyState(total);
+
+    // OPTIONAL: theme support if backend sends it
+    if (data.theme) {
+        applyTheme(data.theme);
+        sessionStorage.setItem("theme", data.theme);
+    }
+}
+
+
+    function applyTheme(theme) {
+    const body = document.body;
+
+    if (theme === "dark") {
+        body.classList.add("dark");
+        body.classList.remove("light");
+    } else {
+        body.classList.remove("dark");
+        body.classList.add("light");
+    }
+
+    // optional: persist it
+    localStorage.setItem("theme", theme);
+}
 // Function to populate transactions
 function populateTransactions(transactions) {
     const container = document.getElementById('transactionsContainer');
