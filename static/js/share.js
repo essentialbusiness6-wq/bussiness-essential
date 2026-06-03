@@ -15,6 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize
     createParticles();
+    const theme = document.body.dataset.theme;
+    if (theme){
+        applyTheme(theme);
+    }
     
     // Event Listeners
     backButton.addEventListener('click', () => {
@@ -142,6 +146,21 @@ document.addEventListener('DOMContentLoaded', () => {
             particlesContainer.appendChild(particle);
         }
     }
+
+     function applyTheme(theme) {
+    const body = document.body;
+
+    if (theme === "dark") {
+        body.classList.add("dark");
+        body.classList.remove("light");
+    } else {
+        body.classList.remove("dark");
+        body.classList.add("light");
+    }
+
+    // optional: persist it
+    localStorage.setItem("theme", theme);
+}
     
     function showToast(message, type = 'info') {
         // Remove existing toast
