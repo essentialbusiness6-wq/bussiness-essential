@@ -43,6 +43,7 @@ import cloudinary.uploader
 import cloudinary.api
 import jwt
 from dotenv import load_dotenv
+from collections import defaultdict
 
 
 load_dotenv()
@@ -1885,6 +1886,8 @@ def transactions_page_data(current_user_id, current_user_role):
             "status": "error",
             "message": str(e)
         }), 500
+
+    
 @app.route("/api/sessions")
 @token_required
 def get_sessions(current_user_id, current_user_role):
