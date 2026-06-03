@@ -127,32 +127,112 @@ const socket = io("http://127.0.0.1:5000", {
         });
     }
     
-async function loadNotifications() {
+async function loadNotifications(forceRefresh = false) {
 
     try {
 
-        const response =
-            await fetch("/api/notifications");
+        const cached = sessionStorage.getItem("notifications_data");
+
+        // =========================
+        // USE CACHE FIRST
+        // =========================
+        if (!forceRefresh && cached) {
+            const data = JSON.parse(cached);
+            handleNotifications(data);
+            return;
+        }
+
+        const response = await fetch("/api/notifications", {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            credentials: "include"
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error ${response.status}`);
+        }
 
         const data = await response.json();
 
-        console.log("Fetched notifications:", data);
-        notificationsContainer.innerHTML = "";
+        if (data.status !== "success") {
+            throw new Error(data.message || "Failed to load notifications");
+        }
 
-        data.forEach(notification => {
-            addNotificationToUI(notification);
+        // =========================
+        // CACHE RESULT
+        // =========================
+        sessionStorage.setItem(
+            "notifications_data",
+            JSON.stringify(data)
+        );
 
-        });
-
-        updateStats();
+        handleNotifications(data);
 
     } catch (err) {
 
-        console.error(err);
+        console.error("Notification error:", err);
 
+        // =========================
+        // FALLBACK CACHE
+        // =========================
+        const cached = sessionStorage.getItem("notifications_data");
+
+        if (cached) {
+            handleNotifications(JSON.parse(cached));
+            return;
+        }
     }
 }
 
+function handleNotifications(data) {
+
+    const notifications = data.notifications || [];
+
+    console.log("Fetched notifications:", notifications);
+
+    notificationsContainer.innerHTML = "";
+
+    if (notifications.length === 0) {
+        notificationsContainer.innerHTML = `
+            <div class="empty-notifications">
+                No notifications yet
+            </div>
+        `;
+        return;
+    }
+
+    notifications.forEach(notification => {
+        addNotificationToUI(notification);
+    });
+
+    updateStats();
+
+    // =========================
+    // APPLY THEME FROM BACKEND
+    // =========================
+    if (data.theme) {
+        applyTheme(data.theme);
+        sessionStorage.setItem("theme", data.theme);
+    }
+}
+
+function applyTheme(theme) {
+    const body = document.body;
+
+    if (theme === "dark") {
+        body.classList.add("dark");
+        body.classList.remove("light");
+    } else {
+        body.classList.remove("dark");
+        body.classList.add("light");
+    }
+
+    // optional: persist it
+    localStorage.setItem("theme", theme);
+}
+    
 function addNotificationToUI(notification, prepend = false) {
 
     const card = document.createElement("div");
