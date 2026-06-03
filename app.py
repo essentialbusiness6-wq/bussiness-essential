@@ -821,7 +821,15 @@ def close_account_page():
 @app.route("/app/about")
 @token_required
 def app_about(current_user_id,current_user_role):
-    return render_template("users/about.html")
+    with db_cursor(dictionary=True) as (_, cursor):
+        cursor.execute(
+            "SELECT theme FROM user_settings WHERE user_id=%s",
+            (current_user_id,)
+        )
+        settings = cursor.fetchone()
+    
+        theme = settings["theme"] if settings and settings.get("theme") else "light"
+    return render_template("users/about.html", theme=theme)
 
 @app.route("/dashboard/notifications")
 def notifications_page():
@@ -1711,18 +1719,17 @@ def me_page_data(current_user_id, current_user_role):
         }), 500
 
 
-@app.route("/transactions/data")
-@token_required
-def transactions_page_data(current_user_id, current_user_role):
+@cache.memoize(timeout=60)  # cache per user for 60s
+def get_transactions_data(user_id):
 
-    with db_cursor(dictionary=True) as (_, cursor):
+    with db_cursor(dictionary=True, buffered=True) as (_, cursor):
 
         # ================= TOTAL =================
         cursor.execute("""
             SELECT COUNT(*) AS total_transactions
             FROM transactions
             WHERE user_id=%s
-        """, (current_user_id,))
+        """, (user_id,))
         total_transactions = cursor.fetchone()["total_transactions"]
 
         # ================= PAID =================
@@ -1730,7 +1737,7 @@ def transactions_page_data(current_user_id, current_user_role):
             SELECT COUNT(*) AS paid_transactions
             FROM transactions
             WHERE user_id=%s AND status=%s
-        """, (current_user_id, "paid"))
+        """, (user_id, "paid"))
         paid_transactions = cursor.fetchone()["paid_transactions"]
 
         # ================= PENDING =================
@@ -1738,7 +1745,7 @@ def transactions_page_data(current_user_id, current_user_role):
             SELECT COUNT(*) AS pending_transactions
             FROM transactions
             WHERE user_id=%s AND status IN (%s, %s)
-        """, (current_user_id, "pending", "unpaid"))
+        """, (user_id, "pending", "unpaid"))
         pending_transactions = cursor.fetchone()["pending_transactions"]
 
         # ================= OVERDUE =================
@@ -1746,7 +1753,7 @@ def transactions_page_data(current_user_id, current_user_role):
             SELECT COUNT(*) AS overdue_transactions
             FROM transactions
             WHERE user_id=%s AND status=%s
-        """, (current_user_id, "overdue"))
+        """, (user_id, "overdue"))
         overdue_transactions = cursor.fetchone()["overdue_transactions"]
 
         # ================= TRANSACTIONS LIST =================
@@ -1760,86 +1767,92 @@ def transactions_page_data(current_user_id, current_user_role):
                 t.paid_at,
                 t.created_at,
                 t.note,
-
                 c.client_company AS client,
                 c.client_email AS email,
-
                 i.due_date
             FROM transactions t
             LEFT JOIN invoices i ON t.invoice_id = i.id
             LEFT JOIN clients c ON i.client_id = c.id
             WHERE t.user_id = %s
             ORDER BY t.created_at DESC
-        """, (current_user_id,))
+        """, (user_id,))
 
         transactions_raw = cursor.fetchall()
 
         transactions = []
+        grouped = defaultdict(list)
 
         for tx in transactions_raw:
+
+            created = tx["created_at"]
+
+            month_key = created.strftime("%B %Y")
 
             transactions.append({
                 "id": tx["reference"],
                 "client": tx["client"],
                 "email": tx["email"],
-                "date": tx["created_at"].strftime("%b %d, %Y"),
-                "dueDate": (
-                    tx["due_date"].strftime("%b %d, %Y")
-                    if tx["due_date"]
-                    else "N/A"
-                ),
+                "date": created.strftime("%b %d, %Y"),
+                "dueDate": tx["due_date"].strftime("%b %d, %Y") if tx["due_date"] else "N/A",
                 "amount": float(tx["amount"] or 0),
                 "status": tx["status"],
                 "type": tx["transaction_type"],
                 "notes": tx["note"] or ""
             })
 
-        # ================= GROUP BY MONTH =================
-        from collections import defaultdict
-
-        grouped_transactions = defaultdict(list)
-
-        for tx in transactions_raw:
-
-            month_key = tx["created_at"].strftime("%B %Y")
-
-            grouped_transactions[month_key].append({
+            grouped[month_key].append({
                 "id": tx["reference"],
                 "client": tx["client"],
-                "date": tx["created_at"].strftime("%b %d, %Y"),
+                "date": created.strftime("%b %d, %Y"),
                 "amount": float(tx["amount"] or 0),
                 "status": tx["status"],
                 "type": tx["transaction_type"]
             })
 
-        transactions_by_month = dict(grouped_transactions)
-
         # ================= CURRENCY =================
         cursor.execute("""
-            SELECT currency_symbol
+            SELECT currency_symbol, theme
             FROM user_settings
             WHERE user_id=%s
-        """, (current_user_id,))
+        """, (user_id,))
 
-        settings = cursor.fetchone()
+        settings = cursor.fetchone() or {}
 
-        currency_symbol = (
-            settings["currency_symbol"]
-            if settings
-            else "$"
-        )
+        return {
+            "status": "success",
+            "total_transactions": total_transactions,
+            "paid_transactions": paid_transactions,
+            "pending_transactions": pending_transactions,
+            "overdue_transactions": overdue_transactions,
+            "transactions": transactions,
+            "transactions_by_month": dict(grouped),
+            "currencySymbol": settings.get("currency_symbol", "$"),
+            "theme": settings.get("theme", "light")
+        }
 
-    return jsonify({
-        "status": "success",
-        "total_transactions": total_transactions,
-        "paid_transactions": paid_transactions,
-        "pending_transactions": pending_transactions,
-        "overdue_transactions": overdue_transactions,
-        "transactions": transactions,
-        "transactions_by_month": transactions_by_month,
-        "currencySymbol": currency_symbol
-    })
 
+@app.route("/transactions/data")
+@token_required
+def transactions_page_data(current_user_id, current_user_role):
+
+    try:
+        data = get_transactions_data(current_user_id)
+
+        # optional: attach user meta
+        data["user"] = {
+            "user_id": current_user_id,
+            "role": current_user_role
+        }
+
+        return jsonify(data)
+
+    except Exception as e:
+        print("Transactions error:", e)
+
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 @app.route("/api/sessions")
 @token_required
 def get_sessions(current_user_id, current_user_role):
