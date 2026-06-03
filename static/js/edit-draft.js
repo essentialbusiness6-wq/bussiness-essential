@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
         backButton.classList.add('haptic-feedback');
         setTimeout(() => {
             backButton.classList.remove('haptic-feedback');
-            window.location.href = '/dashboard/invoices/drafts';
+            window.location.href = '/invoice/drafts/list';
         }, 200);
     });
     
