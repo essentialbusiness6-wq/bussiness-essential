@@ -17,6 +17,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmModal = document.getElementById('confirmModal');
     const particlesContainer = document.getElementById('particles');
     const draftId = document.getElementById('draftId')?.value || '123';
+
+    const theme = document.body.dataset.theme;
+    if (themme){
+        applyTheme(theme);
+    }
+
     
     // Initialize
     createParticles();
@@ -162,7 +168,20 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     }
-    
+    function applyTheme(theme) {
+    const body = document.body;
+
+    if (theme === "dark") {
+        body.classList.add("dark");
+        body.classList.remove("light");
+    } else {
+        body.classList.remove("dark");
+        body.classList.add("light");
+    }
+
+    // optional: persist it
+    localStorage.setItem("theme", theme);
+}
     function calculateTotals() {
         const currencySymbol = getCurrencySymbol();
         let subtotal = 0;
