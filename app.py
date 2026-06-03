@@ -1351,10 +1351,7 @@ def clients_page_data(current_user_id, current_user_role):
         "status": "success",
         "clients": clients,
         "currencySymbol": currency_symbol,
-        "theme":(
-                settings[1]
-                if settings else "light"
-        ),
+        "theme": theme,
         "user": {
             "user_id": current_user_id,
             "role": current_user_role
