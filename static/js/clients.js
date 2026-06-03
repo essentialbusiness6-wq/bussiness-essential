@@ -199,8 +199,6 @@ function setupEventListeners() {
 
 
 // Function to load sample clients
-let clients = [];
-
 async function loadSampleClients(forceRefresh = false) {
 
     try {
