@@ -584,8 +584,13 @@ def security_center_page():
     return render_template("users/security.html")
 
 @app.route("/rate-us")
-def rate_us_page():
-    return render_template("users/rate.html")
+@token_required
+def rate_us_page(current_user_id, current_user_role):
+    with db_cursor(dictionary=True) as (_, cursor):
+        cursor.execute("SELECT theme FROM user_settings WHERE=%s",(current_user_id,))
+        settings = cursor.fetchone()
+        theme = settings['theme'] if settings else "light"
+    return render_template("users/rate.html", theme=theme)
 
 @app.route("/share")
 @token_required
