@@ -756,8 +756,17 @@ def settings_page(current_user_id, current_user_role):
     )
 
 @app.route("/feedback")
-def feedback_page():
-    return render_template("users/feedback.html")
+@token_required
+def feedback_page(current_user_id, current_user_role):
+    with db_cursor(dictionary=True) as (_, cursor):
+        cursor.execute(
+            "SELECT theme FROM user_settings WHERE user_id=%s",
+            (current_user_id,)
+        )
+        settings = cursor.fetchone()
+    
+        theme = settings["theme"] if settings and settings.get("theme") else "light"
+    return render_template("users/feedback.html", theme=theme)
 
 @app.route("/api/my-feedback")
 @token_required
@@ -776,8 +785,17 @@ def my_feedback(current_user_id, current_user_role):
     return jsonify(feedbacks)
 
 @app.route("/support")
-def support_page():
-    return render_template("users/support.html")
+@token_required
+def support_page(current_user_id, current_user_role):
+    with db_cursor(dictionary=True) as (_, cursor):
+        cursor.execute(
+            "SELECT theme FROM user_settings WHERE user_id=%s",
+            (current_user_id,)
+        )
+        settings = cursor.fetchone()
+    
+        theme = settings["theme"] if settings and settings.get("theme") else "light"
+    return render_template("users/support.html", theme=theme)
 
 @app.route("/api/support/my-tickets")
 @token_required
