@@ -19,7 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const draftId = document.getElementById('draftId')?.value || '123';
 
     const theme = document.body.dataset.theme;
-    if (themme){
+    
+    if (theme){
         applyTheme(theme);
     }
 
