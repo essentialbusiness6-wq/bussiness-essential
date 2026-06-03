@@ -16,6 +16,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize
     createParticles();
     setupCharacterCounter();
+    const theme = document.body.dataset.theme;
+    if (theme){
+        applyTheme(theme);
+    }
     
     // Event Listeners
     backButton.addEventListener('click', () => {
@@ -148,6 +152,21 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    function applyTheme(theme) {
+    const body = document.body;
+
+    if (theme === "dark") {
+        body.classList.add("dark");
+        body.classList.remove("light");
+    } else {
+        body.classList.remove("dark");
+        body.classList.add("light");
+    }
+
+    // optional: persist it
+    localStorage.setItem("theme", theme);
+}
     
     function previewStars(rating) {
         stars.forEach(star => {
