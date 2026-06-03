@@ -218,8 +218,9 @@ def create_invoice_page(current_user_id,current_user_role):
             """,
             (current_user_id,)
         )
-        currencySymbol = cursor.fetchone()['currency_symbol']
-        theme = cursor.fetchone()['theme']
+        settings = cursor.fetchone()
+        currencySymbol = settings['currency_symbol'] if settings else "$"
+        theme = settings['theme'] if settings else 'light'
 
     return render_template("users/create-invoice.html",currencySymbol=currencySymbol, theme=theme)
 
