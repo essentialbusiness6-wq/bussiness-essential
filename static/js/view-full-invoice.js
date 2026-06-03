@@ -1,6 +1,9 @@
 document.addEventListener('DOMContentLoaded', function() {
 
-
+    const theme = document.body.dataset.theme;
+    if (theme) {
+        applyTheme(theme);
+    }
     // Initialize particles background
     createParticles();
     
@@ -9,7 +12,25 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Add entrance animations
     addEntranceAnimations();
+
+    
 });
+
+
+function applyTheme(theme) {
+    const body = document.body;
+
+    if (theme === "dark") {
+        body.classList.add("dark");
+        body.classList.remove("light");
+    } else {
+        body.classList.remove("dark");
+        body.classList.add("light");
+    }
+
+    // optional: persist it
+    localStorage.setItem("theme", theme);
+}
 
 // Function to create floating particles in the background
 function createParticles() {
