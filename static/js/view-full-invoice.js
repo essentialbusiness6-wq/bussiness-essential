@@ -484,7 +484,7 @@ function downloadPDF() {
         status:
             document.getElementById("invoiceStatus")?.textContent || "",
 
-        currencySymbol,
+        currencySymbol: document.body.dataset.currency,
 
         subtotal,
 
