@@ -1812,7 +1812,7 @@ def get_sessions(current_user_id, current_user_role):
         sessions = cursor.fetchall()
 
         cursor.execute("SELECT theme FROM user_settings WHERE user_id=%s",(current_user_id,))
-        theme = cursor.fetchone()['theme'] if cursor.fetchone() else "light"
+        theme = cursor.fetchone()['theme'] if cursor.fetchone()['theme'] else "light"
 
         current_token = session.get("session_token")
 
