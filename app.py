@@ -855,26 +855,36 @@ def logout(current_user_id,current_user_role):
     else:
         return jsonify({"message": "No active session found"}), 400
 
-@app.route("/api/notifications")
-@token_required
-def get_notifications(current_user_id,current_user_role):
 
+@cache.memoize(timeout=30)  # short cache for notifications (real-time-ish)
+def get_user_notifications(user_id):
 
-    if not current_user_id:
-        return jsonify({"error": "Invalid token"}), 401
+    with db_cursor(dictionary=True, buffered=True) as (_, cursor):
 
-    with db_cursor(dictionary=True) as (_, cursor):
-
+        # ================= NOTIFICATIONS =================
         cursor.execute("""
             SELECT *
             FROM log_activity
             WHERE user_id=%s
             ORDER BY created_at DESC
-        """, (current_user_id,))
+        """, (user_id,))
 
         notifications = cursor.fetchall()
 
-    return jsonify(notifications)
+        # ================= SETTINGS =================
+        cursor.execute("""
+            SELECT theme
+            FROM user_settings
+            WHERE user_id=%s
+            LIMIT 1
+        """, (user_id,))
+
+        settings = cursor.fetchone() or {}
+
+        return {
+            "notifications": notifications,
+            "theme": settings.get("theme", "light")
+        }
 
 @app.route("/profile")
 @token_required
@@ -898,7 +908,16 @@ def profile_page(current_user_id,current_user_role):
         """, (current_user_id,))
         profile_data = cursor.fetchone()
 
-    return render_template("users/profile.html", profile_data=profile_data)
+  
+        cursor.execute(
+            "SELECT theme FROM user_settings WHERE user_id=%s",
+            (current_user_id,)
+        )
+        settings = cursor.fetchone()
+    
+        theme = settings["theme"] if settings and settings.get("theme") else "light"
+
+    return render_template("users/profile.html", profile_data=profile_data, theme=theme)
 
 # ========================= DATA ROUTES =========================
 @cache.memoize(timeout=60)
