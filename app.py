@@ -900,6 +900,29 @@ def get_user_notifications(user_id):
             "theme": settings.get("theme", "light")
         }
 
+@app.route("/api/notifications")
+@token_required
+def get_notifications(current_user_id, current_user_role):
+
+    try:
+
+        data = get_user_notifications(current_user_id)
+
+        return jsonify({
+            "status": "success",
+            "notifications": data["notifications"],
+            "theme": data["theme"]
+        })
+
+    except Exception as e:
+
+        print("Notifications error:", e)
+
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+
 @app.route("/profile")
 @token_required
 def profile_page(current_user_id,current_user_role):
