@@ -26,6 +26,10 @@ document.addEventListener('DOMContentLoaded', () => {
     createParticles();
     startCountdown();
     setupBillingToggle();
+    const theme = document.body.dataset.theme;
+    if (theme){
+        applyTheme(theme);
+    }
     
     // Event Listeners
     backButton.addEventListener('click', () => {
@@ -98,6 +102,21 @@ document.addEventListener('DOMContentLoaded', () => {
         // Initialize with monthly pricing
         updatePricingDisplay();
     }
+    function applyTheme(theme) {
+    const body = document.body;
+
+    if (theme === "dark") {
+        body.classList.add("dark");
+        body.classList.remove("light");
+    } else {
+        body.classList.remove("dark");
+        body.classList.add("light");
+    }
+
+    // optional: persist it
+    localStorage.setItem("theme", theme);
+}
+  
     
     function updatePricingDisplay() {
         const isYearly = billingToggle.checked;
