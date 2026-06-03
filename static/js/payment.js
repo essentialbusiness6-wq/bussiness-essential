@@ -138,53 +138,129 @@ function setupEventListeners() {
 
 
 // Function to load sample payments
-function loadSamplePayments() {
-    fetch("/dashboard/payment/data", {
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        credentials: "include"
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === "success") {
+async function loadSamplePayments() {
 
-            payments = data.payments;
-            currency = data.currency || "NGN";
-            currencySymbol = data.currencySymbol || "$";
-            // After loading payments, populate the UI
-            populatePaymentsTable(payments);
-            populatePaymentCards(payments);
-            checkEmptyState(payments.length);
-            applyTheme(data.theme);
+    try {
 
-                // Calculate summary values
-    const totalReceived = payments
-        .filter(p => p.status === 'paid')
-        .reduce((sum, p) => sum + p.amount, 0);
-    
-    const outstanding = payments
-        .filter(p => p.status === 'pending')
-        .reduce((sum, p) => sum + p.amount, 0);
-    
-    const overdue = payments
-        .filter(p => p.status === 'overdue')
-        .reduce((sum, p) => sum + p.amount, 0);
-    
-    // Update summary cards
-    document.getElementById('totalReceived').textContent = formatCurrency(totalReceived);
-    document.getElementById('outstanding').textContent = formatCurrency(outstanding);
-    document.getElementById('overdue').textContent = formatCurrency(overdue);
-            
-        } else {
-            showToast("Failed to load payments. Please try again later.", "error");
+        const response = await fetch("/dashboard/payment/data", {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            credentials: "include"
+        });
+
+        if (!response.ok) {
+            throw new Error(
+                `HTTP Error: ${response.status}`
+            );
         }
-    })  
-    
 
-    
+        const data = await response.json();
 
+        if (data.status !== "success") {
+            throw new Error(
+                data.message || "Failed to load payments"
+            );
+        }
+
+        payments = data.payments || [];
+
+        currency = data.currency || "NGN";
+        currencySymbol = data.currencySymbol || "$";
+
+        applyTheme(data.theme || "light");
+
+        populatePaymentsTable(payments);
+        populatePaymentCards(payments);
+
+        checkEmptyState(payments.length);
+
+        // Summary values
+
+        const totalReceived = payments
+            .filter(p => p.status === "paid")
+            .reduce(
+                (sum, p) => sum + Number(p.amount || 0),
+                0
+            );
+
+        const outstanding = payments
+            .filter(
+                p =>
+                    p.status === "pending" ||
+                    p.status === "unpaid"
+            )
+            .reduce(
+                (sum, p) => sum + Number(p.amount || 0),
+                0
+            );
+
+        const overdue = payments
+            .filter(p => p.status === "overdue")
+            .reduce(
+                (sum, p) => sum + Number(p.amount || 0),
+                0
+            );
+
+        const totalReceivedEl =
+            document.getElementById("totalReceived");
+
+        const outstandingEl =
+            document.getElementById("outstanding");
+
+        const overdueEl =
+            document.getElementById("overdue");
+
+        if (totalReceivedEl) {
+            totalReceivedEl.textContent =
+                formatCurrency(totalReceived);
+        }
+
+        if (outstandingEl) {
+            outstandingEl.textContent =
+                formatCurrency(outstanding);
+        }
+
+        if (overdueEl) {
+            overdueEl.textContent =
+                formatCurrency(overdue);
+        }
+
+        console.log(
+            "Payments loaded successfully",
+            payments.length
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Failed to load payments:",
+            error
+        );
+
+        payments = [];
+
+        checkEmptyState(0);
+
+        showToast(
+            error.message ||
+            "Failed to load payments",
+            "error"
+        );
+
+        document.getElementById("totalReceived") &&
+            (document.getElementById("totalReceived").textContent =
+                formatCurrency(0));
+
+        document.getElementById("outstanding") &&
+            (document.getElementById("outstanding").textContent =
+                formatCurrency(0));
+
+        document.getElementById("overdue") &&
+            (document.getElementById("overdue").textContent =
+                formatCurrency(0));
+    }
 }
 
 function applyTheme(theme) {
