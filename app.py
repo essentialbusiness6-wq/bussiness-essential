@@ -859,7 +859,7 @@ def logout(current_user_id,current_user_role):
 @cache.memoize(timeout=30)  # short cache for notifications (real-time-ish)
 def get_user_notifications(user_id):
 
-    with db_cursor(dictionary=True, buffered=True) as (_, cursor):
+    with db_cursor(dictionary=True) as (_, cursor):
 
         # ================= NOTIFICATIONS =================
         cursor.execute("""
@@ -1741,7 +1741,7 @@ def me_page_data(current_user_id, current_user_role):
 @cache.memoize(timeout=60)  # cache per user for 60s
 def get_transactions_data(user_id):
 
-    with db_cursor(dictionary=True, buffered=True) as (_, cursor):
+    with db_cursor(dictionary=True) as (_, cursor):
 
         # ================= TOTAL =================
         cursor.execute("""
