@@ -496,7 +496,7 @@ def edit_draft_page(current_user_id, current_user_role, draftId):
             }), 404
 
         cursor.execute("""
-            SELECT currency_symbol
+            SELECT currency_symbol, theme
             FROM user_settings
             WHERE user_id=%s
         """, (current_user_id,))
@@ -527,7 +527,8 @@ def edit_draft_page(current_user_id, current_user_role, draftId):
             }
         ],
         note=draft["note"],
-        currencySymbol=currency_symbol
+        currencySymbol=currency_symbol,
+        theme = settings['theme'] if settings else 'light'
     )
 
 
@@ -567,6 +568,13 @@ def edit_client_page(current_user_id,current_user_role,clientId):
 
         parts = client['client_name'].split()
         intials = parts[0][0] + parts[1][0]
+        cursor.execute("""
+            SELECT currency_symbol, theme
+            FROM user_settings
+            WHERE user_id=%s
+        """, (current_user_id,))
+
+        settings = cursor.fetchone()
 
     return render_template(
         "users/edit-client.html", 
@@ -577,7 +585,8 @@ def edit_client_page(current_user_id,current_user_role,clientId):
         phone = client['client_phone'],
         company= client['client_company'],
         notes = client['client_notes'],
-        intials=intials
+        intials=intials,
+        theme = settings['theme'] if settings else 'light'
     )
 
 @app.route("/dashboard/payment")
