@@ -747,7 +747,7 @@ def db_cursor(dictionary=False):
 
     try:
         conn = get_db()
-        cursor = conn.cursor(dictionary=dictionary)
+        cursor = conn.cursor(dictionary=dictionary,buffered=True)
 
         yield conn, cursor
 
