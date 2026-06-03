@@ -11,17 +11,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const editClientForm = document.getElementById('editClientForm');
     const particlesContainer = document.getElementById('particles');
     
-    // Sample client data (in real app, this would come from API)
-    const sampleClient = {
-        id: '123',
-        name: 'TechSolutions Inc.',
-        email: 'billing@techsolutions.com',
-        phone: '+1 (555) 123-4567',
-        company: 'TechSolutions Inc.',
-        address: '123 Tech Avenue, San Francisco, CA 94107',
-        notes: 'Preferred communication: Email. Payment terms: Net 30.'
-    };
-    
+    const theme = document.body.dataset.theme;
+    if (theme) {
+        applyTheme(theme);
+    }
+
     // Initialize
     createParticles();
     updateAvatarPreview();
@@ -251,7 +245,20 @@ document.addEventListener('DOMContentLoaded', () => {
             particlesContainer.appendChild(particle);
         }
     }
-    
+    function applyTheme(theme) {
+    const body = document.body;
+
+    if (theme === "dark") {
+        body.classList.add("dark");
+        body.classList.remove("light");
+    } else {
+        body.classList.remove("dark");
+        body.classList.add("light");
+    }
+
+    // optional: persist it
+    localStorage.setItem("theme", theme);
+}
     function showToast(message, type = 'info') {
         // Remove existing toast
         const existingToast = document.querySelector('.toast');
