@@ -618,12 +618,16 @@ def share_page(current_user_id, current_user_role):
             }), 400
             
         cursor.execute(
-            "SELECT theme FROM user_settings WHERE user_id=%s",
-            (current_user_id,)
-        )
+                "SELECT theme FROM user_settings WHERE user_id=%s",
+                (current_user_id,)
+            )
+
+        
         settings = cursor.fetchone()
-    
-        theme = settings["theme"] if settings and settings.get("theme") else "light"
+
+        theme = "light"
+        if settings and settings.get("theme"):
+            theme = settings["theme"]
     return render_template("users/share.html",theme=theme,referralCode = referral['referral_code'], inviteSent = referral['invite_sent'], signups = referral['signups'], earned = referral['earned'])
 
 
@@ -643,6 +647,19 @@ def billing_share(current_user_id,current_user_role):
         """, (current_user_id,))
 
         subscription = cursor.fetchone()
+
+        cursor.execute(
+                "SELECT theme FROM user_settings WHERE user_id=%s",
+                (current_user_id,)
+            )
+
+        
+        settings = cursor.fetchone()
+
+        theme = "light"
+        if settings and settings.get("theme"):
+            theme = settings["theme"]
+        
 
 
         # Default trial if user has no subscription yet
@@ -689,7 +706,8 @@ def billing_share(current_user_id,current_user_role):
         days_left=days_left,
         hours_left=hours_left,
         minutes_left=minutes_left,
-        user_id=current_user_id
+        user_id=current_user_id,
+        theme=theme
     )
 
 @app.route("/settings")
