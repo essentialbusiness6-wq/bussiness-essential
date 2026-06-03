@@ -21,6 +21,10 @@ document.addEventListener('DOMContentLoaded', () => {
     createParticles();
     setupEventListeners();
     loadFeedback();
+    const theme = document.body.dataset.theme;
+    if (theme){
+        applyTheme(theme);
+    }
     // Functions
     function setupEventListeners() {
         // Navigation buttons
@@ -110,6 +114,17 @@ document.addEventListener('DOMContentLoaded', () => {
         stars.forEach(s => {
             s.classList.toggle('active', s.dataset.value <= value);
         });
+    }
+
+    function applyTheme(theme) {
+    const body = document.body;
+
+    if (theme === "dark") {
+        body.classList.add("dark");
+        body.classList.remove("light");
+    } else {
+        body.classList.remove("dark");
+        body.classList.add("light");
     }
     
     function resetStars() {
