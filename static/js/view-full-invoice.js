@@ -439,64 +439,7 @@ async function generateInvoicePDF(invoiceData) {
 
 function downloadPDF() {
 
-    generateInvoicePDF({
-
-        companyName:
-            document.getElementById("companyName")?.textContent || "",
-
-        companyEmail:
-            document.getElementById("companyEmail")?.textContent || "",
-
-        companyPhone:
-            document.getElementById("companyPhone")?.textContent || "",
-
-        companyWebsite:
-            document.getElementById("companyWebsite")?.textContent || "",
-
-        companyAddress:
-            document.getElementById("companyAddress")?.textContent || "",
-
-        clientName:
-            document.getElementById("clientName")?.textContent || "",
-
-        clientEmail:
-            document.getElementById("clientEmail")?.textContent || "",
-
-        clientAddress:
-            document.getElementById("clientAddress")?.textContent || "",
-
-        invoiceNumber:
-            document.getElementById("invoiceNumber")?.textContent || "",
-
-        invoiceDate:
-            document.getElementById("invoiceDate")?.textContent || "",
-
-        dueDate:
-            document.getElementById("dueDate")?.textContent || "",
-
-        clientId:
-            document.getElementById("clientId")?.textContent
-                .replace("CL-", ""),
-
-        paymentTerms:
-            document.getElementById("paymentTerms")?.textContent || "",
-
-        status:
-            document.getElementById("invoiceStatus")?.textContent || "",
-
-        currencySymbol: document.body.dataset.currency,
-
-        subtotal,
-
-        tax,
-
-        taxAmount,
-
-        totalAmount,
-
-        items
-
-    });
+    generateInvoicePDF(invoiceData);
 
 }
 
