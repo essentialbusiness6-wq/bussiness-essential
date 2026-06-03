@@ -260,8 +260,12 @@ if (confirmDelete) {
 }
 
 // Function to load sample drafts
-async function loadSampleDrafts() {
-    const draftsGrid = document.getElementById('draftsGrid');
+let allDrafts = [];
+let currencySymbol = "$";
+
+async function loadSampleDrafts(forceRefresh = false) {
+    const draftsGrid = document.getElementById("draftsGrid");
+
     if (!draftsGrid) return;
 
     draftsGrid.innerHTML = `
@@ -271,63 +275,107 @@ async function loadSampleDrafts() {
     `;
 
     try {
-        const response = await fetch("/invoice/drafts/list/data", {
+        const url = forceRefresh
+            ? `/invoice/drafts/list/data?t=${Date.now()}`
+            : "/invoice/drafts/list/data";
+
+        const response = await fetch(url, {
             method: "GET",
+            credentials: "include",
             headers: {
                 "Content-Type": "application/json"
-            },
-            credentials: "include"
+            }
         });
+
+        if (!response.ok) {
+            throw new Error(
+                `Server returned ${response.status}`
+            );
+        }
 
         const data = await response.json();
 
         if (data.status !== "success") {
-            throw new Error(data.message || "Failed to load drafts");
+            throw new Error(
+                data.message || "Failed to load drafts"
+            );
         }
 
         draftsGrid.innerHTML = "";
 
-        const drafts = data.drafts || [];
-      
+        allDrafts = Array.isArray(data.drafts)
+            ? data.drafts
+            : [];
 
-        // SAVE GLOBALLY
-        allDrafts = drafts;
-        currencySymbol = data.currency_symbol || "$";
-        applyTheme(data.theme);
+        currencySymbol =
+            data.currency_symbol || "$";
 
-        if (drafts.length === 0) {
+        if (typeof applyTheme === "function") {
+            applyTheme(data.theme || "light");
+        }
+
+        if (allDrafts.length === 0) {
             draftsGrid.innerHTML = `
                 <div class="empty-state">
                     <h3>No Drafts Found</h3>
-                    <p>You haven't created any invoice drafts yet.</p>
+                    <p>
+                        You haven't created any invoice drafts yet.
+                    </p>
                 </div>
             `;
             return;
         }
 
-        drafts.forEach(draft => {
-            const draftCard = createDraftCard(
-                draft,
-                data.currency_symbol || "$"
+        const fragment = document.createDocumentFragment();
+
+        allDrafts.forEach(draft => {
+            fragment.appendChild(
+                createDraftCard(
+                    draft,
+                    currencySymbol
+                )
             );
-            draftsGrid.appendChild(draftCard);
         });
 
-        animateDrafts();
+        draftsGrid.appendChild(fragment);
+
+        if (typeof animateDrafts === "function") {
+            requestAnimationFrame(() => {
+                animateDrafts();
+            });
+        }
 
     } catch (error) {
-        console.error(error);
+
+        console.error(
+            "Draft loading error:",
+            error
+        );
 
         draftsGrid.innerHTML = `
             <div class="error-state">
-                Failed to load drafts.
+                <h3>Unable to load drafts</h3>
+                <p>
+                    ${error.message || "Something went wrong"}
+                </p>
+
+                <button
+                    class="btn primary"
+                    onclick="loadSampleDrafts(true)"
+                >
+                    Retry
+                </button>
             </div>
         `;
 
-        showToast("Failed to load drafts", "error");
+        if (typeof showToast === "function") {
+            showToast(
+                error.message || "Failed to load drafts",
+                "error"
+            );
+        }
     }
 }
-
 function applyTheme(theme) {
     const body = document.body;
 
