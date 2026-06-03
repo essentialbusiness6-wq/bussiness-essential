@@ -1604,7 +1604,7 @@ def get_me_page_data(user_id):
         # ================= CURRENCY =================
         cursor.execute(
             """
-            SELECT currency_symbol
+            SELECT currency_symbol, theme
             FROM user_settings
             WHERE user_id=%s
             """,
@@ -1612,6 +1612,7 @@ def get_me_page_data(user_id):
         )
         settings = cursor.fetchone()
         currency_symbol = settings["currency_symbol"] if settings else "$"
+        theme = settings["theme"] if settings else "light"
 
         # ================= NAME CLEANUP =================
         name = user_data["fullname"] or ""
@@ -1622,7 +1623,8 @@ def get_me_page_data(user_id):
                 "profilePic": user_data["profilepicurl"],
                 "balance": float(balance)
             },
-            "currency_symbol": currency_symbol
+            "currency_symbol": currency_symbol,
+            "theme":theme
             
         }
 
