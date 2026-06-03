@@ -117,14 +117,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function applyTheme(theme) {
-    const body = document.body;
+        const body = document.body;
 
-    if (theme === "dark") {
-        body.classList.add("dark");
-        body.classList.remove("light");
-    } else {
-        body.classList.remove("dark");
-        body.classList.add("light");
+        if (theme === "dark") {
+            body.classList.add("dark");
+            body.classList.remove("light");
+        } else {
+            body.classList.remove("dark");
+            body.classList.add("light");
+        }
     }
     
     function resetStars() {
