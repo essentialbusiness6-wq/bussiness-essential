@@ -1496,7 +1496,7 @@ def payment_page_data(current_user_id,current_user_role):
         "payments": payments,
         "currency": currency_info["currency"] if currency_info else "USD",
         "currencySymbol": currency_info["currency_symbol"] if currency_info else "$",
-        "theme": currency_info["theme"] if currency_symbol else "light"
+        "theme": currency_info["theme"] if currency_info else "light"
     })
 
 
