@@ -235,7 +235,38 @@
             <button class="modal-btn" id="modalActionBtn">OK</button>
         </div>
     </div>
+    <script>
+const invoiceData = {
+    invoiceNumber: "{{ invoiceNumber }}",
+    invoiceDate: "{{ invoiceDate }}",
+    dueDate: "{{ dueDate }}",
 
+    companyName: "{{ companyName }}",
+    companyEmail: "{{ companyEmail }}",
+    companyPhone: "{{ companyPhone }}",
+    companyWebsite: "{{ companyWebsite }}",
+    companyAddress: "{{ companyAddress }}",
+
+    clientName: "{{ clientName }}",
+    clientEmail: "{{ clientEmail }}",
+    clientAddress: "{{ clientAddress }}",
+
+    clientId: "{{ clientId }}",
+
+    paymentTerms: "{{ paymentTerms }}",
+
+    status: "{{ status }}",
+
+    currencySymbol: "{{ currencySymbol }}",
+
+    subtotal: {{ subtotal|default(0) }},
+    tax: {{ tax|default(0) }},
+    taxAmount: {{ taxAmount|default(0) }},
+    totalAmount: {{ totalAmount|default(0) }},
+
+    items: {{ items|tojson }}
+};
+</script>
     <script src="/static/js/view-full-invoice.js"></script>
 </body>
 </html>
