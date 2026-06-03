@@ -211,15 +211,16 @@ def create_invoice_page(current_user_id,current_user_role):
 
         cursor.execute(
             """
-            SELECT currency_symbol
+            SELECT currency_symbol, theme
             FROM user_settings
             WHERE user_id=%s
             """,
             (current_user_id,)
         )
         currencySymbol = cursor.fetchone()['currency_symbol']
+        theme = cursor.fetchone()['theme']
 
-    return render_template("users/create-invoice.html",currencySymbol=currencySymbol)
+    return render_template("users/create-invoice.html",currencySymbol=currencySymbol, theme=theme)
 
 @app.route("/invoice/edit/<int:invoiceId>")
 @token_required
@@ -276,6 +277,16 @@ def edit_invoice_page(current_user_id,current_user_role,invoiceId):
         """, (invoiceId,))
         items = cursor.fetchall()
         items_list = [{"desc": i['description'], "qty": i['quantity'], "price": i['price']} for i in items]
+        cursor.execute(
+            """
+            SELECT currency_symbol, theme
+            FROM user_settings
+            WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+        settings = cursor.fetchone()
+        theme = settings['theme'] if settings else "light"
 
     return render_template(
         "users/edit-invoice.html", 
@@ -294,6 +305,7 @@ def edit_invoice_page(current_user_id,current_user_role,invoiceId):
         clientName=invoice['clientName'],
         clientEmail=invoice['clientEmail'],
         items=items_list,
+        theme=theme
     )
 
 @app.route("/dashboard/view-invoices/full/<int:invoiceId>")
@@ -364,7 +376,7 @@ def view_invoices_page(current_user_id,current_user_role,invoiceId):
     
         cursor.execute(
             """
-            SELECT currency, currency_symbol
+            SELECT currency, currency_symbol, theme
             FROM user_settings
             WHERE user_id=%s
             """,
@@ -436,6 +448,7 @@ def view_invoices_page(current_user_id,current_user_role,invoiceId):
         companyPhone = profile['phone'],
         paymentTerms = payment_term,
         items=items_list,
+        theme = settings['theme'] if settings else 'light'
     )
 
 @app.route("/dashboard/invoices/list")
