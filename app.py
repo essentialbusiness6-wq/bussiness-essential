@@ -5289,11 +5289,12 @@ def setup_2fa(current_user_id, current_user_role):
                 current_user_id
             ))
 
-            save_audit_activity(
+            save_security_activity(
                 current_user_id,
-                "Success",
+                "account",
                 "2FA Setup",
                 f"User {current_user_id} generated a new 2FA setup QR code",
+                "LOW"
                 request.remote_addr
             )
 
@@ -5366,11 +5367,12 @@ def verify_2fa(current_user_id, current_user_role):
 
                 _ip_address = request.remote_addr
 
-                save_audit_activity(
+                save_security_activity(
                     current_user_id,
-                    "Failed",
+                    "account",
                     "2FA Verification Failed",
                     f"User {current_user_id} entered an invalid 2FA code from {_ip_address}",
+                    "MEDIUM"
                     _ip_address
                 )
 
@@ -5381,11 +5383,12 @@ def verify_2fa(current_user_id, current_user_role):
 
             _ip_address = request.remote_addr
 
-            save_audit_activity(
+            save_security_activity(
                 current_user_id,
-                "Success",
+                "account",
                 "2FA Verification Success",
                 f"User {current_user_id} successfully completed 2FA from {_ip_address}",
+                "LOW",
                 _ip_address
             )
 
