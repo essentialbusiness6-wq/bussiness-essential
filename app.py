@@ -44,6 +44,11 @@ import cloudinary.api
 import jwt
 from dotenv import load_dotenv
 from collections import defaultdict
+)
+import pyotp
+import qrcode
+import io
+import base64
 
 
 load_dotenv()
@@ -606,6 +611,19 @@ def me_page():
 @app.route("/security-center")
 def security_center_page():
     return render_template("users/security.html")
+
+@app.route("/security-center/2fa")
+@token_required
+def two_fa_page(current_user_id, current_user_role):
+    with db_cursor(dictionary=True) as (_, cursor):
+        cursor.execute(
+            "SELECT theme FROM user_settings WHERE user_id=%s",
+            (current_user_id,)
+        )
+        settings = cursor.fetchone()
+    
+        theme = settings["theme"] if settings and settings.get("theme") else "light"
+    return render_template("users/setup-2fa.html",theme=theme)
 
 @app.route("/rate-us")
 @token_required
@@ -5203,6 +5221,188 @@ def verify_payment():
             "status": "error",
             "message": "Payment not verified"
         }), 400
+
+@app.route('/api/setup-2fa', methods=['POST'])
+@token_required
+def setup_2fa(current_user_id, current_user_role):
+
+    try:
+
+        with db_cursor(dictionary=True) as (conn, cursor):
+
+            cursor.execute("""
+                SELECT
+                    username,
+                    email,
+                    two_factor_secret
+                FROM user_base
+                WHERE user_id=%s
+                LIMIT 1
+            """, (current_user_id,))
+
+            user = cursor.fetchone()
+
+            if not user:
+                return jsonify({
+                    "status": "error",
+                    "message": "User not found."
+                }), 404
+
+            # Reuse existing secret if one already exists
+            secret = (
+                user["two_factor_secret"]
+                or pyotp.random_base32()
+            )
+
+            totp = pyotp.TOTP(secret)
+
+            label = (
+                user.get("email")
+                or user.get("username")
+                or f"user-{current_user_id}"
+            )
+
+            uri = totp.provisioning_uri(
+                name=label,
+                issuer_name="Business Essential"
+            )
+
+            qr = qrcode.make(uri)
+
+            buffer = io.BytesIO()
+
+            qr.save(
+                buffer,
+                format="PNG"
+            )
+
+            qr_base64 = base64.b64encode(
+                buffer.getvalue()
+            ).decode()
+
+            cursor.execute("""
+                UPDATE user_base
+                SET two_factor_secret=%s, qr=%s
+                WHERE user_id=%s
+            """, (
+                secret,
+                qr_base64,
+                current_user_id
+            ))
+
+            save_audit_activity(
+                current_user_id,
+                "Success",
+                "2FA Setup",
+                f"User {current_user_id} generated a new 2FA setup QR code",
+                request.remote_addr
+            )
+
+            return jsonify({
+                "status": "success",
+                "secret": secret,
+                "qr_code": qr_base64
+            })
+
+    except Exception as e:
+
+        print("2FA setup error:", e)
+
+        return jsonify({
+            "status": "error",
+            "message": "Failed to setup 2FA."
+        }), 500
+
+        
+
+@app.route('/setup/verify-2fa', methods=['POST'])
+@token_required
+def verify_2fa(current_user_id, current_user_role):
+
+    try:
+
+        data = request.get_json() or {}
+        code = data.get('code', '').strip()
+
+        if not code:
+            return jsonify({
+                "status": "error",
+                "message": "Verification code is required."
+            }), 400
+
+        with db_cursor(dictionary=True) as (conn, cursor):
+
+            cursor.execute(
+                """
+                SELECT
+                    user_id,
+                    role,
+                    two_factor_secret
+                FROM user_base
+                WHERE user_id=%s
+                LIMIT 1
+                """,
+                (current_user_id,)
+            )
+
+            user = cursor.fetchone()
+
+            if not user:
+                return jsonify({
+                    "status": "error",
+                    "message": "User not found."
+                }), 404
+
+            if not user.get("two_factor_secret"):
+                return jsonify({
+                    "status": "error",
+                    "message": "2FA is not configured."
+                }), 400
+
+            totp = pyotp.TOTP(
+                user["two_factor_secret"]
+            )
+
+            if not totp.verify(code):
+
+                _ip_address = request.remote_addr
+
+                save_audit_activity(
+                    current_user_id,
+                    "Failed",
+                    "2FA Verification Failed",
+                    f"User {current_user_id} entered an invalid 2FA code from {_ip_address}",
+                    _ip_address
+                )
+
+                return jsonify({
+                    "status": "error",
+                    "message": "Invalid verification code."
+                }), 401
+
+            _ip_address = request.remote_addr
+
+            save_audit_activity(
+                current_user_id,
+                "Success",
+                "2FA Verification Success",
+                f"User {current_user_id} successfully completed 2FA from {_ip_address}",
+                _ip_address
+            )
+
+            return jsonify({
+                "status": "success",
+                "message": "2FA verification successful."
+            }), 200
+
+    except Exception as e:
+
+        print("2FA verification error:", e)
+
+        return jsonify({
+            "status": "error",
+            "message": "An unexpected error occurred."
+        }), 500
         
 if __name__ == "__main__":
 
