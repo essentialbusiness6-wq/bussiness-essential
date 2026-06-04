@@ -5389,6 +5389,12 @@ def verify_2fa(current_user_id, current_user_role):
                 _ip_address
             )
 
+            cursor.execute("""
+                UPDATE user_base
+                SET two_factor_enabled = TRUE
+                WHERE user_id = %s
+            """, (current_user_id,))
+
             return jsonify({
                 "status": "success",
                 "message": "2FA verification successful."
