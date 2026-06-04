@@ -29,6 +29,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize
     createParticles();
     setupEventListeners();
+    const theme = document.body.dataset.theme;
+    if (theme){
+        applyTheme(theme);
+    }
 
     function setupEventListeners() {
         getStartedBtn.addEventListener('click', async (e) => {
@@ -145,6 +149,21 @@ document.addEventListener('DOMContentLoaded', () => {
         steps[stepName].classList.add('active');
         currentStep = stepName;
     }
+
+    function applyTheme(theme) {
+    const body = document.body;
+
+    if (theme === "dark") {
+        body.classList.add("dark");
+        body.classList.remove("light");
+    } else {
+        body.classList.remove("dark");
+        body.classList.add("light");
+    }
+
+    // optional: persist it
+    localStorage.setItem("theme", theme);
+}
 
 async function handleVerify() {
     const code = authCodeInput.value.trim();
