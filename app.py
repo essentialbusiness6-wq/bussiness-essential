@@ -5476,7 +5476,7 @@ def disable_2fa(current_user_id, current_user_role):
         }), 500
 
 @app.route('/verify-2fa', methods=['POST'])
-def verify_2fa():
+def login_verify_2fa():
 
     try:
 
