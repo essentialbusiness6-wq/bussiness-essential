@@ -120,9 +120,7 @@ function showSuccessModal(message, redirectUrl = null, delay = 0) {
             const resendCodeBtn = document.getElementById('resendCodeBtn');
             const useBackupBtn = document.getElementById('useBackupBtn');
             
-            const resetForm = document.getElementById('resetForm');
-            const passwordForm = document.getElementById('passwordForm');
-            const loginForm = document.getElementById('loginForm');
+
             const verify2FAForm = document.getElementById('verify2FAForm');
             const backupCodeForm = document.getElementById('backupCodeForm');
             
