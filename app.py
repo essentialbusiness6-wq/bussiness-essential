@@ -5294,7 +5294,7 @@ def setup_2fa(current_user_id, current_user_role):
                 "account",
                 "2FA Setup",
                 f"User {current_user_id} generated a new 2FA setup QR code",
-                "LOW"
+                "LOW",
                 request.remote_addr
             )
 
@@ -5372,7 +5372,7 @@ def verify_2fa(current_user_id, current_user_role):
                     "account",
                     "2FA Verification Failed",
                     f"User {current_user_id} entered an invalid 2FA code from {_ip_address}",
-                    "MEDIUM"
+                    "MEDIUM",
                     _ip_address
                 )
 
