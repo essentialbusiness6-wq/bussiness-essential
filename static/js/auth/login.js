@@ -10,6 +10,35 @@ function setLoading(button, text = "Processing...") {
     `;
 }
 
+            // Create floating particles
+            function createParticles() {
+                const particleCount = 20;
+                
+                for (let i = 0; i < particleCount; i++) {
+                    const particle = document.createElement('div');
+                    particle.classList.add('particle');
+                    
+                    const size = Math.random() * 7 + 3;
+                    particle.style.width = `${size}px`;
+                    particle.style.height = `${size}px`;
+                    
+                    particle.style.left = `${Math.random() * 100}%`;
+                    particle.style.top = `${Math.random() * 100}%`;
+                    
+                    const duration = Math.random() * 10 + 15;
+                    const delay = Math.random() * 5;
+                    particle.style.animationDuration = `${duration}s`;
+                    particle.style.animationDelay = `${delay}s`;
+                    
+                    particle.style.opacity = `${Math.random() * 0.5 + 0.1}`;
+                    
+                    particlesContainer.appendChild(particle);
+                }
+            }
+            
+            // Initialize
+            createParticles();
+
 
 
 // ------------- Modal popup for success -------------
@@ -74,6 +103,325 @@ function showSuccessModal(message, redirectUrl = null, delay = 0) {
         }, delay);
     }
 }
+
+     // DOM Elements
+            const loginWrapper = document.getElementById('login');
+            const resetWrapper = document.getElementById('reset-password');
+            const saveWrapper = document.getElementById('save-password');
+            const verify2FAWrapper = document.getElementById('verify-2fa');
+            const backupCodeWrapper = document.getElementById('backup-code');
+            
+            const resetBtn = document.getElementById('resetpsbtn');
+            const signupLink = document.getElementById('signup-link');
+            const faceIdBtn = document.getElementById('faceid-login');
+            const backToLoginBtn = document.getElementById('backToLoginBtn');
+            const backToLoginFromReset = document.getElementById('backToLoginFromReset');
+            const backTo2FABtn = document.getElementById('backTo2FABtn');
+            const resendCodeBtn = document.getElementById('resendCodeBtn');
+            const useBackupBtn = document.getElementById('useBackupBtn');
+            
+            const resetForm = document.getElementById('resetForm');
+            const passwordForm = document.getElementById('passwordForm');
+            const loginForm = document.getElementById('loginForm');
+            const verify2FAForm = document.getElementById('verify2FAForm');
+            const backupCodeForm = document.getElementById('backupCodeForm');
+            
+            const twofaCodeInput = document.getElementById('twofa_code_input');
+            const timerCountdown = document.getElementById('timerCountdown');
+            const codeTimer = document.getElementById('codeTimer');
+            
+            const particlesContainer = document.getElementById('particles');
+            
+            let countdownInterval = null;
+
+            // Form switching function
+            function showForm(formId) {
+                // Hide all forms
+                loginWrapper.classList.remove('active');
+                resetWrapper.classList.remove('active');
+                saveWrapper.classList.remove('active');
+                verify2FAWrapper.classList.remove('active');
+                backupCodeWrapper.classList.remove('active');
+                
+                // Show selected form
+                document.getElementById(formId).classList.add('active');
+                
+                // Start timer if showing 2FA form
+                if (formId === 'verify-2fa') {
+                    startCountdown();
+                    setTimeout(() => twofaCodeInput.focus(), 100);
+                } else {
+                    stopCountdown();
+                }
+            }
+
+            // Countdown timer for 2FA code
+            function startCountdown() {
+                let timeLeft = 30;
+                timerCountdown.textContent = timeLeft;
+                codeTimer.classList.add('active');
+                
+                if (countdownInterval) clearInterval(countdownInterval);
+                
+                countdownInterval = setInterval(() => {
+                    timeLeft--;
+                    timerCountdown.textContent = timeLeft;
+                    
+                    if (timeLeft <= 10) {
+                        codeTimer.classList.add('warning');
+                    }
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(countdownInterval);
+                        codeTimer.classList.remove('active', 'warning');
+                        codeTimer.innerHTML = `
+                            <svg viewBox="0 0 24 24" width="16" height="16">
+                                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
+                            </svg>
+                            <span>Code expired. <a href="#" id="resendExpiredBtn">Resend code</a></span>
+                        `;
+                        
+                        // Re-attach resend event
+                        const resendExpiredBtn = document.getElementById('resendExpiredBtn');
+                        if (resendExpiredBtn) {
+                            resendExpiredBtn.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                handleResendCode();
+                            });
+                        }
+                    }
+                }, 1000);
+            }
+
+            function stopCountdown() {
+                if (countdownInterval) {
+                    clearInterval(countdownInterval);
+                    countdownInterval = null;
+                }
+                codeTimer.classList.remove('active', 'warning');
+            }
+
+            function handleResendCode() {
+                // Reset timer display
+                codeTimer.innerHTML = `
+                    <svg viewBox="0 0 24 24" width="16" height="16">
+                        <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"></circle>
+                        <polyline points="12 6 12 12 16 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></polyline>
+                    </svg>
+                    <span>Code expires in <strong id="timerCountdown">30</strong>s</span>
+                `;
+                
+                // Restart countdown
+                startCountdown();
+                
+                // Show success toast (you can integrate with your toast system)
+                showToast('New code sent to your authenticator app', 'success');
+            }
+
+            function showToast(message, type = 'info') {
+                // Simple toast implementation - replace with your existing toast system
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.textContent = message;
+                document.body.appendChild(toast);
+                
+                setTimeout(() => toast.classList.add('show'), 10);
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
+
+            // Auto-format 2FA input (numbers only)
+            if (twofaCodeInput) {
+                twofaCodeInput.addEventListener('input', (e) => {
+                    e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                });
+            }
+
+            // Event Listeners
+            if (resetBtn) {
+                resetBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showForm('reset-password');
+                });
+            }
+
+            if (backToLoginBtn) {
+                backToLoginBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showForm('login');
+                });
+            }
+
+            if (backToLoginFromReset) {
+                backToLoginFromReset.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showForm('login');
+                });
+            }
+
+            if (backTo2FABtn) {
+                backTo2FABtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showForm('verify-2fa');
+                });
+            }
+
+            if (resendCodeBtn) {
+                resendCodeBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    handleResendCode();
+                });
+            }
+
+            if (useBackupBtn) {
+                useBackupBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showForm('backup-code');
+                });
+            }
+
+
+
+if (verify2FAForm) {
+
+    verify2FAForm.addEventListener(
+        "submit",
+        async (e) => {
+
+            e.preventDefault();
+
+            const code =
+                twofaCodeInput.value.trim();
+
+            if (
+                !code ||
+                code.length !== 6
+            ) {
+
+                showToast(
+                    "Please enter a valid 6-digit code",
+                    "error"
+                );
+
+                return;
+            }
+
+            const verifyBtn =
+                document.getElementById(
+                    "verify2FABtn"
+                );
+
+            verifyBtn.disabled = true;
+
+            verifyBtn.innerHTML = `
+                <span class="spinner"></span>
+                Verifying...
+            `;
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/verify-2fa",
+                        {
+                            method: "POST",
+                            credentials: "include",
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+                            body: JSON.stringify({
+                                code: code
+                            })
+                        }
+                    );
+
+                const data =
+                    await response.json();
+
+                if (
+                    !response.ok ||
+                    data.success === false ||
+                    data.status === "error"
+                ) {
+
+                    throw new Error(
+                        data.message ||
+                        "Invalid verification code"
+                    );
+                }
+
+                showToast(
+                    "Verification successful",
+                    "success"
+                );
+
+                showSuccessModal(
+                    data.message ||
+                    "2FA verification successful",
+                    "/dashboard",
+                    1500
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "2FA Verification Error:",
+                    error
+                );
+
+                showErrorModal(
+                    error.message ||
+                    "Verification failed"
+                );
+
+            } finally {
+
+                verifyBtn.disabled = false;
+
+                verifyBtn.innerHTML = `
+                    <svg viewBox="0 0 24 24"
+                         width="18"
+                         height="18">
+                        <path
+                            d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2">
+                        </path>
+                        <polyline
+                            points="9 12 11 14 15 10"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round">
+                        </polyline>
+                    </svg>
+                    Verify & Sign In
+                `;
+            }
+        }
+    );
+}
+            if (backupCodeForm) {
+                backupCodeForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const code = document.getElementById('backup_code_input').value;
+                    
+                    if (!code) {
+                        showToast('Please enter a backup code', 'error');
+                        return;
+                    }
+                    
+                    showToast('Backup code verified! Redirecting...', 'success');
+                    // window.location.href = '/dashboard';
+                });
+            }
 
 
 function showErrorModal(message) {
@@ -214,11 +562,20 @@ loginForm.addEventListener("submit", async function(e) {
             clearLoading(loginBtn);
 
             if (data.status === "success") {
+                if (data.two_factor_required) {
+                    showToast("Two-factor authentication required. Please verify.", "info");
+                    showForm("verify-2fa");
+                    return;
+                }else if (data.faceid_required) {
+                    showToast("Face ID authentication required. Please verify.", "info");
+                    return;
+                } else {
                 showSuccessModal(
                     "Login successful!",
                     "/dashboard",
                     2000
                 );
+            }
             } else {
                 showErrorModal(data.message || "Login failed");
             }
