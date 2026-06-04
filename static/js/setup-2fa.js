@@ -50,9 +50,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const data = await response.json();
 
-                console.log("2FA Setup:", data);
 
-                if (!response.ok || !data.success) {
+
+                if (!response.ok || data.status !== "success") {
                     throw new Error(
                         data.message || "Failed to setup 2FA"
                     );
@@ -202,7 +202,7 @@ async function handleVerify() {
             );
 
             setTimeout(() => {
-                window.location.href = "/dashboard";
+                window.location.href = "/security-center";
             }, 1500);
 
         } else {
