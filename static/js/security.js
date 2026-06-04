@@ -42,24 +42,74 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     // Two-factor authentication toggle
-    twoFactorToggle.addEventListener('change', () => {
-        showHapticFeedback(twoFactorToggle);
-        const option = twoFactorToggle.closest('.security-option');
-        const statusLabel = option.querySelector('.status-label');
-        
+twoFactorToggle.addEventListener('change', async () => {
+    showHapticFeedback(twoFactorToggle);
+
+    const option = twoFactorToggle.closest('.security-option');
+    const statusLabel = option.querySelector('.status-label');
+
+    try {
+
+        // ENABLE
         if (twoFactorToggle.checked) {
+
             option.dataset.status = 'enabled';
             statusLabel.textContent = 'Enabled';
             statusLabel.className = 'status-label enabled';
-            showToast('✓ Two-factor authentication enabled', 'success');
+
+            showToast(
+                '✓ Two-factor authentication enabled',
+                'success'
+            );
+
             window.location.href = '/security-center/2fa';
-        } else {
-            option.dataset.status = 'disabled';
-            statusLabel.textContent = 'Disabled';
-            statusLabel.className = 'status-label disabled';
-            showToast('⚠️ Two-factor authentication disabled', 'warning');
+
+            return;
         }
-    });
+
+        // DISABLE
+        const response = await fetch('/disable-2fa', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || data.status !== 'success') {
+            throw new Error(
+                data.message || 'Failed to disable 2FA'
+            );
+        }
+
+        option.dataset.status = 'disabled';
+        statusLabel.textContent = 'Disabled';
+        statusLabel.className = 'status-label disabled';
+
+        showToast(
+            '⚠️ Two-factor authentication disabled',
+            'warning'
+        );
+
+    } catch (error) {
+
+        console.error(error);
+
+        // Restore toggle state
+        twoFactorToggle.checked = true;
+
+        option.dataset.status = 'enabled';
+        statusLabel.textContent = 'Enabled';
+        statusLabel.className = 'status-label enabled';
+
+        showToast(
+            error.message || 'Failed to disable 2FA',
+            'error'
+        );
+    }
+});
     
     // Biometric login toggle
     biometricToggle.addEventListener('change', () => {
