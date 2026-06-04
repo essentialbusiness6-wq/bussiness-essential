@@ -717,7 +717,15 @@ function updateSecuritySettings(settings) {
 
     document.getElementById("twoFactorToggle").checked =
         settings.two_factor_enabled;
-
+    if (settings.two_factor_enabled){
+        option.dataset.status = 'enabled';
+        statusLabel.textContent = 'Enabled';
+        statusLabel.className = 'status-label enabled';
+    } else {
+                option.dataset.status = 'disabled';
+        statusLabel.textContent = 'Disabled';
+        statusLabel.className = 'status-label disabled';
+    }
     document.getElementById("biometricToggle").checked =
         settings.biometric_enabled;
 
