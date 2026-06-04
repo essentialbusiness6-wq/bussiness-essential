@@ -31,7 +31,52 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
 
     function setupEventListeners() {
-        getStartedBtn.addEventListener('click', () => goToStep('scan'));
+        getStartedBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+
+            try {
+
+                const response = await fetch("/api/setup-2fa", {
+                    method: "POST",
+                    credentials: "include",
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                });
+
+                const data = await response.json();
+
+                console.log("2FA Setup:", data);
+
+                if (!response.ok || !data.success) {
+                    throw new Error(
+                        data.message || "Failed to setup 2FA"
+                    );
+                }
+
+                // Display QR Code
+                document.getElementById("qrCode").src =
+                `data:image/png;base64,${data.qr_code}`;
+
+                // Display secret key
+                document.getElementById("secretKey").textContent =
+                    data.secret;
+
+                showToast(
+                    "2FA setup generated successfully",
+                    "success"
+                );
+
+        } catch (error) {
+
+            console.error(error);
+
+            showToast(
+                error.message || "Failed to setup 2FA",
+                "error"
+            );
+        }
+    });
         backToIntroBtn.addEventListener('click', () => goToStep('intro'));
         continueToVerifyBtn.addEventListener('click', () => {
             goToStep('verify');
@@ -101,39 +146,73 @@ document.addEventListener('DOMContentLoaded', () => {
         currentStep = stepName;
     }
 
-    function handleVerify() {
-        const code = authCodeInput.value.trim();
-        
-        if (code.length !== 6) {
-            codeError.textContent = 'Please enter a valid 6-digit code.';
-            codeError.classList.add('visible');
-            authCodeInput.classList.add('error');
-            authCodeInput.focus();
-            return;
+async function handleVerify() {
+    const code = authCodeInput.value.trim();
+
+    if (code.length !== 6) {
+        codeError.textContent = "Please enter a valid 6-digit code.";
+        codeError.classList.add("visible");
+        authCodeInput.classList.add("error");
+        authCodeInput.focus();
+        return;
+    }
+
+    verifyBtn.disabled = true;
+    verifyBtn.innerHTML = '<span class="spinner"></span> Verifying...';
+
+    try {
+
+        const response = await fetch("/setup/verify-2fa", {
+            method: "POST",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                code: code
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.status === "success") {
+
+            showToast(
+                data.message || "2FA enabled successfully",
+                "success"
+            );
+
+            setTimeout(() => {
+                window.location.href = "/dashboard";
+            }, 1500);
+
+        } else {
+
+            codeError.textContent =
+                data.message ||
+                "Invalid code. Please check your authenticator app and try again.";
+
+            codeError.classList.add("visible");
+            authCodeInput.classList.add("error");
+            authCodeInput.select();
         }
 
-        // Simulate API verification
-        verifyBtn.disabled = true;
-        verifyBtn.innerHTML = '<span class="spinner"></span> Verifying...';
-        
-        setTimeout(() => {
-            // For demo purposes, accept any 6-digit code. 
-            // In production, validate against your backend.
-            if (code.length === 6) {
-                goToStep('success');
-                showToast('Two-factor authentication enabled!', 'success');
-            } else {
-                codeError.textContent = 'Invalid code. Please check your authenticator app and try again.';
-                codeError.classList.add('visible');
-                authCodeInput.classList.add('error');
-                authCodeInput.select();
-            }
-            
-            // Reset button state
-            verifyBtn.disabled = false;
-            verifyBtn.innerHTML = 'Verify & Enable';
-        }, 1200);
+    } catch (error) {
+
+        console.error("2FA Verification Error:", error);
+
+        codeError.textContent =
+            "Unable to verify code. Please try again.";
+
+        codeError.classList.add("visible");
+        authCodeInput.classList.add("error");
+
+    } finally {
+
+        verifyBtn.disabled = false;
+        verifyBtn.innerHTML = "Verify & Enable";
     }
+}
 
     function showToast(message, type = 'info') {
         const toast = document.createElement('div');
