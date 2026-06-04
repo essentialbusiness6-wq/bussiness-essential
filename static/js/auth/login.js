@@ -111,9 +111,7 @@ function showSuccessModal(message, redirectUrl = null, delay = 0) {
             const verify2FAWrapper = document.getElementById('verify-2fa');
             const backupCodeWrapper = document.getElementById('backup-code');
             
-            const resetBtn = document.getElementById('resetpsbtn');
             const signupLink = document.getElementById('signup-link');
-            const faceIdBtn = document.getElementById('faceid-login');
             const backToLoginBtn = document.getElementById('backToLoginBtn');
             const backToLoginFromReset = document.getElementById('backToLoginFromReset');
             const backTo2FABtn = document.getElementById('backTo2FABtn');
