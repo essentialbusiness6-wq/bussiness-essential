@@ -44,7 +44,6 @@ import cloudinary.api
 import jwt
 from dotenv import load_dotenv
 from collections import defaultdict
-)
 import pyotp
 import qrcode
 import io
