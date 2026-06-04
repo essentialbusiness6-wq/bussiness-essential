@@ -5411,7 +5411,63 @@ def verify_2fa(current_user_id, current_user_role):
             "status": "error",
             "message": "An unexpected error occurred."
         }), 500
-        
+
+@app.route("/disable-2fa", methods=["POST"])
+@token_required
+def disable_2fa(current_user_id, current_user_role):
+
+    try:
+
+        with db_cursor(dictionary=True) as (conn, cursor):
+
+            cursor.execute("""
+                SELECT username, role
+                FROM user_base
+                WHERE user_id=%s
+                LIMIT 1
+            """, (current_user_id,))
+
+            user = cursor.fetchone()
+
+            if not user:
+                return jsonify({
+                    "status": "error",
+                    "message": "User not found"
+                }), 404
+
+            cursor.execute("""
+                UPDATE user_base
+                SET
+                    two_factor_secret=NULL,
+                    qr=NULL,
+                    two_factor_enabled=FALSE
+                WHERE user_id=%s
+            """, (current_user_id,))
+
+        ip_address = request.remote_addr
+
+        save_security_activity(
+            current_user_id,
+            "account",
+            "2FA Disabled",
+            f"User '{current_user_id}' disabled two-factor authentication from {ip_address}",
+            "MEDIUM",
+            ip_address
+        )
+
+        return jsonify({
+            "status": "success",
+            "message": "Two-factor authentication disabled successfully."
+        }), 200
+
+    except Exception as e:
+
+        print("Disable 2FA Error:", e)
+
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 if __name__ == "__main__":
 
     socketio.run(
