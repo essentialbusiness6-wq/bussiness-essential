@@ -66,11 +66,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById("secretKey").textContent =
                     data.secret;
 
+               
                 showToast(
                     "2FA setup generated successfully",
                     "success"
                 );
-
+                goToStep('scan');
         } catch (error) {
 
             console.error(error);
