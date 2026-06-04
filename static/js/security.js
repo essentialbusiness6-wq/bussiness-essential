@@ -714,9 +714,11 @@ indicators.forEach((bar, index) => {
 }
 
 function updateSecuritySettings(settings) {
-
-    document.getElementById("twoFactorToggle").checked =
+    const twoFactorToggle = document.getElementById("twoFactorToggle");
+    twoFactorToggle.checked =
         settings.two_factor_enabled;
+    const option = twoFactorToggle.closest('.security-option');
+    const statusLabel = option.querySelector('.status-label');
     if (settings.two_factor_enabled){
         option.dataset.status = 'enabled';
         statusLabel.textContent = 'Enabled';
