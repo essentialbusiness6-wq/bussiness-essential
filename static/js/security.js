@@ -52,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
             statusLabel.textContent = 'Enabled';
             statusLabel.className = 'status-label enabled';
             showToast('✓ Two-factor authentication enabled', 'success');
+            window.location.href = '/security-center/2fa';
         } else {
             option.dataset.status = 'disabled';
             statusLabel.textContent = 'Disabled';
