@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // login.js
+    const particlesContainer = document.getElementById('particles');
 
 // ------------- Helper functions for loading spinner -------------
 function setLoading(button, text = "Processing...") {
@@ -126,7 +127,6 @@ function showSuccessModal(message, redirectUrl = null, delay = 0) {
             const timerCountdown = document.getElementById('timerCountdown');
             const codeTimer = document.getElementById('codeTimer');
             
-            const particlesContainer = document.getElementById('particles');
             
             let countdownInterval = null;
 
