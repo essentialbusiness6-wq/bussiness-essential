@@ -126,7 +126,18 @@ function showSuccessModal(message, redirectUrl = null, delay = 0) {
             const twofaCodeInput = document.getElementById('twofa_code_input');
             const timerCountdown = document.getElementById('timerCountdown');
             const codeTimer = document.getElementById('codeTimer');
-            
+            // ------------- Grab form and button -------------
+            const loginForm = document.getElementById("loginForm");
+            const loginBtn = document.getElementById("SigninButton");
+            const resetForm = document.getElementById("resetForm");
+            const resetBtn = document.getElementById("resetPassword");
+            const saveForm = document.getElementById("passwordForm");
+            const saveBtn = document.getElementById("savePassword");
+            const restBtna = document.getElementById("resetpsbtn");
+            const logindiv = document.getElementById("login");
+            const resetdiv = document.getElementById("reset-password");
+            const savediv = document.getElementById("save-password");
+
             
             let countdownInterval = null;
 
@@ -487,17 +498,6 @@ style.innerHTML = `
 `;
 document.head.appendChild(style);
 
-// ------------- Grab form and button -------------
-const loginForm = document.getElementById("loginForm");
-const loginBtn = document.getElementById("SigninButton");
-const resetForm = document.getElementById("resetForm");
-const resetBtn = document.getElementById("resetPassword");
-const saveForm = document.getElementById("passwordForm");
-const saveBtn = document.getElementById("savePassword");
-const restBtna = document.getElementById("resetpsbtn");
-const logindiv = document.getElementById("login");
-const resetdiv = document.getElementById("reset-password");
-const savediv = document.getElementById("save-password");
 
 function clearLoading(button) {
     button.disabled = false;
