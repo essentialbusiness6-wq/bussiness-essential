@@ -15,6 +15,32 @@ document.addEventListener('DOMContentLoaded', () => {
     animateStats();
 
     function setupEventListeners() {
+        (function () {
+    const savedTheme = localStorage.getItem("theme");
+
+    if (savedTheme === "dark") {
+        document.documentElement.classList.add("dark");
+    } else if (savedTheme === "light") {
+        document.documentElement.classList.remove("dark");
+        document.documentElement.classList.add("light");
+    } else {
+        if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+            document.documentElement.classList.add("dark");
+        }
+    }
+
+    window.matchMedia("(prefers-color-scheme: dark)")
+        .addEventListener("change", (e) => {
+
+            if (localStorage.getItem("theme")) return;
+
+            if (e.matches) {
+                document.documentElement.classList.add("dark");
+            } else {
+                document.documentElement.classList.remove("dark");
+            }
+        });
+})();
         // Mobile menu toggle
         mobileToggle.addEventListener('click', () => {
             navMenu.classList.toggle('active');
