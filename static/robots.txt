@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+sitemap: https://www.businessessentia.net/sitemap.xml
