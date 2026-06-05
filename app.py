@@ -1,7 +1,7 @@
 import traceback
 
 from flask import (
-    Flask, request, jsonify, make_response, render_template,session,redirect, Blueprint,
+    Flask, request, jsonify, make_response, render_template,session,redirect, Blueprint,send_from_directory
 )
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit, join_room
@@ -135,6 +135,10 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 @app.route("/ping")
 def ping():
     return "ok"
+
+@app.route("/robots.txt")
+def robots():
+    return send_from_directory('static','robots.txt')
 
 @app.route("/test-email")
 def test_email():
