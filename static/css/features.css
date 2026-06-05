@@ -953,3 +953,11 @@ img {
         flex-direction: column;
     }
 }
+.dark .feature-card:hover,
+.dark .integration-card:hover,
+.dark .testimonial-card:hover {
+    border-color: rgba(96,165,250,.4);
+    box-shadow:
+        0 0 0 1px rgba(96,165,250,.2),
+        0 10px 30px rgba(0,0,0,.4);
+}
