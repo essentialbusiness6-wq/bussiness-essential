@@ -189,6 +189,10 @@ def contact():
 def blog():
     return render_template("blog.html")
     
+@app.route("/features")
+def features():
+    return render_template("features.html")
+    
 @app.route("/privacy-policy")
 def privacy_policy():
     return render_template("privacy-policy.html")
