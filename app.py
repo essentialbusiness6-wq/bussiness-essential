@@ -140,6 +140,10 @@ def ping():
 def robots():
     return send_from_directory('static','robots.txt')
 
+@app.route("/sitemap.xml")
+def sitemap():
+    return send_from_directory('static','sitemap.xml')
+
 @app.route("/test-email")
 def test_email():
     emails = ["budom7774@gmail.com","huntclara.56@gmail.com","Lawal22413@gmail.com","leanerbeamllc26@gmail.com","test-hbaxiezfa@srv1.mail-tester.com"]
