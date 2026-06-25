@@ -5748,6 +5748,7 @@ def initialize_payment(current_user_id, current_user_role):
                     "user_id": current_user_id,
                     "plan": plan
                 }
+            }
         
 
             headers = {
