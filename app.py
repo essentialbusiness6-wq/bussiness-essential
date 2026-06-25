@@ -6,6 +6,7 @@ from flask import (
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit, join_room
 import time
+import flask_profiler
 from apscheduler.schedulers.background import BackgroundScheduler
 from backend.extentions import socketio, cache
 from backend.socket_events import register_socket_events
@@ -51,7 +52,6 @@ import io
 import base64
 from flask_compress import Compress
 from whitenoise import WhiteNoise
-import flask-profiler
 
 
 
