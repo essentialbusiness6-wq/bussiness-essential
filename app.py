@@ -5567,7 +5567,7 @@ def payment_callback():
 
 
 @app.route("/payment/initialize", methods=["POST"])
-@login_required
+@token_required
 def initialize_payment(current_user_id, current_user_role):
 
     data = request.get_json()
