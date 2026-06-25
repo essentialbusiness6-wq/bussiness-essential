@@ -5555,7 +5555,7 @@ def login_verify_2fa():
         }), 500
 
 @app.route("/payment/callback")
-@login_required
+@token_required
 def payment_callback(current_user_id, current_user_role):
 
     reference = request.args.get("reference")
