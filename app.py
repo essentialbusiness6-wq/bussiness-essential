@@ -5710,18 +5710,14 @@ def payment_webhook():
         (reference,)
         )
 
-        existing =
-        cursor.fetchone()
+        existing = cursor.fetchone()
 
         if existing:
 
             return "",200
 
 
-        expires =
-        datetime.utcnow()+relativedelta(
-            months=1
-        )
+        expires =datetime.utcnow()+relativedelta(months=1)
 
 
         cursor.execute("""
@@ -5731,7 +5727,7 @@ def payment_webhook():
         """,
         (
             plan,
-	    expires,
+	    	expires,
             user_id
         )
         )
