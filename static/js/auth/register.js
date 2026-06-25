@@ -269,55 +269,188 @@ function clearLoading(button) {
 const code = String(Math.floor(100000 + Math.random()*900000));
 /* ================= USER REGISTRATION (FIRST SCREEN) ================= */
 userForm.addEventListener("submit", async function (e) {
+
     e.preventDefault();
 
-    const submitBtn = document.getElementById("userNextButton");
+    const submitBtn =
+    document.getElementById(
+        "userNextButton"
+    );
 
     const data = {
-        username: document.getElementById("username_input").value.trim(),
-        email: document.getElementById("email_input").value.trim(),
-        password: document.getElementById("password_input").value,
-        confirm_password: document.getElementById("confirm_password_input").value,
-        security_question: document.getElementById("security_question_input").value.trim(),
-        security_answer: document.getElementById("security_answer_input").value.trim(),
-        app_pin: document.getElementById('app_pin_input').value.trim(),
-        verification_code: code
+
+        username:
+        document.getElementById(
+            "username_input"
+        ).value.trim(),
+
+        email:
+        document.getElementById(
+            "email_input"
+        ).value.trim(),
+
+        password:
+        document.getElementById(
+            "password_input"
+        ).value,
+
+        confirm_password:
+        document.getElementById(
+            "confirm_password_input"
+        ).value,
+
+        security_question:
+        document.getElementById(
+            "security_question_input"
+        ).value.trim(),
+
+        security_answer:
+        document.getElementById(
+            "security_answer_input"
+        ).value.trim(),
+
+        app_pin:
+        document.getElementById(
+            "app_pin_input"
+        ).value.trim(),
+
+        verification_code:
+        code
     };
 
 
     // VALIDATION
-    if (!data.username || !data.email || !data.security_question || !data.security_answer) {
-        showErrorModal("All fields are required.");
+
+    if (
+        !data.username ||
+        !data.email ||
+        !data.security_question ||
+        !data.security_answer
+    ){
+
+        showErrorModal(
+            "All fields are required."
+        );
+
         return;
     }
-    if (data.password !== data.confirm_password) {
-        showErrorModal("Passwords don't match");
+
+
+    if (
+        data.password !==
+        data.confirm_password
+    ){
+
+        showErrorModal(
+            "Passwords don't match"
+        );
+
         return;
     }
 
-    setLoading(submitBtn, "Creating account...");
 
-    try {
-        const response = await fetch("/user", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data)
-        });
+    setLoading(
+        submitBtn,
+        "Creating account..."
+    );
 
-        const result = await response.json();
-        clearLoading(submitBtn);
 
-        if (result.status === "success") {
-         showForm("verify", 2);
+    try{
 
-        } else {
-            showErrorModal(result.message || "Registration failed");
+        const response =
+        await fetch(
+            "/user",
+            {
+
+                method:"POST",
+
+                headers:{
+                    "Content-Type":
+                    "application/json"
+                },
+
+                body:
+                JSON.stringify(data)
+
+            }
+        );
+
+
+        const result =
+        await response.json();
+
+
+        clearLoading(
+            submitBtn
+        );
+
+
+        if(
+            result.status ===
+            "success"
+        ){
+
+            // save email
+            localStorage.setItem(
+                "pending_email",
+                data.email
+            );
+
+
+            if(
+                result.requires_verification
+            ){
+
+                showSuccessModal(
+                    result.message 
+                );
+
+            }else{
+
+                showSuccessModal(
+                    result.message
+                );
+
+            }
+
+
+            setTimeout(()=>{
+
+                showForm(
+                    "verify",
+                    2
+                );
+
+            },1000);
+
+
+            return;
+
         }
-    } catch (err) {
-        clearLoading(submitBtn);
-        console.error("USER FORM ERROR →", err);
-        showErrorModal("Server error");
+
+
+        showErrorModal(
+            result.message ||
+            "Registration failed"
+        );
+
+
+    }catch(err){
+
+        clearLoading(
+            submitBtn
+        );
+
+        console.error(
+            err
+        );
+
+        showErrorModal(
+            "Server error"
+        );
+
     }
+
 });
 
 
