@@ -1575,3 +1575,77 @@ def send_overdue_invoice_email_to_user(user_email, username, invoice_id, client_
         body=html_body,
         html=True
     )
+
+
+def process_expired_subscriptions():
+
+    print("Checking expired subscriptions...")
+
+    try:
+
+        with db_cursor(commit=True) as cursor:
+
+            cursor.execute("""
+            SELECT
+                id,
+                user_id
+            FROM user_subscriptions
+            WHERE
+                status='active'
+            AND
+                expires_at<=UTC_TIMESTAMP()
+            """)
+
+            expired =
+            cursor.fetchall()
+
+
+            print(
+                f"Found {len(expired)} expired"
+            )
+
+
+            for sub in expired:
+
+                user_id =
+                sub["user_id"]
+
+                subscription_id =
+                sub["id"]
+
+
+                cursor.execute("""
+                UPDATE user_subscriptions
+                SET status='expired'
+                WHERE id=%s
+                """,
+                (
+                    subscription_id,
+                )
+                )
+
+
+                cursor.execute("""
+                UPDATE user_base
+                SET
+                    plan='FREE',
+                    plan_expiration=NULL
+                WHERE user_id=%s
+                """,
+                (
+                    user_id,
+                )
+                )
+
+
+                print(
+                    f"Expired {user_id}"
+                )
+
+
+    except Exception as e:
+
+        print(
+            "SUB EXPIRY ERROR:",
+            e
+        )
