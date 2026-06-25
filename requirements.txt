@@ -12,6 +12,7 @@ werkzeug
 PyJWT
 mysql-connector-python
 user-agents
+whitenoise
 pyotp
 qrcode
 cloudinary
