@@ -6094,7 +6094,7 @@ def payment_success():
     ref = request.args.get("ref")
 
     return render_template(
-        "/users/payment-success.html",
+        "users/payment-success.html",
         reference=ref
     )
         
