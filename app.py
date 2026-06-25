@@ -1,5 +1,5 @@
 import traceback
-
+import hmac
 from flask import (
     Flask, request, jsonify, make_response, render_template,session,redirect, Blueprint,send_from_directory
 )
@@ -5185,66 +5185,6 @@ def pay_page(current_user_id,current_user_role,plan,amount,user_id):
 import requests
 from dateutil.relativedelta import relativedelta
 
-@app.route("/user/verify-payment", methods=["POST"])
-def verify_payment():
-    data = request.get_json()
-    reference = data.get("reference")
-    conn = get_db()
-    cursor = conn.cursor()
-
-    headers = {
-        "Authorization": "Bearer sk_test_3efbeacd55d65d3fbcd6bfac95380aea329ca20e"
-    }
-
-    url = f"https://api.paystack.co/transaction/verify/{reference}"
-
-    response = requests.get(url, headers=headers)
-    result = response.json()
-
-    expires_at = datetime.utcnow() + relativedelta(months=1)
-
-    if result["data"]["status"] == "success":
-
-        
-        # ✅ Payment verified
-
-        cursor.execute(
-            """
-            UPDATE user_base 
-            SET plan=%s
-            WHERE user_id=%s
-            """,
-            (data["plan"], data["user_id"])
-        )
-
-        cursor.execute(
-            """
-            INSERT INTO user_subscriptions
-            (user_id,plan,amount,status,expires_at)
-            VALUES(%s,%s,%s,%s,%s)
-            """,
-            (data['user_id'],
-             data['plan'].lower(),
-             data['amount'],
-             "active",
-             expires_at)
-        )
-
-        conn.commit()
-        cursor.close()
-        conn.close()
-        
-        return jsonify({
-            "status": "success",
-            "message": "Payment verified successfully"
-        }), 200
-
-    else:
-        return jsonify({
-            "status": "error",
-            "message": "Payment not verified"
-        }), 400
-
 @app.route('/api/setup-2fa', methods=['POST'])
 @token_required
 def setup_2fa(current_user_id, current_user_role):
@@ -5614,6 +5554,252 @@ def login_verify_2fa():
             "message": "An unexpected error occurred"
         }), 500
 
+@app.route("/payment/callback")
+def payment_callback():
+
+    reference = request.args.get(
+        "reference"
+    )
+
+    return redirect(
+        f"/payment/success?ref={reference}"
+    )
+
+
+@app.route("/payment/initialize", methods=["POST"])
+@login_required
+def initialize_payment(current_user_id, current_user_role):
+
+    data = request.get_json()
+
+    if not data:
+        return jsonify({
+            "status": "error",
+            "message": "Invalid JSON"
+        }), 400
+
+    amount = data.get("amount")
+    plan = data.get("plan")
+
+    if not amount:
+        return jsonify({
+            "status": "error",
+            "message": "Amount required"
+        }), 400
+
+    conn = get_db()
+    cursor = conn.cursor(dictionary=True)
+
+    try:
+
+        cursor.execute("""
+            SELECT email
+            FROM user_base
+            WHERE user_id=%s
+        """, (current_user_id,))
+
+        current_user = cursor.fetchone()
+
+        if not current_user:
+            return jsonify({
+                "status": "error",
+                "message": "User not found"
+            }), 404
+
+        payload = {
+            "email": current_user["email"],
+
+            # Kobo
+            "amount": int(amount) * 100,
+
+            "callback_url":
+            "https://businessessentia.net/payment/callback",
+
+            "metadata": {
+                "user_id": current_user_id,
+                "plan": plan
+            }
+        }
+
+        headers = {
+            "Authorization":
+            f"Bearer {PAYSTACK_SECRET}",
+
+            "Content-Type":
+            "application/json"
+        }
+
+        response = requests.post(
+            "https://api.paystack.co/transaction/initialize",
+            json=payload,
+            headers=headers,
+            timeout=30
+        )
+
+        result = response.json()
+
+        if not result.get("status"):
+
+            return jsonify({
+                "status": "error",
+                "message":
+                result.get(
+                    "message",
+                    "Failed to initialize payment"
+                )
+            }), 400
+
+        return jsonify({
+            "status": "success",
+
+            "authorization_url":
+            result["data"]["authorization_url"],
+
+            "reference":
+            result["data"]["reference"]
+        })
+
+    except Exception as e:
+
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+
+    finally:
+        cursor.close()
+        conn.close()
+
+
+
+@app.route("/payment/webhook",methods=["POST"])
+def payment_webhook():
+
+    payload = request.get_json()
+
+    event =
+    payload["event"]
+
+    if event != "charge.success":
+
+        return "",200
+
+
+    payment =
+    payload["data"]
+
+    reference =
+    payment["reference"]
+
+    metadata =
+    payment["metadata"]
+
+    user_id =
+    metadata["user_id"]
+
+    plan =
+    metadata["plan"]
+
+    conn = get_db()
+
+    cursor = conn.cursor()
+
+    try:
+
+        # prevent duplicates
+
+        cursor.execute("""
+        SELECT id
+        FROM user_subscriptions
+        WHERE reference=%s
+        """,
+        (reference,)
+        )
+
+        existing =
+        cursor.fetchone()
+
+        if existing:
+
+            return "",200
+
+
+        expires =
+        datetime.utcnow()+relativedelta(
+            months=1
+        )
+
+
+        cursor.execute("""
+        UPDATE user_base
+        SET plan=%s, plan_expiration=%s
+        WHERE user_id=%s
+        """,
+        (
+            plan,
+	    expires,
+            user_id
+        )
+        )
+
+
+        cursor.execute("""
+        INSERT INTO user_subscriptions(
+            user_id,
+            plan,
+            reference,
+            status,
+            expires_at
+        )
+
+        VALUES(
+            %s,
+            %s,
+            %s,
+            'active',
+            %s
+        )
+        """,
+        (
+            user_id,
+            plan,
+            reference,
+            expires
+        )
+        )
+
+        conn.commit()
+
+        return "",200
+
+    finally:
+
+        cursor.close()
+
+        conn.close()
+
+@app.route(
+"/payment/status/<reference>"
+)
+def payment_status(
+reference
+):
+
+    with db_cursor(dictionary=True) as (conn, cursor)
+        cursor.execute("""
+            SELECT status
+            FROM user_subscriptions
+            WHERE reference=%s
+        """,
+            (reference,)
+        )
+
+        row= cursor.fetchone()
+
+        return jsonify({
+            "active":
+            bool(row)
+        }) , 200
         
 if __name__ == "__main__":
 
