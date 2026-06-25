@@ -5647,9 +5647,7 @@ def initialize_payment(current_user_id, current_user_role):
                 "Content-Type":
                 "application/json"
             }
-
 			print("STEP 10 → Calling Paystack")
-			
 			response = http_requests.post(
     			"https://api.paystack.co/transaction/initialize",
     			json=payload,
