@@ -1,7 +1,10 @@
 Flask
 gunicorn
+flask-compress
 flask-cors
 flask-socketio
+flask-profiler
+flask-compress
 flask-caching
 python-dotenv
 APScheduler
