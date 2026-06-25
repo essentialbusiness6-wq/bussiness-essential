@@ -5677,28 +5677,22 @@ def payment_webhook():
 
     payload = request.get_json()
 
-    event =
-    payload["event"]
+    event = payload["event"]
 
     if event != "charge.success":
 
         return "",200
 
 
-    payment =
-    payload["data"]
+    payment = payload["data"]
 
-    reference =
-    payment["reference"]
+    reference = payment["reference"]
 
-    metadata =
-    payment["metadata"]
+    metadata = payment["metadata"]
 
-    user_id =
-    metadata["user_id"]
+    user_id = metadata["user_id"]
 
-    plan =
-    metadata["plan"]
+    plan = metadata["plan"]
 
     conn = get_db()
 
