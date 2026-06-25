@@ -5555,11 +5555,13 @@ def login_verify_2fa():
         }), 500
 
 @app.route("/payment/callback")
-def payment_callback():
+@login_required
+def payment_callback(current_user_id, current_user_role):
 
-    reference = request.args.get(
-        "reference"
-    )
+    reference = request.args.get("reference")
+
+    if not reference:
+        return redirect("/billing")
 
     return redirect(
         f"/payment/success?ref={reference}"
