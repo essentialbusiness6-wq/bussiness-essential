@@ -1,7 +1,7 @@
 import traceback
 import hmac
 from flask import (
-    Flask, request, jsonify, make_response, render_template,session,redirect, Blueprint,send_from_directory
+    Flask, json, request, jsonify, make_response, render_template,session,redirect, Blueprint,send_from_directory
 )
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit, join_room
@@ -5650,22 +5650,45 @@ def initialize_payment(current_user_id, current_user_role):
                 "Content-Type":
                 "application/json"
             }
-            print(type(requests))
-            print(requests)
-            print(requests.post)
+
+
             print("STEP 10 → Calling Paystack")
 
-            print("REQUESTS MODULE:", requests)
-            print("REQUESTS FILE:", requests.__file__)
+            url = "https://api.paystack.co/transaction/initialize"
 
-            response = requests.post(
-                "https://api.paystack.co/transaction/initialize",
-                json=payload,
-                headers=headers,
-                timeout=30
-            )
+            print("URL:", url)
 
-            print("STEP 11 → Paystack responded")
+            print("HEADERS:")
+            print(headers)
+
+            print("PAYLOAD:")
+            print(json.dumps(payload, indent=2))
+
+
+            try:
+
+                response = requests.post(
+                    url=url,
+                    json=payload,
+                    headers=headers,
+                    timeout=(10, 30)
+                )
+
+                print("STEP 11 → Response received")
+
+                print("STATUS:", response.status_code)
+
+                print("BODY:", response.text)
+
+            except Exception as e:
+
+                print("\n===== FULL ERROR =====")
+
+                traceback.print_exc()
+
+                raise
+
+
 
             result = response.json()
 
@@ -5706,102 +5729,196 @@ def initialize_payment(current_user_id, current_user_role):
             "status": "error",
             "message": str(e)
         }), 500
-        
-@app.route("/payment/webhook",methods=["POST"])
+
+
+@app.route("/payment/webhook", methods=["POST"])
 def payment_webhook():
-
-    payload = request.get_json()
-
-    event = payload["event"]
-
-    if event != "charge.success":
-
-        return "",200
-
-
-    payment = payload["data"]
-
-    reference = payment["reference"]
-
-    metadata = payment["metadata"]
-
-    user_id = metadata["user_id"]
-
-    plan = metadata["plan"]
-
-    conn = get_db()
-
-    cursor = conn.cursor()
 
     try:
 
-        # prevent duplicates
-
-        cursor.execute("""
-        SELECT id
-        FROM user_subscriptions
-        WHERE reference=%s
-        """,
-        (reference,)
+        # --------------------------------
+        # Verify webhook signature
+        # --------------------------------
+        signature = request.headers.get(
+            "x-paystack-signature"
         )
 
-        existing = cursor.fetchone()
+        raw_body = request.get_data()
 
-        if existing:
+        expected = hmac.new(
+            PAYSTACK_SECRET.encode(),
+            raw_body,
+            hashlib.sha512
+        ).hexdigest()
 
-            return "",200
+        if signature != expected:
 
+            print("WEBHOOK → Invalid signature")
 
-        expires =datetime.utcnow()+relativedelta(months=1)
-
-
-        cursor.execute("""
-        UPDATE user_base
-        SET plan=%s, plan_expiration=%s
-        WHERE user_id=%s
-        """,
-        (
-            plan,
-            expires,
-            user_id
-        )
-        )
+            return jsonify({
+                "status": "error",
+                "message": "Invalid signature"
+            }), 401
 
 
-        cursor.execute("""
-        INSERT INTO user_subscriptions(
-            user_id,
-            plan,
-            reference,
-            status,
-            expires_at
-        )
+        payload = request.get_json()
 
-        VALUES(
-            %s,
-            %s,
-            %s,
-            'active',
-            %s
-        )
-        """,
-        (
-            user_id,
-            plan,
-            reference,
-            expires
-        )
+        if not payload:
+            return "", 400
+
+
+        event = payload.get("event")
+
+        print("WEBHOOK EVENT:", event)
+
+
+        if event != "charge.success":
+
+            return "", 200
+
+
+        payment = payload.get("data", {})
+
+        reference = payment.get("reference")
+
+        metadata = payment.get(
+            "metadata",
+            {}
         )
 
-        conn.commit()
+        user_id = metadata.get(
+            "user_id"
+        )
 
-        return "",200
+        plan = metadata.get(
+            "plan"
+        )
 
-    finally:
+        amount = payment.get(
+            "amount",
+            0
+        ) / 100
 
-        cursor.close()
 
-        conn.close()
+        if not reference:
+
+            return jsonify({
+                "status": "error",
+                "message": "Reference missing"
+            }), 400
+
+
+        expires = (
+            datetime.utcnow()
+            +
+            relativedelta(months=1)
+        )
+
+
+        with db_cursor(dictionary=True) as (
+            conn,
+            cursor
+        ):
+
+            print(
+                "WEBHOOK → Checking duplicate"
+            )
+
+            cursor.execute("""
+                SELECT id
+                FROM user_subscriptions
+                WHERE reference=%s
+            """, (
+                reference,
+            ))
+
+            existing = cursor.fetchone()
+
+            if existing:
+
+                print(
+                    "WEBHOOK → Already processed"
+                )
+
+                return "", 200
+
+
+            print(
+                "WEBHOOK → Updating plan"
+            )
+
+            cursor.execute("""
+                UPDATE user_base
+                SET
+                    plan=%s,
+                    plan_expiration=%s
+                WHERE user_id=%s
+            """, (
+                plan,
+                expires,
+                user_id
+            ))
+
+
+            print(
+                "WEBHOOK → Creating subscription"
+            )
+
+            cursor.execute("""
+                INSERT INTO user_subscriptions(
+
+                    user_id,
+                    plan,
+                    reference,
+                    amount,
+                    status,
+                    expires_at
+
+                )
+
+                VALUES(
+
+                    %s,
+                    %s,
+                    %s,
+                    %s,
+                    %s,
+                    %s
+
+                )
+            """, (
+
+                user_id,
+                plan,
+                reference,
+                amount,
+                "active",
+                expires
+
+            ))
+
+            conn.commit()
+
+            print(
+                "WEBHOOK → Success"
+            )
+
+
+        return "", 200
+
+
+    except Exception as e:
+
+        print(
+            "WEBHOOK ERROR:",
+            type(e),
+            str(e)
+        )
+
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 
 @app.route(
 "/payment/status/<reference>"
