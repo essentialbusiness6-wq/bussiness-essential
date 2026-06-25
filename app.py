@@ -5566,17 +5566,17 @@ def payment_callback(current_user_id, current_user_role):
     return redirect(
         f"/payment/success?ref={reference}"
     )
-	
 @app.route("/payment/initialize", methods=["POST"])
 @token_required
 def initialize_payment(current_user_id, current_user_role):
 
-	print("IN In")
-    conn = None
-    cursor = None
+    print("STEP 1 → Route entered")
 
     try:
+
         data = request.get_json()
+
+        print("STEP 2 → JSON received:", data)
 
         if not data:
             return jsonify({
@@ -5584,8 +5584,12 @@ def initialize_payment(current_user_id, current_user_role):
                 "message": "Invalid JSON"
             }), 400
 
+
         amount = data.get("amount")
         plan = data.get("plan")
+
+        print("STEP 3 → Amount:", amount)
+        print("STEP 4 → Plan:", plan)
 
         if not amount:
             return jsonify({
@@ -5594,86 +5598,105 @@ def initialize_payment(current_user_id, current_user_role):
             }), 400
 
 
-        conn = get_db()
-        cursor = conn.cursor(dictionary=True)
+        print("STEP 5 → Opening DB")
 
-        cursor.execute("""
-            SELECT email
-            FROM user_base
-            WHERE user_id=%s
-        """, (current_user_id,))
+        with db_cursor(dictionary=True) as (conn, cursor):
 
-        current_user = cursor.fetchone()
+            print("STEP 6 → DB Connected")
 
-        if not current_user:
-            return jsonify({
-                "status": "error",
-                "message": "User not found"
-            }), 404
+            cursor.execute("""
+                SELECT email
+                FROM user_base
+                WHERE user_id=%s
+            """, (current_user_id,))
+
+            print("STEP 7 → Query executed")
+
+            current_user = cursor.fetchone()
+
+            print("STEP 8 → User fetched:", current_user)
+
+            if not current_user:
+                return jsonify({
+                    "status": "error",
+                    "message": "User not found"
+                }), 404
 
 
-        payload = {
-            "email": current_user["email"],
-            "amount": int(float(amount)) * 100,
-            "callback_url": "https://businessessentia.net/payment/callback",
+            payload = {
+                "email": current_user["email"],
 
-            "metadata": {
-                "user_id": current_user_id,
-                "plan": plan
+                "amount": int(float(amount)) * 100,
+
+                "callback_url":
+                "https://businessessentia.net/payment/callback",
+
+                "metadata": {
+                    "user_id": current_user_id,
+                    "plan": plan
+                }
             }
-        }
 
-        headers = {
-            "Authorization": f"Bearer {PAYSTACK_SECRET}",
-            "Content-Type": "application/json"
-        }
+            print("STEP 9 → Payload ready")
 
-        response = requests.post(
-            "https://api.paystack.co/transaction/initialize",
-            json=payload,
-            headers=headers,
-            timeout=30
-        )
+            headers = {
+                "Authorization":
+                f"Bearer {PAYSTACK_SECRET}",
 
-        result = response.json()
+                "Content-Type":
+                "application/json"
+            }
 
-        if not result.get("status"):
+            print("STEP 10 → Calling Paystack")
+
+            response = requests.post(
+                "https://api.paystack.co/transaction/initialize",
+                json=payload,
+                headers=headers,
+                timeout=30
+            )
+
+            print("STEP 11 → Paystack responded")
+
+            result = response.json()
+
+            print("STEP 12 → Result:", result)
+
+            if not result.get("status"):
+
+                return jsonify({
+                    "status": "error",
+                    "message":
+                    result.get(
+                        "message",
+                        "Initialization failed"
+                    )
+                }), 400
+
+
+            print("STEP 13 → Returning success")
+
             return jsonify({
-                "status": "error",
-                "message": result.get(
-                    "message",
-                    "Payment initialization failed"
-                )
-            }), 400
+                "status": "success",
 
-
-        return jsonify({
-            "status": "success",
-            "authorization_url":
+                "authorization_url":
                 result["data"]["authorization_url"],
-            "reference":
+
+                "reference":
                 result["data"]["reference"]
-        }), 200
+            }), 200
 
 
     except Exception as e:
 
-        print("PAYMENT ERROR:", e)
+        print("PAYMENT ERROR:")
+        print(type(e))
+        print(str(e))
 
         return jsonify({
             "status": "error",
             "message": str(e)
         }), 500
-
-
-    finally:
-
-        if cursor:
-            cursor.close()
-
-        if conn:
-            conn.close()
-
 @app.route("/payment/webhook",methods=["POST"])
 def payment_webhook():
 
