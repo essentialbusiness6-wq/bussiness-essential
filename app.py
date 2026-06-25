@@ -53,6 +53,8 @@ import base64
 load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY")
+PAYSTACK_PUBLIC=os.getenv("PAYSTACK_PUBLIC_KEY")
+PAYSTACK_SECRET=os.getenv("PAYSTACK_SECRET_KEY")
 app = Flask(__name__)
 app.register_blueprint(admin_bp)
 app.secret_key = os.getenv("SECRET_KEY")
