@@ -5664,7 +5664,7 @@ def initialize_payment(current_user_id, current_user_role):
     except Exception as e:
 		cursor.close()
         conn.close()
-
+		print(e)
         return jsonify({
             "status": "error",
             "message": str(e)
