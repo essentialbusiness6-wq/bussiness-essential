@@ -5567,114 +5567,200 @@ def payment_callback(current_user_id, current_user_role):
         f"/payment/success?ref={reference}"
     )
 
-
 @app.route("/payment/initialize", methods=["POST"])
 @token_required
 def initialize_payment(current_user_id, current_user_role):
 
-    data = request.get_json()
-
-    if not data:
-        return jsonify({
-            "status": "error",
-            "message": "Invalid JSON"
-        }), 400
-
-    amount = data.get("amount")
-    plan = data.get("plan")
-
-    if not amount:
-        return jsonify({
-            "status": "error",
-            "message": "Amount required"
-        }), 400
-
-    conn = get_db()
-    cursor = conn.cursor(dictionary=True)
+    conn = None
+    cursor = None
 
     try:
 
-        cursor.execute("""
+        data = request.get_json()
+
+        if not data:
+            return jsonify({
+                "status": "error",
+                "message": "Invalid JSON"
+            }), 400
+
+
+        amount = data.get("amount")
+        plan = data.get("plan")
+
+
+        if amount is None:
+
+            return jsonify({
+                "status": "error",
+                "message": "Amount required"
+            }), 400
+
+
+        conn = get_db()
+
+        cursor = conn.cursor(
+            dictionary=True
+        )
+
+
+        cursor.execute(
+            """
             SELECT email
             FROM user_base
             WHERE user_id=%s
-        """, (current_user_id,))
+            """,
+            (current_user_id,)
+        )
 
         current_user = cursor.fetchone()
 
+
         if not current_user:
+
             return jsonify({
                 "status": "error",
                 "message": "User not found"
             }), 404
 
-        payload = {
-            "email": current_user["email"],
 
-            # Kobo
-            "amount": int(amount) * 100,
+        cursor.close()
+        conn.close()
+
+        cursor = None
+        conn = None
+
+
+        payload = {
+
+            "email":
+            current_user["email"],
+
+            "amount":
+            int(float(amount) * 100),
 
             "callback_url":
             "https://businessessentia.net/payment/callback",
 
             "metadata": {
-                "user_id": current_user_id,
-                "plan": plan
+
+                "user_id":
+                current_user_id,
+
+                "plan":
+                plan
+
             }
+
         }
 
+
         headers = {
+
             "Authorization":
             f"Bearer {PAYSTACK_SECRET}",
 
             "Content-Type":
             "application/json"
+
         }
 
-        response = requests.post(
+
+        paystack_response = requests.post(
+
             "https://api.paystack.co/transaction/initialize",
+
             json=payload,
+
             headers=headers,
+
             timeout=30
+
         )
 
-        result = response.json()
+
+        result = paystack_response.json()
+
 
         if not result.get("status"):
 
             return jsonify({
-                "status": "error",
+
+                "status":
+                "error",
+
                 "message":
                 result.get(
                     "message",
-                    "Failed to initialize payment"
+                    "Payment initialization failed"
                 )
+
             }), 400
 
+
         return jsonify({
-            "status": "success",
+
+            "status":
+            "success",
 
             "authorization_url":
             result["data"]["authorization_url"],
 
             "reference":
             result["data"]["reference"]
-        })
+
+        }), 200
+
+
+    except requests.Timeout:
+
+        return jsonify({
+
+            "status":
+            "error",
+
+            "message":
+            "Paystack timeout"
+
+        }), 504
+
 
     except Exception as e:
-		conn.rollback()
-		cursor.close()
-        conn.close()
-		print(e)
+
+        print(
+            "PAYMENT INIT ERROR:",
+            str(e)
+        )
+
         return jsonify({
-            "status": "error",
-            "message": str(e)
+
+            "status":
+            "error",
+
+            "message":
+            str(e)
+
         }), 500
 
-    finally:
-        cursor.close()
-        conn.close()
 
+    finally:
+
+        try:
+
+            if cursor:
+                cursor.close()
+
+        except:
+            pass
+
+
+        try:
+
+            if conn:
+                conn.close()
+
+        except:
+            pass
 
 
 @app.route("/payment/webhook",methods=["POST"])
