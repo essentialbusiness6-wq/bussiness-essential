@@ -5268,9 +5268,6 @@ def change_profile_pic(current_user_id, current_user_role):
 @app.route("/api/billing/<string:plan>/<int:amount>", methods=["GET"])
 @token_required
 def pay_page(current_user_id,current_user_role,plan,amount):
-    if current_user_id != user_id:
-        redirect("/login")
-
     return render_template(
         "users/pay.html",
         plan=plan.upper(),
