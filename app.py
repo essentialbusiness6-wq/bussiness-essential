@@ -5566,12 +5566,14 @@ def payment_callback(current_user_id, current_user_role):
     return redirect(
         f"/payment/success?ref={reference}"
     )
+	
 @app.route("/payment/initialize", methods=["POST"])
 @token_required
 def initialize_payment(current_user_id, current_user_role):
-	print("Reached initialize_payment")
+
+	print("IN In")
     conn = None
-	cursor = None
+    cursor = None
 
     try:
         data = request.get_json()
@@ -5613,9 +5615,7 @@ def initialize_payment(current_user_id, current_user_role):
         payload = {
             "email": current_user["email"],
             "amount": int(float(amount)) * 100,
-
-            "callback_url":
-            "https://businessessentia.net/payment/callback",
+            "callback_url": "https://businessessentia.net/payment/callback",
 
             "metadata": {
                 "user_id": current_user_id,
@@ -5624,41 +5624,35 @@ def initialize_payment(current_user_id, current_user_role):
         }
 
         headers = {
-            "Authorization":
-            f"Bearer {PAYSTACK_SECRET}",
-
-            "Content-Type":
-            "application/json"
+            "Authorization": f"Bearer {PAYSTACK_SECRET}",
+            "Content-Type": "application/json"
         }
 
-        paystack = requests.post(
+        response = requests.post(
             "https://api.paystack.co/transaction/initialize",
             json=payload,
             headers=headers,
             timeout=30
         )
 
-        result = paystack.json()
+        result = response.json()
 
         if not result.get("status"):
-
             return jsonify({
                 "status": "error",
-                "message":
-                result.get(
+                "message": result.get(
                     "message",
-                    "Initialization failed"
+                    "Payment initialization failed"
                 )
             }), 400
 
+
         return jsonify({
             "status": "success",
-
             "authorization_url":
-            result["data"]["authorization_url"],
-
+                result["data"]["authorization_url"],
             "reference":
-            result["data"]["reference"]
+                result["data"]["reference"]
         }), 200
 
 
