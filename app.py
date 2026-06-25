@@ -5649,19 +5649,19 @@ def initialize_payment(current_user_id, current_user_role):
                 "Content-Type":
                 "application/json"
             }
-			print("STEP 10 → Calling Paystack")
+            print("STEP 10 → Calling Paystack")
 
-			print("REQUESTS MODULE:", requests)
-			print("REQUESTS FILE:", requests.__file__)
+            print("REQUESTS MODULE:", requests)
+            print("REQUESTS FILE:", requests.__file__)
 
-			response = http_requests.post(
-    			"https://api.paystack.co/transaction/initialize",
-    			json=payload,
-    			headers=headers,
-    			timeout=30
-			)
+            response = http_requests.post(
+                "https://api.paystack.co/transaction/initialize",
+                json=payload,
+                headers=headers,
+                timeout=30
+            )
 
-			print("STEP 11 → Paystack responded")
+            print("STEP 11 → Paystack responded")
 
             result = response.json()
 
@@ -5702,7 +5702,7 @@ def initialize_payment(current_user_id, current_user_role):
             "status": "error",
             "message": str(e)
         }), 500
-		
+        
 @app.route("/payment/webhook",methods=["POST"])
 def payment_webhook():
 
@@ -5758,7 +5758,7 @@ def payment_webhook():
         """,
         (
             plan,
-	    	expires,
+            expires,
             user_id
         )
         )
@@ -5828,4 +5828,4 @@ if __name__ == "__main__":
         app,
         debug=True
     )
-    # app.run(host='127.0.0.1', port=5502, debug=True)
+
