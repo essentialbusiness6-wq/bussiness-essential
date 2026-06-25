@@ -16,9 +16,9 @@ document.addEventListener('DOMContentLoaded', () => {
             monthly: 1000,
             yearly: 12000 // 20% discount
         },
-        pro: {
+        Pro: {
             monthly: 10000,
-            yearly: 120000 // 20% discount
+            yearly: 120000 
         }
     };
     
@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     // In a real app, this would redirect or update the UI
                     setTimeout(() => {
-                        window.location.href = `/api/billing/${plan}/${price}/${userId}`
+                        window.location.href = `/api/billing/${plan}/${price}`
                     }, 1500);
                 }, 2200);
             }
