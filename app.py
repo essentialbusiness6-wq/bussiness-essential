@@ -2240,9 +2240,9 @@ def create_profile():
         cursor.close()
         conn.close()
 
-
 @app.route("/user", methods=["POST"])
 def create_user():
+
     data = request.get_json()
 
     if not data:
@@ -2250,6 +2250,7 @@ def create_user():
             "status": "error",
             "message": "Invalid or missing JSON"
         }), 400
+
 
     required_fields = [
         "username",
@@ -2260,66 +2261,175 @@ def create_user():
         "app_pin",
         "verification_code"
     ]
-    conn = get_db()
-    cursor = conn.cursor()
 
-    # Check for duplicate usernames
-    cursor.execute("SELECT username FROM user_base")
-    existing_usernames = {row[0] for row in cursor.fetchall()}
-    if data["username"] in existing_usernames:
-        return jsonify({
-            "status": "error",
-            "message": "Username already exists"
-        }), 400
-    
 
-    # Validate required fields
     for field in required_fields:
+
         if not data.get(field):
+
             return jsonify({
                 "status": "error",
                 "message": f"Missing field: {field}"
             }), 400
 
+
+    conn = get_db()
+    cursor = conn.cursor(dictionary=True)
+
     try:
+
+        # CHECK EXISTING USER
         cursor.execute("""
-            INSERT INTO user_base
-            (username, email, password_hash, security_question, security_answer ,failed_attempts, last_login, last_failed_login, trials_ends_at, locked, lock_reason, active, pin)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """, (
+        SELECT
+            user_id,
+            username,
+            email,
+            is_email_verified
+        FROM user_base
+        WHERE
+            username=%s
+        OR
+            email=%s
+        """,
+        (
             data["username"],
-            data["email"],
-            hashlib.sha256(data["password"].encode()).hexdigest(),
-            hashlib.sha256(data["security_question"].encode()).hexdigest(),
-            hashlib.sha256(data["security_answer"].encode()).hexdigest(),
-            0, None, None, (datetime.now() + timedelta(days=30)).strftime("%Y-%m-%d %H:%M:%S"),
-            False, "", True,
-            hashlib.sha256(data['app_pin'].encode()).hexdigest()
+            data["email"]
         ))
-        user_id = cursor.lastrowid
-        cursor.execute(
-            """
-            INSERT INTO user_settings (user_id, footer_note
-            )
-            VALUES (%s, %s)
-            """,
-            (
-                user_id,
-                "Thanks for doing business with us."
-            )
+
+        existing =
+        cursor.fetchone()
+
+
+        # USER EXISTS
+        if existing:
+
+            if not existing["is_email_verified"]:
+
+                send_email(
+                    recipient=existing["email"],
+                    subject="Verification of Account Creation",
+                    body=f"Here is your verification code: {data['verification_code']}",
+                    html=False
+                )
+
+                return jsonify({
+                    "status": "success",
+                    "message":
+                    "Account already exists but email not verified. Verification code resent.",
+                    "requires_verification": True
+                }), 200
+
+
+            return jsonify({
+                "status": "error",
+                "message":
+                "Username or email already exists"
+            }), 409
+
+
+        # CREATE USER
+        cursor.execute("""
+        INSERT INTO user_base(
+
+            username,
+            email,
+            password_hash,
+            security_question,
+            security_answer,
+            failed_attempts,
+            last_login,
+            last_failed_login,
+            trials_ends_at,
+            locked,
+            lock_reason,
+            active,
+            pin,
+            is_email_verified
+
         )
 
-        cursor.execute(
-            """
-            INSERT INTO wallet_base (user_id)
-            VALUES(%s)
-            """,
-            (user_id,)
+        VALUES(
+
+            %s,%s,%s,%s,%s,
+            %s,%s,%s,%s,
+            %s,%s,%s,%s,%s
+
         )
+        """,
+
+        (
+
+            data["username"],
+
+            data["email"],
+
+            hashlib.sha256(
+                data["password"].encode()
+            ).hexdigest(),
+
+            hashlib.sha256(
+                data["security_question"].encode()
+            ).hexdigest(),
+
+            hashlib.sha256(
+                data["security_answer"].encode()
+            ).hexdigest(),
+
+            0,
+
+            None,
+
+            None,
+
+            datetime.now() +
+            timedelta(days=30),
+
+            False,
+
+            "",
+
+            True,
+
+            hashlib.sha256(
+                data["app_pin"].encode()
+            ).hexdigest(),
+
+            False
+
+        ))
+
+
+        user_id =
+        cursor.lastrowid
+
+
+        cursor.execute("""
+        INSERT INTO user_settings(
+            user_id,
+            footer_note
+        )
+        VALUES(%s,%s)
+        """,
+        (
+            user_id,
+            "Thanks for doing business with us."
+        ))
+
+
+        cursor.execute("""
+        INSERT INTO wallet_base(
+            user_id
+        )
+        VALUES(%s)
+        """,
+        (
+            user_id,
+        ))
 
 
         conn.commit()
-    
+
+
         send_email(
             recipient=data["email"],
             subject="Verification of Account Creation",
@@ -2327,31 +2437,30 @@ def create_user():
             html=False
         )
 
-        save_security_activity(
-            user_id=user_id,
-            type_="User",
-            title="New User",
-            description="User created successfully",
-            severity="LOW",
-            ip_address=get_client_ip()
-        )
 
         return jsonify({
             "status": "success",
-            "message": "User created successfully"
+            "message":
+            "User created successfully. Verification email sent."
         }), 201
 
+
     except Exception as e:
-        print(e)
+
         conn.rollback()
+
+        print(e)
+
         return jsonify({
             "status": "error",
-            "message": "Database error",
-            "details": str(e)
-    
+            "message": str(e)
         }), 500
+
+
     finally:
+
         cursor.close()
+
         conn.close()
 
 
