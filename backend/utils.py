@@ -73,71 +73,81 @@ def get_user_id(username):
             cursor.close()
         if conn:
             conn.close()
-            
 def token_required(f):
 
     @wraps(f)
     def decorated(*args, **kwargs):
 
-        token = None
+        print("TOKEN 1")
 
-        # -----------------------------
-        # 1. Try HttpOnly Cookie first
-        # -----------------------------
         token = request.cookies.get("access_token")
 
-        # -----------------------------
-        # 2. Fallback to Authorization
-        # -----------------------------
+        print("TOKEN 2", token is not None)
+
         if not token:
-            auth_header = request.headers.get("Authorization")
+
+            auth_header = request.headers.get(
+                "Authorization"
+            )
+
+            print("TOKEN 3")
 
             if auth_header:
+
                 try:
-                    scheme, token = auth_header.split(" ")
 
-                    if scheme.lower() != "bearer":
-                        return jsonify({
-                            "status": "error",
-                            "message": "Invalid authorization scheme"
-                        }), 401
+                    scheme, token = (
+                        auth_header.split(" ")
+                    )
 
-                except ValueError:
-                    return jsonify({
-                        "status": "error",
-                        "message": "Invalid authorization header"
-                    }), 401
+                    print("TOKEN 4")
 
-        # -----------------------------
-        # 3. No token found
-        # -----------------------------
+                except Exception as e:
+
+                    print("AUTH SPLIT ERROR", e)
+
+                    raise
+
+
         if not token:
+
+            print("TOKEN 5")
+
             return jsonify({
-                "status": "error",
-                "message": "Authentication required"
+                "message":
+                "Authentication required"
             }), 401
 
+
         try:
+
+            print("TOKEN 6")
+
+            print(type(token))
+
             payload = jwt.decode(
                 token,
                 SECRET_KEY,
                 algorithms=["HS256"]
             )
 
+            print("TOKEN 7")
+
             current_user_id = payload["user_id"]
             current_user_role = payload["role"]
 
-        except jwt.ExpiredSignatureError:
-            return jsonify({
-                "status": "error",
-                "message": "Session expired. Please login again."
-            }), 401
+            print("TOKEN 8")
 
-        except jwt.InvalidTokenError:
-            return jsonify({
-                "status": "error",
-                "message": "Invalid token"
-            }), 401
+        except Exception as e:
+
+            print("JWT ERROR")
+            print(type(e))
+            print(e)
+
+            raise
+
+
+        print("TOKEN 9")
 
         return f(
             current_user_id,
