@@ -5265,30 +5265,17 @@ def change_profile_pic(current_user_id, current_user_role):
         cursor.close()
         conn.close()
 
-@app.route("/api/billing/<string:plan>/<int:amount>/<int:user_id>", methods=["GET"])
+@app.route("/api/billing/<string:plan>/<int:amount>", methods=["GET"])
 @token_required
-def pay_page(current_user_id,current_user_role,plan,amount,user_id):
+def pay_page(current_user_id,current_user_role,plan,amount):
     if current_user_id != user_id:
         redirect("/login")
-    conn = get_db()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute(
-        """
-        SELECT email
-        FROM user_base
-        WHERE user_id=%s
-        """,
-        (user_id,)
-    )
-    email = cursor.fetchone()['email']
-    cursor.close()
-    conn.close()
+
     return render_template(
         "users/pay.html",
         plan=plan.upper(),
         amount=f'{amount:,.2f}',
-        email=email,
-        user_id=user_id
+        user_id= current_user_id
     )
 
 
@@ -5711,13 +5698,9 @@ class TLSAdapter(HTTPAdapter):
 @token_required
 def initialize_payment(current_user_id, current_user_role):
 
-    print("STEP 1 → Route entered")
-
     try:
 
         data = request.get_json()
-
-        print("STEP 2 → JSON received:", data)
 
         if not data:
             return jsonify({
@@ -5729,9 +5712,6 @@ def initialize_payment(current_user_id, current_user_role):
         amount = data.get("amount")
         plan = data.get("plan")
 
-        print("STEP 3 → Amount:", amount)
-        print("STEP 4 → Plan:", plan)
-
         if not amount:
             return jsonify({
                 "status": "error",
@@ -5739,11 +5719,7 @@ def initialize_payment(current_user_id, current_user_role):
             }), 400
 
 
-        print("STEP 5 → Opening DB")
-
         with db_cursor(dictionary=True) as (conn, cursor):
-
-            print("STEP 6 → DB Connected")
 
             cursor.execute("""
                 SELECT email
@@ -5751,11 +5727,7 @@ def initialize_payment(current_user_id, current_user_role):
                 WHERE user_id=%s
             """, (current_user_id,))
 
-            print("STEP 7 → Query executed")
-
             current_user = cursor.fetchone()
-
-            print("STEP 8 → User fetched:", current_user)
 
             if not current_user:
                 return jsonify({
@@ -5776,9 +5748,7 @@ def initialize_payment(current_user_id, current_user_role):
                     "user_id": current_user_id,
                     "plan": plan
                 }
-            }
-
-            print("STEP 9 → Payload ready")
+        
 
             headers = {
                 "Authorization":
@@ -5788,19 +5758,7 @@ def initialize_payment(current_user_id, current_user_role):
                 "application/json"
             }
 
-
-            print("STEP 10 → Calling Paystack")
-
             url = "https://api.paystack.co/transaction/initialize"
-
-            print("URL:", url)
-
-            print("HEADERS:")
-            print(headers)
-
-            print("PAYLOAD:")
-            print(json.dumps(payload, indent=2))
-
 
             try:
 
@@ -5818,12 +5776,6 @@ def initialize_payment(current_user_id, current_user_role):
                     timeout=30
                 )
 
-                print("STEP 11 → Response received")
-
-                print("STATUS:", response.status_code)
-
-                print("BODY:", response.text)
-
             except Exception as e:
 
                 print("\n===== FULL ERROR =====")
@@ -5836,8 +5788,6 @@ def initialize_payment(current_user_id, current_user_role):
 
             result = response.json()
 
-            print("STEP 12 → Result:", result)
-
             if not result.get("status"):
 
                 return jsonify({
@@ -5849,8 +5799,6 @@ def initialize_payment(current_user_id, current_user_role):
                     )
                 }), 400
 
-
-            print("STEP 13 → Returning success")
 
             return jsonify({
                 "status": "success",
@@ -5914,9 +5862,6 @@ def payment_webhook():
 
         event = payload.get("event")
 
-        print("WEBHOOK EVENT:", event)
-
-
         if event != "charge.success":
 
             return "", 200
@@ -5965,10 +5910,6 @@ def payment_webhook():
             cursor
         ):
 
-            print(
-                "WEBHOOK → Checking duplicate"
-            )
-
             cursor.execute("""
                 SELECT id
                 FROM user_subscriptions
@@ -5981,17 +5922,8 @@ def payment_webhook():
 
             if existing:
 
-                print(
-                    "WEBHOOK → Already processed"
-                )
-
                 return "", 200
-
-
-            print(
-                "WEBHOOK → Updating plan"
-            )
-
+                
             cursor.execute("""
                 UPDATE user_base
                 SET
@@ -6003,11 +5935,6 @@ def payment_webhook():
                 expires,
                 user_id
             ))
-
-
-            print(
-                "WEBHOOK → Creating subscription"
-            )
 
             cursor.execute("""
                 INSERT INTO user_subscriptions(
