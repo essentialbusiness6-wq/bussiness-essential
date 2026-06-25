@@ -188,6 +188,14 @@ class TLSAdapter(HTTPAdapter):
 
 
 
+import os
+import base64
+import traceback
+import requests
+
+from typing import Optional, List
+
+
 def send_email(
     recipient: str,
     subject: str,
@@ -195,76 +203,152 @@ def send_email(
     html: bool = False,
     attachments: Optional[List[str]] = None
 ) -> bool:
-    try:
-        api_key = os.getenv("RESEND_API_KEY")
-        sender = os.getenv("SENDER_EMAIL")
 
-        if not api_key or not sender:
-            print("⚠️ Email not configured properly")
+    try:
+
+        api_key = os.getenv("RESEND_API_KEY")
+
+        sender = (
+            "Business Essential "
+            "<no-reply@businessessentia.net>"
+        )
+
+        if not api_key:
+            print("❌ RESEND_API_KEY missing")
             return False
 
-        files = []
-        if attachments:
-            for path in attachments:
-                if os.path.exists(path):
-                    with open(path, "rb") as f:
-                        files.append({
-                            "filename": os.path.basename(path),
-                            "content": base64.b64encode(f.read()).decode()
-                        })
-                else:
-                    print(f"⚠️ Attachment not found: {path}")
 
         payload = {
             "from": sender,
+
             "to": [recipient],
+
             "subject": subject,
+
+            "reply_to":
+            "support@businessessentia.net",
+
+            "headers": {
+
+                # improves delivery
+                "List-Unsubscribe":
+                "<mailto:unsubscribe@businessessentia.net>",
+
+                "X-Entity-Ref-ID":
+                str(recipient)
+
+            }
         }
 
-        # ONLY include one of them (no None fields)
+
         if html:
             payload["html"] = body
         else:
             payload["text"] = body
 
-        if files:
-            payload["attachments"] = files
+
+        if attachments:
+
+            payload["attachments"] = []
+
+            for path in attachments:
+
+                if not os.path.exists(path):
+
+                    print(
+                        f"⚠️ Attachment missing: {path}"
+                    )
+
+                    continue
+
+                with open(
+                    path,
+                    "rb"
+                ) as f:
+
+                    payload[
+                        "attachments"
+                    ].append({
+
+                        "filename":
+                        os.path.basename(path),
+
+                        "content":
+                        base64.b64encode(
+                            f.read()
+                        ).decode()
+
+                    })
+
 
         session = requests.Session()
 
-        session.mount(
-            "https://",
-            TLSAdapter()
-        )
-
-
         response = session.post(
             "https://api.resend.com/emails",
+
             headers={
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json",
+
+                "Authorization":
+                f"Bearer {api_key}",
+
+                "Content-Type":
+                "application/json",
+
+                "Accept":
+                "application/json"
+
             },
+
             json=payload,
-            timeout=15,
+
+            timeout=20
         )
 
-    
+
+        print(
+            "EMAIL RESPONSE:",
+            response.status_code
+        )
+
+        print(
+            response.text
+        )
+
+
         if response.status_code >= 400:
-            print("❌ Email API Error:", response.status_code)
-            print("Response:", response.text)
+
             return False
+
+
+        result = response.json()
+
+        print(
+            "EMAIL SENT:",
+            result.get("id")
+        )
 
         return True
 
-    except requests.exceptions.RequestException as e:
-        print("❌ Network error while sending email:", e)
+
+    except requests.exceptions.Timeout:
+
+        print(
+            "❌ Email timeout"
+        )
+
         return False
 
+
     except Exception as e:
-        print("❌ Unexpected email failure:", e)
+
+        print(
+            "❌ SEND EMAIL ERROR:",
+            e
+        )
+
         traceback.print_exc()
+
         return False
-        
 
 def save_security_activity(user_id, type_, title, description,severity, ip_address):
     conn = get_db()
