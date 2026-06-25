@@ -5569,6 +5569,36 @@ def payment_callback(current_user_id, current_user_role):
         f"/payment/success?ref={reference}"
     )
 
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.poolmanager import PoolManager
+import ssl
+
+
+class TLSAdapter(HTTPAdapter):
+
+    def init_poolmanager(
+        self,
+        connections,
+        maxsize,
+        block=False,
+        **pool_kwargs
+    ):
+
+        ctx = ssl.create_default_context()
+
+        ctx.minimum_version = ssl.TLSVersion.TLSv1_2
+
+        self.poolmanager = PoolManager(
+            num_pools=connections,
+            maxsize=maxsize,
+            block=block,
+            ssl_context=ctx
+        )
+
+
+
+
 
 @app.route("/payment/initialize", methods=["POST"])
 @token_required
@@ -5667,11 +5697,18 @@ def initialize_payment(current_user_id, current_user_role):
 
             try:
 
-                response = requests.post(
-                    url=url,
+                session = requests.Session()
+
+                session.mount(
+                    "https://",
+                    TLSAdapter()
+                )
+
+                response = session.post(
+                    url,
                     json=payload,
                     headers=headers,
-                    timeout=(10, 30)
+                    timeout=30
                 )
 
                 print("STEP 11 → Response received")
@@ -5729,6 +5766,7 @@ def initialize_payment(current_user_id, current_user_role):
             "status": "error",
             "message": str(e)
         }), 500
+
 
 
 @app.route("/payment/webhook", methods=["POST"])
