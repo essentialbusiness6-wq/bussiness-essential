@@ -37,6 +37,7 @@ import hashlib
 from datetime import datetime,timedelta
 import secrets
 import requests
+from dateutil.relativedelta import relativedelta
 import os
 import cloudinary
 import cloudinary.uploader
@@ -48,7 +49,7 @@ import pyotp
 import qrcode
 import io
 import base64
-import requests as http_requests
+
 
 
 load_dotenv()
@@ -5183,8 +5184,8 @@ def pay_page(current_user_id,current_user_role,plan,amount,user_id):
         user_id=user_id
     )
 
-import requests
-from dateutil.relativedelta import relativedelta
+
+
 
 @app.route('/api/setup-2fa', methods=['POST'])
 @token_required
@@ -5649,12 +5650,15 @@ def initialize_payment(current_user_id, current_user_role):
                 "Content-Type":
                 "application/json"
             }
+            print(type(requests))
+            print(requests)
+            print(requests.post)
             print("STEP 10 → Calling Paystack")
 
             print("REQUESTS MODULE:", requests)
             print("REQUESTS FILE:", requests.__file__)
 
-            response = http_requests.post(
+            response = requests.post(
                 "https://api.paystack.co/transaction/initialize",
                 json=payload,
                 headers=headers,
@@ -5828,4 +5832,4 @@ if __name__ == "__main__":
         app,
         debug=True
     )
-
+    # app.run(host='127.0.0.1', port=5502, debug=True)
