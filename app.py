@@ -2296,8 +2296,7 @@ def create_user():
             data["email"]
         ))
 
-        existing =
-        cursor.fetchone()
+        existing = cursor.fetchone()
 
 
         # USER EXISTS
@@ -2399,8 +2398,7 @@ def create_user():
         ))
 
 
-        user_id =
-        cursor.lastrowid
+        user_id = cursor.lastrowid
 
 
         cursor.execute("""
