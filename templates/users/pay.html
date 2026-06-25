@@ -503,113 +503,271 @@
         </button>
     </div>
 </div>
-
 <script>
-    // Create particles
-    function createParticles() {
-        const particlesContainer = document.getElementById('particles');
-        const count = 15;
-        
-        for (let i = 0; i < count; i++) {
-            const particle = document.createElement('div');
-            particle.className = 'particle';
-            particle.style.cssText = `
-                width: ${Math.random() * 6 + 2}px;
-                height: ${Math.random() * 6 + 2}px;
-                left: ${Math.random() * 100}%;
-                top: ${Math.random() * 100}%;
-                animation-duration: ${Math.random() * 10 + 15}s;
-                animation-delay: ${Math.random() * 5}s;
-                opacity: ${Math.random() * 0.5 + 0.1};
-            `;
-            particlesContainer.appendChild(particle);
-        }
-    }
 
-    createParticles();
+// ======================
+// PARTICLES
+// ======================
 
-    // Payment handler
-    document.addEventListener("DOMContentLoaded", () => {
-        const payBtn = document.getElementById("paybtn");
-        const initialState = document.getElementById("initialState");
-        const successState = document.getElementById("successState");
+function createParticles() {
 
-        payBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            startPayment();
-        });
-        
-        async function startPayment() {
+    const particlesContainer =
+    document.getElementById("particles");
 
-            try {
+    if (!particlesContainer) return;
 
-                payBtn.disabled = true;
-                const card = document.getElementById("card");
-                const plan = card?.dataset.plan;
-                const rawAmount = card?.dataset.amount;
-                const cleaned = rawAmount.replace(/,/g, "");
-                const amountNaira = parseFloat(cleaned);
-                const response =await fetch("/payment/initialize", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type":
-                        "application/json"
-                    },
-                    credentials: "include",
-                    body: JSON.stringify({
-                        amount: amountNaira,
-                        plan: plan
-                    })
-                });
+    const count = 15;
 
-                const data =await response.json();
+    for (let i = 0; i < count; i++) {
 
-                if (!response.ok) {
-                    throw new Error(
-                    data.message
-                    );
-                }
+        const particle =
+        document.createElement("div");
 
-                // Redirect to Paystack
-                window.location.href =
-                data.authorization_url;
+        particle.className =
+        "particle";
 
-        } catch(err){
+        particle.style.cssText = `
+            width:${Math.random()*6+2}px;
+            height:${Math.random()*6+2}px;
+            left:${Math.random()*100}%;
+            top:${Math.random()*100}%;
+            animation-duration:${Math.random()*10+15}s;
+            animation-delay:${Math.random()*5}s;
+            opacity:${Math.random()*0.5+0.1};
+        `;
 
-            alert(
-                err.message
-            );
-
-            payBtn.disabled = false;
-
-        }
+        particlesContainer
+        .appendChild(particle);
 
     }
-    async function loadStatus(){
 
-let ref =
+}
+
+createParticles();
+
+
+// ======================
+// PAYMENT
+// ======================
+
+document.addEventListener(
+"DOMContentLoaded",
+
+function(){
+
+const payBtn =
+document.getElementById("paybtn");
+
+const initialState =
+document.getElementById("initialState");
+
+const successState =
+document.getElementById("successState");
+
+
+if(payBtn){
+
+payBtn.addEventListener(
+"click",
+
+async function(e){
+
+e.preventDefault();
+
+await startPayment();
+
+});
+
+}
+
+
+// START PAYMENT
+
+async function startPayment(){
+
+try{
+
+payBtn.disabled = true;
+
+const card =
+document.getElementById("card");
+
+if(!card){
+
+throw new Error(
+"Payment card not found"
+);
+
+}
+
+const plan =
+card.dataset.plan;
+
+const rawAmount =
+card.dataset.amount;
+
+if(!rawAmount){
+
+throw new Error(
+"Amount missing"
+);
+
+}
+
+const amountNaira =
+parseFloat(
+rawAmount
+.replace(/,/g,"")
+);
+
+const response =
+await fetch(
+"/payment/initialize",
+{
+method:"POST",
+
+headers:{
+"Content-Type":
+"application/json"
+},
+
+credentials:
+"include",
+
+body:
+JSON.stringify({
+amount:
+amountNaira,
+
+plan:
+plan
+})
+
+}
+);
+
+const data =
+await response.json();
+
+console.log(data);
+
+if(!response.ok){
+
+throw new Error(
+data.message ||
+"Unable to initialize payment"
+);
+
+}
+
+
+// redirect
+
+window.location.href =
+data.authorization_url ||
+data.data?.authorization_url;
+
+
+}
+
+catch(err){
+
+console.error(
+err
+);
+
+alert(
+err.message
+);
+
+payBtn.disabled =
+false;
+
+}
+
+}
+
+
+
+// ======================
+// PAYMENT STATUS
+// ======================
+
+async function loadStatus(){
+
+try{
+
+const ref =
 new URLSearchParams(
 window.location.search
 )
 .get("ref");
 
 
-let r =
-await fetch(
-`/payment/status/${ref}`
+if(!ref){
+
+console.log(
+"No payment ref"
 );
 
-let data =
-await r.json();
+return;
+
+}
+
+
+const response =
+await fetch(
+`/payment/status/${ref}`,
+{
+credentials:
+"include"
+}
+);
+
+const data =
+await response.json();
+
+console.log(data);
 
 
 if(data.active){
 
+if(
+typeof showSuccess
+=== "function"
+){
+
 showSuccess();
 
-}else{
+}
+
+if(successState){
+
+successState
+.classList
+.add("active");
+
+}
+
+if(initialState){
+
+initialState
+.style.display =
+"none";
+
+}
+
+}
+else{
+
+if(
+typeof showPending
+=== "function"
+){
 
 showPending();
+
+}
 
 setTimeout(
 loadStatus,
@@ -620,10 +778,27 @@ loadStatus,
 
 }
 
-loadStatus();
-    }
+catch(err){
 
-       
+console.error(
+"Status error",
+err
+);
+
+}
+
+}
+
+
+// AUTO CHECK
+
+loadStatus();
+
+
+}
+
+);
+
 </script>
 
 </body>
