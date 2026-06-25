@@ -1596,8 +1596,7 @@ def process_expired_subscriptions():
                 expires_at<=UTC_TIMESTAMP()
             """)
 
-            expired =
-            cursor.fetchall()
+            expired = cursor.fetchall()
 
 
             print(
@@ -1607,11 +1606,9 @@ def process_expired_subscriptions():
 
             for sub in expired:
 
-                user_id =
-                sub["user_id"]
+                user_id = sub["user_id"]
 
-                subscription_id =
-                sub["id"]
+                subscription_id = sub["id"]
 
 
                 cursor.execute("""
@@ -1628,7 +1625,7 @@ def process_expired_subscriptions():
                 cursor.execute("""
                 UPDATE user_base
                 SET
-                    plan='FREE',
+                    plan='Trial',
                     plan_expiration=NULL
                 WHERE user_id=%s
                 """,
