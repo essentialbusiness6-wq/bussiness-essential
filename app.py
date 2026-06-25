@@ -49,6 +49,10 @@ import pyotp
 import qrcode
 import io
 import base64
+from flask_compress import Compress
+from whitenoise import WhiteNoise
+
+
 
 
 
@@ -69,7 +73,14 @@ app.config.update(
     SESSION_COOKIE_SAMESITE="Lax"
 )
 
+Compress(app)
 
+
+
+app.wsgi_app=WhiteNoise(
+app.wsgi_app,
+root="static/"
+)
 
 
 @app.before_request
