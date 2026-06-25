@@ -1,116 +1,615 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Upgrade Plan</title>
+    <title>Upgrade Plan - Business Essential</title>
     <script src="https://js.paystack.co/v1/inline.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/media/app logo.png"/>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --accent: #4895ef;
+            --success: #2ecc71;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --gray: #64748b;
+            --border-color: #e2e8f0;
+            --gradient-bg: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
+            --radius: 12px;
+            --radius-lg: 16px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --dark: #f8fafc;
+                --light: #0f172a;
+                --gray: #94a3b8;
+                --border-color: #334155;
+            }
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background: #f4f6f9;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--light);
+            color: var(--dark);
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+            transition: background 0.4s ease, color 0.4s ease;
         }
 
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 20%, rgba(67, 97, 238, 0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 80%, rgba(46, 204, 113, 0.05) 0%, transparent 50%);
+            z-index: -1;
+            animation: rotate 35s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(67, 97, 238, 0.08);
+            animation: float 15s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0) translateX(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100px) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* Card */
         .card {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            width: 350px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 40px;
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 450px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
             text-align: center;
+            position: relative;
+            overflow: hidden;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .card {
+                background: rgba(30, 41, 59, 0.95);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-bg);
+        }
+
+        /* Plan Icon */
+        .plan-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            background: var(--gradient-bg);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 25px rgba(67, 97, 238, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 8px 25px rgba(67, 97, 238, 0.3);
+            }
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 12px 35px rgba(67, 97, 238, 0.4);
+            }
+        }
+
+        .plan-icon svg {
+            width: 40px;
+            height: 40px;
+            fill: none;
+            stroke: white;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        /* Plan Badge */
+        .plan-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            background: rgba(67, 97, 238, 0.1);
+            color: var(--primary);
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
         }
 
         h2 {
-            margin-bottom: 10px;
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: var(--dark);
+        }
+
+        .subtitle {
+            color: var(--gray);
+            font-size: 0.95rem;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        /* Price */
+        .price-container {
+            background: var(--light);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border-color);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .price-container {
+                background: rgba(15, 23, 42, 0.5);
+            }
         }
 
         .price {
-            font-size: 28px;
-            color: #009879;
-            margin-bottom: 20px;
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: var(--gradient-bg);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 4px;
+            font-family: 'Inter', sans-serif;
         }
 
+        .price-period {
+            color: var(--gray);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* Features List */
+        .features-list {
+            text-align: left;
+            margin-bottom: 24px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            font-size: 0.9rem;
+            color: var(--dark);
+        }
+
+        .feature-item svg {
+            width: 18px;
+            height: 18px;
+            fill: none;
+            stroke: var(--success);
+            stroke-width: 2;
+            flex-shrink: 0;
+        }
+
+        /* Button */
         button {
-            background: #009879;
+            background: var(--gradient-bg);
             color: white;
             border: none;
-            padding: 12px 20px;
+            padding: 16px 32px;
             width: 100%;
-            border-radius: 8px;
+            border-radius: var(--radius);
             cursor: pointer;
-            font-size: 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.7s;
+        }
+
+        button:hover::before {
+            left: 100%;
         }
 
         button:hover {
-            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(67, 97, 238, 0.45);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        button svg {
+            width: 18px;
+            height: 18px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+        }
+
+        /* Loading State */
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Success State */
+        .success-state {
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .success-state.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            background: rgba(46, 204, 113, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .success-icon svg {
+            width: 40px;
+            height: 40px;
+            fill: none;
+            stroke: var(--success);
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .success-state h2 {
+            color: var(--success);
+            margin-bottom: 12px;
+        }
+
+        .success-state p {
+            color: var(--gray);
+            margin-bottom: 24px;
+        }
+
+        /* Security Badge */
+        .security-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 16px;
+            font-size: 0.8rem;
+            color: var(--gray);
+        }
+
+        .security-badge svg {
+            width: 14px;
+            height: 14px;
+            fill: none;
+            stroke: var(--success);
+            stroke-width: 2;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .card {
+                padding: 30px 20px;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            .price {
+                font-size: 2rem;
+            }
         }
     </style>
-    <link rel="icon" type="image/svg+xml" href="/static/media/app logo.png"/>
 </head>
 <body>
 
-<div class="card" id="card" data-plan="{{ plan }}" data-amount=" {{ amount }}" data-email="{{ email }}" data-userid="{{ user_id }}">
-    <h2>{{ plan }} Plan</h2>
-    <p class="price">₦{{ amount }} / month</p>
-    <button id="paybtn">Pay Now</button>
+<div class="particles" id="particles"></div>
+
+<div class="card" id="card" data-plan="{{ plan }}" data-amount="{{ amount }}" data-email="{{ email }}" data-userid="{{ user_id }}">
+    
+    <!-- Initial State -->
+    <div id="initialState">
+        <div class="plan-icon">
+            <svg viewBox="0 0 24 24">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
+            </svg>
+        </div>
+
+        <span class="plan-badge">{{ plan }} Plan</span>
+        <h2>Upgrade Your Plan</h2>
+        <p class="subtitle">Unlock premium features and take your business to the next level</p>
+
+        <div class="price-container">
+            <div class="price">₦{{ amount }}</div>
+            <div class="price-period">per month</div>
+        </div>
+
+        <div class="features-list">
+            <div class="feature-item">
+                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Unlimited invoices & clients</span>
+            </div>
+            <div class="feature-item">
+                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Advanced analytics & reports</span>
+            </div>
+            <div class="feature-item">
+                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Priority customer support</span>
+            </div>
+            <div class="feature-item">
+                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Custom branding & templates</span>
+            </div>
+        </div>
+
+        <button id="paybtn">
+            <svg viewBox="0 0 24 24">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                <line x1="1" y1="10" x2="23" y2="10"></line>
+            </svg>
+            <span>Pay Now</span>
+        </button>
+
+        <div class="security-badge">
+            <svg viewBox="0 0 24 24">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            <span>Secure payment powered by Paystack</span>
+        </div>
+    </div>
+
+    <!-- Success State -->
+    <div class="success-state" id="successState">
+        <div class="success-icon">
+            <svg viewBox="0 0 24 24">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+        </div>
+        <h2>Payment Successful!</h2>
+        <p>Your plan has been upgraded successfully. Welcome to the {{ plan }} plan!</p>
+        <button onclick="window.location.href='/dashboard'">
+            <svg viewBox="0 0 24 24">
+                <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"></path>
+            </svg>
+            <span>Go to Dashboard</span>
+        </button>
+    </div>
 </div>
 
 <script>
+    // Create particles
+    function createParticles() {
+        const particlesContainer = document.getElementById('particles');
+        const count = 15;
+        
+        for (let i = 0; i < count; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.cssText = `
+                width: ${Math.random() * 6 + 2}px;
+                height: ${Math.random() * 6 + 2}px;
+                left: ${Math.random() * 100}%;
+                top: ${Math.random() * 100}%;
+                animation-duration: ${Math.random() * 10 + 15}s;
+                animation-delay: ${Math.random() * 5}s;
+                opacity: ${Math.random() * 0.5 + 0.1};
+            `;
+            particlesContainer.appendChild(particle);
+        }
+    }
+
+    createParticles();
+
+    // Payment handler
     document.addEventListener("DOMContentLoaded", () => {
         const payBtn = document.getElementById("paybtn");
-        payBtn.addEventListener('click',(e) => {
+        const initialState = document.getElementById("initialState");
+        const successState = document.getElementById("successState");
+
+        payBtn.addEventListener('click', (e) => {
             e.preventDefault();
             payWithPaystack();
         });
-function payWithPaystack() {
-    const card = document.getElementById("card");
 
-    const email = card?.dataset.email;
-    const plan = card?.dataset.plan;
-    const user_id = card?.dataset.userid;
-   const rawAmount = card?.dataset.amount; // "5,000.00"
+        function payWithPaystack() {
+            const card = document.getElementById("card");
+            const email = card?.dataset.email;
+            const plan = card?.dataset.plan;
+            const user_id = card?.dataset.userid;
+            const rawAmount = card?.dataset.amount;
 
-const cleaned = rawAmount.replace(/,/g, ""); 
+            const cleaned = rawAmount.replace(/,/g, "");
+            const amountNaira = parseFloat(cleaned);
+            const amountKobo = Math.round(amountNaira * 100);
 
-const amountNaira = parseFloat(cleaned);
+            // Show loading state
+            payBtn.disabled = true;
+            payBtn.innerHTML = '<span class="spinner"></span><span>Processing...</span>';
 
-const amountKobo = Math.round(amountNaira * 100);
+            let handler = PaystackPop.setup({
+                key: 'pk_test_82f461e2353df26a67897a5611c412129cc8d30f',
+                email: email,
+                amount: amountKobo,
+                currency: "NGN",
+                ref: `INV_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
 
+                callback: function(response) {
+                    // Verify payment on backend
+                    fetch("/user/verify-payment", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            reference: response.reference,
+                            plan,
+                            user_id,
+                            amount: amountNaira
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        // Show success state
+                        initialState.style.display = 'none';
+                        successState.classList.add('active');
+                    })
+                    .catch(error => {
+                        console.error('Payment verification failed:', error);
+                        alert('Payment successful but verification failed. Please contact support.');
+                        payBtn.disabled = false;
+                        payBtn.innerHTML = `
+                            <svg viewBox="0 0 24 24">
+                                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                                <line x1="1" y1="10" x2="23" y2="10"></line>
+                            </svg>
+                            <span>Pay Now</span>
+                        `;
+                    });
+                },
 
-    let handler = PaystackPop.setup({
-        key: 'pk_test_82f461e2353df26a67897a5611c412129cc8d30f',
-        email: email,
-        amount: amountKobo,
-        currency: "NGN",
-        ref: `INV_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+                onClose: function() {
+                    // Reset button state
+                    payBtn.disabled = false;
+                    payBtn.innerHTML = `
+                        <svg viewBox="0 0 24 24">
+                            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                            <line x1="1" y1="10" x2="23" y2="10"></line>
+                        </svg>
+                        <span>Pay Now</span>
+                    `;
+                    console.log("Transaction cancelled");
+                }
+            });
 
-        callback: function(response) {
-            alert("Payment successful! Ref: " + response.reference);
-
-            fetch("/user/verify-payment", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    reference: response.reference,
-                    plan,
-                    user_id,
-                    amount: amountNaira
-                })
-            })
-            .then(res => res.json())
-            .then(data => console.log(data));
-        },
-
-        onClose: function() {
-            console.log("Transaction cancelled");
+            handler.openIframe();
         }
     });
-
-    handler.openIframe();
-}
-    })
 </script>
 
 </body>
