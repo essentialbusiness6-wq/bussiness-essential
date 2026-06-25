@@ -48,6 +48,7 @@ import pyotp
 import qrcode
 import io
 import base64
+import requests as http_requests
 
 
 load_dotenv()
@@ -5646,12 +5647,9 @@ def initialize_payment(current_user_id, current_user_role):
                 "Content-Type":
                 "application/json"
             }
-			import requests as http_requests
 
 			print("STEP 10 → Calling Paystack")
 			
-			
-
 			response = http_requests.post(
     			"https://api.paystack.co/transaction/initialize",
     			json=payload,
