@@ -51,7 +51,7 @@ import io
 import base64
 from flask_compress import Compress
 from whitenoise import WhiteNoise
-
+import flask-profiler
 
 
 
