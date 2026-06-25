@@ -5570,9 +5570,8 @@ def payment_callback(current_user_id, current_user_role):
 @token_required
 def initialize_payment(current_user_id, current_user_role):
 	print("Reached initialize_payment")
-
     conn = None
-    cursor = None
+	cursor = None
 
     try:
         data = request.get_json()
