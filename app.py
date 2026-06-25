@@ -5662,6 +5662,7 @@ def initialize_payment(current_user_id, current_user_role):
         })
 
     except Exception as e:
+		conn.rollback()
 		cursor.close()
         conn.close()
 		print(e)
