@@ -2297,6 +2297,229 @@ def create_user():
         ))
 
         existing = cursor.fetchone()
+        verification_code_html = f"""
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+
+</head>
+
+<body style="
+margin:0;
+padding:0;
+background:#f5f7fb;
+font-family:Arial,sans-serif;
+">
+
+<table width="100%" cellpadding="0" cellspacing="0"
+style="
+background:#f5f7fb;
+padding:40px 20px;
+">
+
+<tr>
+<td align="center">
+
+<table width="600"
+style="
+max-width:600px;
+background:#ffffff;
+border-radius:18px;
+overflow:hidden;
+box-shadow:0 12px 40px rgba(0,0,0,.08);
+">
+
+<!-- HEADER -->
+<tr>
+<td
+style="
+background:linear-gradient(
+135deg,
+#0f172a,
+#1e293b
+);
+
+padding:40px;
+text-align:center;
+"
+>
+
+<img
+src="{APP_LOGO_URL}"
+alt="Business Essential"
+style="
+width:90px;
+height:auto;
+margin-bottom:20px;
+"
+/>
+
+<h1
+style="
+margin:0;
+color:#fff;
+font-size:28px;
+font-weight:700;
+"
+>
+Business Essential
+</h1>
+
+<p
+style="
+color:#cbd5e1;
+margin-top:10px;
+font-size:15px;
+"
+>
+Account Verification
+</p>
+
+</td>
+</tr>
+
+
+<!-- BODY -->
+<tr>
+
+<td
+style="
+padding:50px 45px;
+"
+>
+
+<h2
+style="
+margin:0;
+font-size:24px;
+color:#111827;
+"
+>
+Verify Your Email
+</h2>
+
+<p
+style="
+color:#6b7280;
+font-size:16px;
+line-height:1.8;
+margin-top:18px;
+"
+>
+Thanks for creating your Business Essential account.
+
+Use the verification code below to continue.
+</p>
+
+
+<!-- CODE -->
+<div
+style="
+text-align:center;
+margin:45px 0;
+"
+>
+
+<div
+style="
+display:inline-block;
+
+background:#f8fafc;
+
+border:2px dashed #2563eb;
+
+padding:20px 40px;
+
+border-radius:14px;
+
+font-size:38px;
+
+font-weight:800;
+
+letter-spacing:12px;
+
+color:#2563eb;
+"
+>
+{data['verification_code']}
+</div>
+
+</div>
+
+
+<p
+style="
+color:#6b7280;
+font-size:15px;
+line-height:1.7;
+"
+>
+This code expires shortly for security purposes.
+</p>
+
+<p
+style="
+color:#6b7280;
+font-size:15px;
+line-height:1.7;
+"
+>
+If you didn’t create this account, you can ignore this email.
+</p>
+
+</td>
+
+</tr>
+
+
+<!-- FOOTER -->
+<tr>
+
+<td
+style="
+background:#f8fafc;
+padding:35px;
+text-align:center;
+"
+>
+
+<p
+style="
+margin:0;
+font-size:14px;
+color:#64748b;
+"
+>
+© Business Essential
+</p>
+
+<p
+style="
+margin-top:10px;
+font-size:13px;
+color:#94a3b8;
+"
+>
+This is an automated email.
+Please do not reply.
+</p>
+
+</td>
+
+</tr>
+
+</table>
+
+</td>
+</tr>
+
+</table>
+
+</body>
+</html>
+"""
 
 
         # USER EXISTS
@@ -2307,8 +2530,8 @@ def create_user():
                 send_email(
                     recipient=existing["email"],
                     subject="Verification of Account Creation",
-                    body=f"Here is your verification code: {data['verification_code']}",
-                    html=False
+                    body=verification_code_html,
+                    html=True
                 )
 
                 return jsonify({
@@ -2431,8 +2654,8 @@ def create_user():
         send_email(
             recipient=data["email"],
             subject="Verification of Account Creation",
-            body=f"Here is your verification code: {data['verification_code']}",
-            html=False
+            body=verification_code_html,
+            html=True
         )
 
 
