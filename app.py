@@ -6105,7 +6105,7 @@ def payment_success():
 
     return render_template(
         "users/payment-success.html",
-        reference=reference,
+        reference=ref,
         plan= sub['plan'],
         amount = sub['amount']
     )
