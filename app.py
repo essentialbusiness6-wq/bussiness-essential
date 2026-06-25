@@ -5775,7 +5775,7 @@ def payment_status(
 reference
 ):
 
-    with db_cursor(dictionary=True) as (conn, cursor)
+    with db_cursor(dictionary=True) as (conn, cursor):
         cursor.execute("""
             SELECT status
             FROM user_subscriptions
