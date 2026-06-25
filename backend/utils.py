@@ -283,6 +283,12 @@ def send_email(
 
         session = requests.Session()
 
+        session.mount(
+                    "https://",
+                    TLSAdapter()
+        )
+
+
         response = session.post(
             "https://api.resend.com/emails",
 
