@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful - Business Essential</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/media/app logo.png"/>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --accent: #4895ef;
+            --success: #2ecc71;
+            --success-dark: #27ae60;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --gray: #64748b;
+            --medium-gray: #94a3b8;
+            --border-color: #e2e8f0;
+            --bg-card: #ffffff;
+            --gradient-bg: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            --gradient-success: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
+            --radius: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --dark: #f8fafc;
+                --light: #0f172a;
+                --gray: #94a3b8;
+                --medium-gray: #cbd5e1;
+                --border-color: #334155;
+                --bg-card: #1e293b;
+            }
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--light);
+            color: var(--dark);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+            transition: background 0.4s ease, color 0.4s ease;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 20%, rgba(46, 204, 113, 0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 80%, rgba(67, 97, 238, 0.06) 0%, transparent 50%);
+            z-index: -1;
+            animation: rotate 35s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(46, 204, 113, 0.1);
+            animation: float 15s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0) translateX(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100px) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* Confetti */
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+            overflow: hidden;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            top: -10px;
+            animation: confettiFall 3s ease-in forwards;
+        }
+
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* Main Card */
+        .success-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 48px 40px;
+            border-radius: var(--radius-xl);
+            width: 100%;
+            max-width: 500px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .success-card {
+                background: rgba(30, 41, 59, 0.95);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .success-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-success);
+        }
+
+        /* Success Icon with Animation */
+        .success-icon-wrapper {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 32px;
+        }
+
+        .success-icon-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(46, 204, 113, 0.1);
+            border-radius: 50%;
+            animation: scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.2s backwards;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .success-icon-ring {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 3px solid var(--success);
+            border-radius: 50%;
+            animation: ringPulse 2s ease-out infinite;
+        }
+
+        @keyframes ringPulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        .success-checkmark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+        }
+
+        .success-checkmark svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .checkmark-circle {
+            fill: none;
+            stroke: var(--success);
+            stroke-width: 2;
+            stroke-dasharray: 166;
+            stroke-dashoffset: 166;
+            animation: circleAnim 0.6s cubic-bezier(0.65, 0, 0.45, 1) 0.3s forwards;
+        }
+
+        .checkmark-check {
+            fill: none;
+            stroke: var(--success);
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 48;
+            stroke-dashoffset: 48;
+            animation: checkAnim 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards;
+        }
+
+        @keyframes circleAnim {
+            to { stroke-dashoffset: 0; }
+        }
+
+        @keyframes checkAnim {
+            to { stroke-dashoffset: 0; }
+        }
+
+        /* Title & Subtitle */
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: var(--dark);
+            animation: fadeInUp 0.5s ease 0.4s backwards;
+        }
+
+        .subtitle {
+            color: var(--gray);
+            font-size: 0.95rem;
+            margin-bottom: 32px;
+            line-height: 1.5;
+            animation: fadeInUp 0.5s ease 0.5s backwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Transaction Details */
+        .transaction-details {
+            background: var(--light);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 28px;
+            border: 1px solid var(--border-color);
+            animation: fadeInUp 0.5s ease 0.6s backwards;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .transaction-details {
+                background: rgba(15, 23, 42, 0.5);
+            }
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .detail-row:first-child {
+            padding-top: 0;
+        }
+
+        .detail-label {
+            font-size: 0.85rem;
+            color: var(--gray);
+            font-weight: 500;
+        }
+
+        .detail-value {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .detail-value.amount {
+            font-size: 1.2rem;
+            font-weight: 800;
+            background: var(--gradient-success);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .detail-value.mono {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--gray);
+        }
+
+        /* Countdown Timer */
+        .countdown-section {
+            margin-bottom: 24px;
+            animation: fadeInUp 0.5s ease 0.7s backwards;
+        }
+
+        .countdown-label {
+            font-size: 0.85rem;
+            color: var(--gray);
+            margin-bottom: 12px;
+        }
+
+        .countdown-timer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .countdown-ring {
+            position: relative;
+            width: 48px;
+            height: 48px;
+        }
+
+        .countdown-ring svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .countdown-ring-bg {
+            fill: none;
+            stroke: var(--border-color);
+            stroke-width: 3;
+        }
+
+        .countdown-ring-progress {
+            fill: none;
+            stroke: var(--primary);
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-dasharray: 126;
+            stroke-dashoffset: 0;
+            transition: stroke-dashoffset 1s linear;
+        }
+
+        .countdown-number {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .countdown-text {
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+
+        .countdown-text strong {
+            color: var(--primary);
+        }
+
+        /* Buttons */
+        .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            animation: fadeInUp 0.5s ease 0.8s backwards;
+        }
+
+        .btn {
+            padding: 14px 24px;
+            border-radius: var(--radius);
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn svg {
+            width: 18px;
+            height: 18px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+        }
+
+        .btn-primary {
+            background: var(--gradient-bg);
+            color: white;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.7s;
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(67, 97, 238, 0.45);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--dark);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--light);
+            transform: translateY(-1px);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .btn-secondary:hover {
+                background: rgba(255, 255, 255, 0.05);
+            }
+        }
+
+        /* Receipt Link */
+        .receipt-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--primary);
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-decoration: none;
+            margin-top: 16px;
+            transition: var(--transition-fast);
+        }
+
+        .receipt-link:hover {
+            text-decoration: underline;
+        }
+
+        .receipt-link svg {
+            width: 14px;
+            height: 14px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .success-card {
+                padding: 36px 24px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .success-icon-wrapper {
+                width: 100px;
+                height: 100px;
+            }
+
+            .success-checkmark {
+                width: 50px;
+                height: 50px;
+            }
+
+            .detail-value.amount {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="particles" id="particles"></div>
+<div class="confetti-container" id="confettiContainer"></div>
+
+<div class="success-card">
+    <!-- Success Icon -->
+    <div class="success-icon-wrapper">
+        <div class="success-icon-bg"></div>
+        <div class="success-icon-ring"></div>
+        <div class="success-checkmark">
+            <svg viewBox="0 0 52 52">
+                <circle class="checkmark-circle" cx="26" cy="26" r="25"/>
+                <path class="checkmark-check" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+            </svg>
+        </div>
+    </div>
+
+    <h1>Payment Successful!</h1>
+    <p class="subtitle">Thank you for upgrading your plan. Your account has been updated with premium features.</p>
+
+    <!-- Transaction Details -->
+    <div class="transaction-details">
+        <div class="detail-row">
+            <span class="detail-label">Plan</span>
+            <span class="detail-value">{{ plan }} Plan</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Amount Paid</span>
+            <span class="detail-value amount">₦{{ amount }}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Transaction ID</span>
+            <span class="detail-value mono">{{ reference }}</span>
+        </div>
+        <div class="detail-row">
+            <span class="detail-label">Date</span>
+            <span class="detail-value" id="paymentDate"></span>
+        </div>
+    </div>
+
+    <!-- Countdown Timer -->
+    <div class="countdown-section">
+        <div class="countdown-label">Redirecting to billing...</div>
+        <div class="countdown-timer">
+            <div class="countdown-ring">
+                <svg viewBox="0 0 48 48">
+                    <circle class="countdown-ring-bg" cx="24" cy="24" r="20"/>
+                    <circle class="countdown-ring-progress" id="countdownProgress" cx="24" cy="24" r="20"/>
+                </svg>
+                <span class="countdown-number" id="countdownNumber">5</span>
+            </div>
+            <span class="countdown-text">or <strong>click below</strong> to continue</span>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="actions">
+        <a href="/billing" class="btn btn-primary" id="continueBtn">
+            <svg viewBox="0 0 24 24">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                <line x1="1" y1="10" x2="23" y2="10"></line>
+            </svg>
+            <span>Go to Billing</span>
+        </a>
+        <a href="/dashboard" class="btn btn-secondary">
+            <svg viewBox="0 0 24 24">
+                <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"></path>
+            </svg>
+            <span>Go to Dashboard</span>
+        </a>
+    </div>
+
+    <a href="#" class="receipt-link" id="downloadReceipt">
+        <svg viewBox="0 0 24 24">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span>Download Receipt</span>
+    </a>
+</div>
+
+<script>
+    // Set current date
+    document.getElementById('paymentDate').textContent = new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+
+    // Create particles
+    function createParticles() {
+        const container = document.getElementById('particles');
+        const count = 15;
+        
+        for (let i = 0; i < count; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.cssText = `
+                width: ${Math.random() * 6 + 2}px;
+                height: ${Math.random() * 6 + 2}px;
+                left: ${Math.random() * 100}%;
+                top: ${Math.random() * 100}%;
+                animation-duration: ${Math.random() * 10 + 15}s;
+                animation-delay: ${Math.random() * 5}s;
+                opacity: ${Math.random() * 0.5 + 0.1};
+            `;
+            container.appendChild(particle);
+        }
+    }
+
+    // Create confetti
+    function createConfetti() {
+        const container = document.getElementById('confettiContainer');
+        const colors = ['#4361ee', '#2ecc71', '#f39c12', '#e74c3c', '#9333ea', '#3498db', '#4895ef'];
+        const count = 80;
+
+        for (let i = 0; i < count; i++) {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            const size = Math.random() * 8 + 6;
+            const left = Math.random() * 100;
+            const delay = Math.random() * 2;
+            const duration = Math.random() * 2 + 2;
+            const shape = Math.random() > 0.5 ? '50%' : '0';
+            
+            confetti.style.cssText = `
+                background: ${color};
+                width: ${size}px;
+                height: ${size}px;
+                left: ${left}%;
+                animation-delay: ${delay}s;
+                animation-duration: ${duration}s;
+                border-radius: ${shape};
+            `;
+            
+            container.appendChild(confetti);
+        }
+
+        // Remove confetti after animation
+        setTimeout(() => {
+            container.innerHTML = '';
+        }, 5000);
+    }
+
+    // Countdown timer
+    function startCountdown() {
+        const duration = 5; // seconds
+        let timeLeft = duration;
+        const circumference = 2 * Math.PI * 20; // r=20
+        const progress = document.getElementById('countdownProgress');
+        const numberEl = document.getElementById('countdownNumber');
+
+        progress.style.strokeDasharray = circumference;
+        progress.style.strokeDashoffset = 0;
+
+        const interval = setInterval(() => {
+            timeLeft--;
+            numberEl.textContent = timeLeft;
+            
+            const offset = circumference * (1 - timeLeft / duration);
+            progress.style.strokeDashoffset = offset;
+
+            if (timeLeft <= 0) {
+                clearInterval(interval);
+                window.location.href = '/billing';
+            }
+        }, 1000);
+    }
+
+    // Download receipt
+    document.getElementById('downloadReceipt').addEventListener('click', (e) => {
+        e.preventDefault();
+        // In production, this would generate and download a PDF receipt
+        // For now, show a simple alert
+        const reference = '{{ reference }}';
+        const plan = '{{ plan }}';
+        const amount = '{{ amount }}';
+        
+        const receiptContent = `
+RECEIPT
+=======
+Plan: ${plan} Plan
+Amount: ₦${amount}
+Reference: ${reference}
+Date: ${new Date().toLocaleString()}
+
+Thank you for your payment!
+Business Essential
+        `;
+        
+        const blob = new Blob([receiptContent], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `receipt-${reference}.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+
+    // Initialize
+    createParticles();
+    
+    // Trigger confetti after a short delay
+    setTimeout(createConfetti, 500);
+    
+    // Start countdown
+    startCountdown();
+</script>
+
+</body>
+</html>
