@@ -5567,6 +5567,8 @@ def payment_callback(current_user_id, current_user_role):
     return redirect(
         f"/payment/success?ref={reference}"
     )
+
+
 @app.route("/payment/initialize", methods=["POST"])
 @token_required
 def initialize_payment(current_user_id, current_user_role):
@@ -5648,16 +5650,18 @@ def initialize_payment(current_user_id, current_user_role):
                 "application/json"
             }
 			print("STEP 10 → Calling Paystack")
+
+			print("REQUESTS MODULE:", requests)
+			print("REQUESTS FILE:", requests.__file__)
+
 			response = http_requests.post(
     			"https://api.paystack.co/transaction/initialize",
     			json=payload,
-   				headers=headers,
+    			headers=headers,
     			timeout=30
 			)
-			print("REQUESTS MODULE:", requests)
-			print("REQUESTS FILE:", requests.__file__)
-			print("POST:", requests.post)
-            print("STEP 11 → Paystack responded")
+
+			print("STEP 11 → Paystack responded")
 
             result = response.json()
 
