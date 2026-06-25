@@ -23,6 +23,9 @@ from backend.extentions import socketio
 import base64
 from mysql.connector.pooling import MySQLConnectionPool
 import hashlib
+from requests.adapters import HTTPAdapter
+from urllib3.poolmanager import PoolManager
+import ssl
 
 
 load_dotenv()
@@ -73,6 +76,7 @@ def get_user_id(username):
             cursor.close()
         if conn:
             conn.close()
+            
 def token_required(f):
 
     @wraps(f)
@@ -160,6 +164,30 @@ def token_required(f):
 
 
 
+class TLSAdapter(HTTPAdapter):
+
+    def init_poolmanager(
+        self,
+        connections,
+        maxsize,
+        block=False,
+        **pool_kwargs
+    ):
+
+        ctx = ssl.create_default_context()
+
+        ctx.minimum_version = ssl.TLSVersion.TLSv1_2
+
+        self.poolmanager = PoolManager(
+            num_pools=connections,
+            maxsize=maxsize,
+            block=block,
+            ssl_context=ctx
+        )
+
+
+
+
 def send_email(
     recipient: str,
     subject: str,
@@ -202,7 +230,15 @@ def send_email(
         if files:
             payload["attachments"] = files
 
-        response = requests.post(
+        session = requests.Session()
+
+        session.mount(
+            "https://",
+            TLSAdapter()
+        )
+
+
+        response = session.post(
             "https://api.resend.com/emails",
             headers={
                 "Authorization": f"Bearer {api_key}",
