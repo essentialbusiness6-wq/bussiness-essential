@@ -82,6 +82,11 @@ app.wsgi_app,
 root="static/"
 )
 
+app.config["flask_profiler"]={
+"enabled":True
+}
+
+flask_profiler.init_app(app)
 
 @app.before_request
 def refresh_activity():
