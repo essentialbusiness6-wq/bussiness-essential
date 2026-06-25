@@ -6092,10 +6092,22 @@ reference
 def payment_success():
 
     ref = request.args.get("ref")
+    with db_cursor(dictionary=True) as (_, cursor):
+        cursor.execute(
+            """
+            SELECT plan, amount
+            FROM user_subscriptions
+            WHERE reference=%s
+            """,
+            (ref,)
+        )
+        sub = cursor.fetchone()
 
     return render_template(
         "users/payment-success.html",
-        reference=ref
+        reference=reference,
+        plan= sub['plan'],
+        amount = sub['amount']
     )
         
 if __name__ == "__main__":
