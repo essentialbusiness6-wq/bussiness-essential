@@ -6087,6 +6087,16 @@ reference
             "active":
             bool(row)
         }) , 200
+
+@app.route("/payment/success")
+def payment_success():
+
+    ref = request.args.get("ref")
+
+    return render_template(
+        "/users/payment-success.html",
+        reference=ref
+    )
         
 if __name__ == "__main__":
 
