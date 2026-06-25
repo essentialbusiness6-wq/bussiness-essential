@@ -538,62 +538,90 @@
             e.preventDefault();
             startPayment();
         });
+        
         async function startPayment() {
 
-    try {
+            try {
 
-        payBtn.disabled = true;
-            const plan = card?.dataset.plan;
-        
-            const rawAmount = card?.dataset.amount;
+                payBtn.disabled = true;
+                const card = document.getElementById("card");
+                const plan = card?.dataset.plan;
+                const rawAmount = card?.dataset.amount;
+                const cleaned = rawAmount.replace(/,/g, "");
+                const amountNaira = parseFloat(cleaned);
+                const response =await fetch("/payment/initialize", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                        "application/json"
+                    },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        amount: amountNaira,
+                        plan: plan
+                    })
+                });
 
-            const cleaned = rawAmount.replace(/,/g, "");
-            const amountNaira = parseFloat(cleaned);
-        const response =
-        await fetch("/payment/initialize", {
+                const data =await response.json();
 
-            method: "POST",
+                if (!response.ok) {
+                    throw new Error(
+                    data.message
+                    );
+                }
 
-            headers: {
-                "Content-Type":
-                "application/json"
-            },
+                // Redirect to Paystack
+                window.location.href =
+                data.authorization_url;
 
-            credentials: "include",
+        } catch(err){
 
-            body: JSON.stringify({
-                amount: amountNaira,
-                plan: plan
-            })
-
-        });
-
-        const data =
-        await response.json();
-
-        if (!response.ok) {
-            throw new Error(
-                data.message
+            alert(
+                err.message
             );
+
+            payBtn.disabled = false;
+
         }
 
-        // Redirect to Paystack
-        window.location.href =
-        data.authorization_url;
-
     }
+    async function loadStatus(){
 
-    catch(err){
+let ref =
+new URLSearchParams(
+window.location.search
+)
+.get("ref");
 
-        alert(
-            err.message
-        );
 
-        payBtn.disabled = false;
+let r =
+await fetch(
+`/payment/status/${ref}`
+);
 
-    }
+let data =
+await r.json();
+
+
+if(data.active){
+
+showSuccess();
+
+}else{
+
+showPending();
+
+setTimeout(
+loadStatus,
+3000
+);
 
 }
+
+}
+
+loadStatus();
+    }
 
        
 </script>
