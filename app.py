@@ -148,9 +148,8 @@ root="static/"
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 PAYSTACK_PUBLIC=os.getenv("PAYSTACK_PUBLIC_KEY")
-PAYSTACK_SECRET=os.getenv("PAYSTACK_SECRET_KEY")SECRET_KEY = os.getenv("SECRET_KEY")
-PAYSTACK_PUBLIC=os.getenv("PAYSTACK_PUBLIC_KEY")
 PAYSTACK_SECRET=os.getenv("PAYSTACK_SECRET_KEY")
+
 
 
 @app.before_request
