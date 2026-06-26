@@ -303,6 +303,11 @@ def add_no_cache_headers(response):
 @app.route("/dashboard")
 def dashboard():
     return render_template("users/dashboard.html")
+    
+@app.route("/account")
+@token_required
+def account_page(current_user_id,current_user_role):
+    return render_template("users/account.html")
 
 @app.route("/dashboard/create-invoice")
 @token_required
