@@ -9,7 +9,7 @@ bp = Blueprint("paystack", __name__)
 paystack = PaystackService()
 
 
-@app.route("/test-paystack")
+@bp.route("/test-paystack")
 def test_paystack():
 
     response = requests.get(
