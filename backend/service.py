@@ -36,7 +36,7 @@ class PaystackService:
     ):
 
         try:
-            Print("HIT RESPONSE")
+            print("HIT RESPONSE")
             response = (
                 self.session.request(
 
