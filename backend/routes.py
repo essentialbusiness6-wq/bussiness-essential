@@ -138,14 +138,102 @@ def banks():
 @bp.post("/resolve-account")
 def resolve_account():
 
-    body = request.get_json()
+    try:
 
-    result = paystack.resolve_account(
-        account_number=body["account_number"],
-        bank_code=body["bank_code"]
-    )
+        body = request.get_json()
 
-    if not result["success"]:
-        return jsonify(result), 400
+        if not body:
+            return jsonify({
+                "success": False,
+                "message": "Invalid JSON"
+            }), 400
 
-    return jsonify(result)
+        account_number = (
+            body.get(
+                "account_number",
+                ""
+            ).strip()
+        )
+
+        bank_code = (
+            body.get(
+                "bank_code",
+                ""
+            ).strip()
+        )
+
+        if not account_number:
+            return jsonify({
+                "success": False,
+                "message":
+                "Account number required"
+            }), 400
+
+        if not bank_code:
+            return jsonify({
+                "success": False,
+                "message":
+                "Bank code required"
+            }), 400
+
+        session = requests.Session()
+
+        session.mount(
+            "https://",
+            TLSAdapter()
+        )
+
+        response = session.get(
+            "https://api.paystack.co/bank/resolve",
+            headers={
+                "Authorization":
+                f"Bearer {os.getenv('PAYSTACK_SECRET_KEY')}"
+            },
+            params={
+                "account_number":
+                account_number,
+
+                "bank_code":
+                bank_code
+            },
+            timeout=20
+        )
+
+        response.raise_for_status()
+
+        result = response.json()
+
+        if not result.get("status"):
+
+            return jsonify({
+                "success": False,
+                "message":
+                result.get(
+                    "message",
+                    "Unable to resolve account"
+                )
+            }), 400
+
+        return jsonify({
+            "success": True,
+            "data":
+            result["data"]
+        })
+
+    except requests.Timeout:
+
+        return jsonify({
+            "success": False,
+            "message":
+            "Request timed out"
+        }), 504
+
+    except Exception as e:
+
+        logger.exception(e)
+
+        return jsonify({
+            "success": False,
+            "message":
+            str(e)
+        }), 500
