@@ -33,7 +33,7 @@
 
         const response =
         await fetch(
-            "/api/paystack/bank",
+            "/api/paystack/bankS",
             {
                 credentials:
                 "include"
