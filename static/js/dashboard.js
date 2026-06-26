@@ -384,9 +384,35 @@ function checkAccountCompletion(data) {
 }
 
 function showAccountModal() {
-    const modal = document.getElementById('accountModalOverlay');
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
+
+    const modal =
+        document.getElementById(
+            "accountModalOverlay"
+        );
+
+    console.log(
+        modal
+    );
+
+    if(!modal){
+
+        console.error(
+            "Modal not found"
+        );
+
+        return;
+    }
+
+    modal.classList.add(
+        "active"
+    );
+
+    console.log(
+        modal.className
+    );
+
+    document.body.style.overflow =
+        "hidden";
 }
 
 function hideAccountModal() {
