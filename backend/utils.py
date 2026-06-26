@@ -2125,8 +2125,7 @@ def process_invoice_due_notifications():
             )
         """)
 
-        invoices =
-        cursor.fetchall()
+        invoices = cursor.fetchall()
 
         for inv in invoices:
 
