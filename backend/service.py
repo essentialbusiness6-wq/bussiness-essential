@@ -9,12 +9,39 @@ load_dotenv()
 
 logger = logging.getLogger(__name__)
 
+class TLSAdapter(HTTPAdapter):
+
+    def init_poolmanager(
+        self,
+        connections,
+        maxsize,
+        block=False,
+        **pool_kwargs
+    ):
+
+        ctx = ssl.create_default_context()
+
+        ctx.minimum_version = ssl.TLSVersion.TLSv1_2
+
+        self.poolmanager = PoolManager(
+            num_pools=connections,
+            maxsize=maxsize,
+            block=block,
+            ssl_context=ctx
+        )
+
+
 
 class PaystackService:
     BASE_URL = "https://api.paystack.co"
 
     def __init__(self):
+    
         self.session = requests.Session()
+        session.mount(
+                    "https://",
+                    TLSAdapter()
+        )
         self.session.headers.update({
             "Authorization": f"Bearer {os.getenv("PAYSTACK_SECRET_KEY")}",
             "Content-Type": "application/json"
