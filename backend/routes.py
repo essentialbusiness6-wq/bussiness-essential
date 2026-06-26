@@ -317,9 +317,9 @@ def create_subaccount(
                 cursor.execute(
                     """
                     SELECT
-                        business_name
-                    FROM users
-                    WHERE id=%s
+                        profilename
+                    FROM cust_base
+                    WHERE user_id=%s
                     LIMIT 1
                     """,
                     (
@@ -333,7 +333,7 @@ def create_subaccount(
 
                 business_name = (
                     user[
-                        "business_name"
+                        "profilename"
                     ]
                     if user
                     else "Business"
