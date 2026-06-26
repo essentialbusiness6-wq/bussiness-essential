@@ -58,16 +58,15 @@ def test_paystack():
     )
 
     return jsonify(response.json())
-
 @bp.get("/banks")
 def banks():
 
     try:
-         session = requests.Session()
+        session = requests.Session()
 
         session.mount(
-                    "https://",
-                    TLSAdapter()
+            "https://",
+            TLSAdapter()
         )
 
         response = session.get(
