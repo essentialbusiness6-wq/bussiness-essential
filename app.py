@@ -1179,7 +1179,7 @@ def get_dashboard_data(user_id, user_role):
             WHERE user_id=%s
         """, (user_id,))
         if cursor.fetchone():
-            account = cursor.fetchone()
+            account = True
         else:
             account = False
        
