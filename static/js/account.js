@@ -13,6 +13,107 @@
         const toastContainer = document.getElementById('toastContainer');
         const particlesContainer = document.getElementById('particles');
 
+        async function loadBanks() {
+
+    const bankSelect =
+    document.getElementById(
+        "bankName"
+    );
+
+    if (!bankSelect)
+        return;
+
+    try {
+
+        bankSelect.innerHTML = `
+            <option value="">
+                Loading banks...
+            </option>
+        `;
+
+        const response =
+        await fetch(
+            "/api/paystack/bank",
+            {
+                credentials:
+                "include"
+            }
+        );
+
+        const data =
+        await response.json();
+
+        if (
+            !response.ok ||
+            data.status !==
+            "success"
+        ) {
+
+            throw new Error(
+                data.message ||
+                "Unable to load banks"
+            );
+        }
+
+        bankSelect.innerHTML =
+        `
+        <option value="">
+            Select Bank
+        </option>
+        `;
+
+        data.banks
+        .forEach(
+            bank => {
+
+                const option =
+                document.createElement(
+                    "option"
+                );
+
+                option.value =
+                bank.code;
+
+                option.textContent =
+                bank.name;
+
+                bankSelect.appendChild(
+                    option
+                );
+
+            }
+        );
+
+    }
+
+    catch (err) {
+
+        console.error(
+            "BANK LOAD ERROR:",
+            err
+        );
+
+        bankSelect.innerHTML =
+        `
+        <option value="">
+            Failed to load banks
+        </option>
+        `;
+
+        showToast(
+            "Unable to load banks",
+            "error"
+        );
+    }
+}
+
+
+
+
+        loadBanks();
+
+
+
         // ================= STATE =================
         const state = {
             isVerified: false,
