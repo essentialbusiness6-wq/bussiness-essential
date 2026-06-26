@@ -319,19 +319,67 @@ function applyTheme(theme) {
 }
 // ================= ACCOUNT DETAILS COMPLETION CHECK =================
 function checkAccountCompletion(data) {
-    // Check if user has already dismissed the modal recently
-    const dismissedAt = localStorage.getItem('accountModalDismissedAt');
-    const now = Date.now();
-    const hoursSinceDismissed = dismissedAt ? (now - parseInt(dismissedAt)) / (1000 * 60 * 60) : Infinity;
-    
 
-    const account= data.account;
-    const notRecentlyDismissed = hoursSinceDismissed > 24;
-    
-    if (account === false && notRecentlyDismissed) {
-        setTimeout(() => {
-            showAccountModal();
-        }, 1500); // Show after 1.5 seconds for better UX
+    const dismissedAt =
+        localStorage.getItem(
+            "accountModalDismissedAt"
+        );
+
+    const now =
+        Date.now();
+
+    const hoursSinceDismissed =
+        dismissedAt
+            ? (
+                now -
+                parseInt(
+                    dismissedAt
+                )
+            ) /
+            (
+                1000 *
+                60 *
+                60
+            )
+            : Infinity;
+
+
+    const notRecentlyDismissed =
+        hoursSinceDismissed > 24;
+
+
+    window.userAccountComplete =
+        data.account;
+
+
+    const accountIncomplete =
+        !window.userAccountComplete;
+
+
+    console.log(
+        "Complete:",
+        window.userAccountComplete
+    );
+
+    console.log(
+        "Incomplete:",
+        accountIncomplete
+    );
+
+
+    if (
+        accountIncomplete &&
+        notRecentlyDismissed
+    ) {
+
+        setTimeout(
+            () => {
+
+                showAccountModal();
+
+            },
+            1500
+        );
     }
 }
 
