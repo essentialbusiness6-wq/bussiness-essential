@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request,current_app
 from backend.utils import token_required
 import requests
 import os
@@ -341,6 +341,10 @@ def create_subaccount(
 
 
         session = requests.Session()
+        session.mount(
+            "https://",
+            TLSAdapter()
+        )
 
         headers = {
 
