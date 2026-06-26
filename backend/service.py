@@ -4,6 +4,10 @@ import os
 import requests
 from flask import current_app
 from dotenv import load_dotenv
+from requests.adapters import HTTPAdapter
+from urllib3.poolmanager import PoolManager
+import ssl
+
 
 load_dotenv()
 
