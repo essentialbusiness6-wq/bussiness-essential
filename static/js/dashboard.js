@@ -328,7 +328,7 @@ function checkAccountCompletion(data) {
     const account= data.account;
     const notRecentlyDismissed = hoursSinceDismissed > 24;
     
-    if (account === null && notRecentlyDismissed) {
+    if (account === false && notRecentlyDismissed) {
         setTimeout(() => {
             showAccountModal();
         }, 1500); // Show after 1.5 seconds for better UX
