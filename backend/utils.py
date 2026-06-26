@@ -7,6 +7,7 @@ from email.mime.application import MIMEApplication
 import smtplib
 import requests
 import traceback
+from flask import current_app
 from typing import Optional
 from functools import wraps
 from flask import session, redirect, request, jsonify
@@ -624,7 +625,7 @@ def generate_invoice_pdf(
     filename = f"invoice_{invoice_id}.pdf"
 
     invoice_dir = os.path.join(
-        app.root_path,
+        current_app.root_path,
         "static",
         "invoices"
     )
