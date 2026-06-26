@@ -6362,7 +6362,7 @@ def send_contact_email():
             ">
 
                 <img
-                    src="{APP_LOGO}"
+                    src="{APP_LOGO_URL}"
                     width="120"
                 >
 
@@ -6443,7 +6443,7 @@ def send_contact_email():
         ">
 
             <img
-                src="{APP_LOGO}"
+                src="{APP_LOGO_URL}"
                 width="120"
             >
 
