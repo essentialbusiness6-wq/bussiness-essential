@@ -2055,7 +2055,7 @@ def get_sessions_cached(
 
             s["is_current"] = (
                 s["session_token"]
-                ==
+                ==  
                 current_token
             )
 
@@ -2085,13 +2085,11 @@ def get_sessions(
 
     try:
 
-        current_token =
-        session.get(
+        current_token = session.get(
             "session_token"
         )
 
-        result =
-        get_sessions_cached(
+        result = get_sessions_cached(
             current_user_id,
             current_token
         )
