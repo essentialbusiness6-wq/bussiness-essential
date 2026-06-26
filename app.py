@@ -291,6 +291,10 @@ def register_page():
 def login_page():
     return render_template("users/auth/login.html")
 
+@app.route("/invoice/pay")
+def pay_invoice_page():
+    return render_template("users/pay-invoice.html")
+
 @app.after_request
 def add_no_cache_headers(response):
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
