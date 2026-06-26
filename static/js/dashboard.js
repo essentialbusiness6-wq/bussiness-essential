@@ -1,3 +1,887 @@
+// document.addEventListener('DOMContentLoaded', function () {
+//     // Initialize particles background
+//     createParticles();
+
+//     // Set up event listeners
+//     setupEventListeners();
+
+//     // Initialize greeting
+//     setupAccountModal();
+//     updateGreeting();
+
+//     const saved = localStorage.getItem("theme");
+//     if (saved) applyTheme(saved);
+
+//     // Fetch dashboard data
+//     const cachedData =
+//             sessionStorage.getItem(
+//                 "dashboard_data"
+//             );
+
+//     if (cachedData) {
+
+//             renderDashboard(
+//                 JSON.parse(cachedData)
+//             );
+
+//             // silent refresh in background
+//             setTimeout(() => {
+//                 fetchDashboardData(true);
+//             }, 1000);
+
+//         } else {
+
+//             fetchDashboardData();
+//         }
+
+//     // Set up scroll indicator
+//     setupScrollIndicator();
+// });
+// let currencySymbol = "$"; 
+
+
+// // ==============================
+// // PARTICLES
+// // ==============================
+// function createParticles() {
+//     const particlesContainer = document.getElementById('particles');
+
+//     if (!particlesContainer) return;
+
+//     const particleCount = window.innerWidth > 768 ? 40 : 25;
+
+//     for (let i = 0; i < particleCount; i++) {
+//         const particle = document.createElement('div');
+
+//         particle.classList.add('particle');
+
+//         const size = Math.random() * 7 + 3;
+
+//         particle.style.width = `${size}px`;
+//         particle.style.height = `${size}px`;
+
+//         particle.style.left = `${Math.random() * 100}%`;
+//         particle.style.top = `${Math.random() * 100}%`;
+
+//         const duration = Math.random() * 10 + 15;
+//         const delay = Math.random() * 5;
+
+//         particle.style.animationDuration = `${duration}s`;
+//         particle.style.animationDelay = `${delay}s`;
+
+//         particle.style.opacity = `${Math.random() * 0.5 + 0.1}`;
+
+//         particlesContainer.appendChild(particle);
+//     }
+// }
+
+// // ==============================
+// // EVENT LISTENERS
+// // ==============================
+// function setupEventListeners() {
+//     const helpBtn = document.getElementById('helpBtn');
+
+//     if (helpBtn) {
+//         helpBtn.addEventListener('click', () => {
+//             showHapticFeedback(helpBtn);
+//        window.location.href = '/support';
+//         });
+//     }
+
+//     const notifyBtn = document.getElementById('notifyBtn');
+
+//     if (notifyBtn) {
+//         notifyBtn.addEventListener('click', () => {
+//             showHapticFeedback(notifyBtn);
+//             showToast("Notifications opened");
+//             window.location.href = '/dashboard/notifications';
+//         });
+//     }
+
+//     const showInvoiceBtn = document.getElementById('show-invoice-btn');
+
+//     if (showInvoiceBtn) {
+//         showInvoiceBtn.addEventListener('click', () => {
+//             showHapticFeedback(showInvoiceBtn);
+//             window.location.href = '/dashboard/create-invoice';
+//         });
+//     }
+
+//     const upgradeBtn = document.getElementById('upgradeBtn');
+
+//     if (upgradeBtn) {
+//         upgradeBtn.addEventListener('click', () => {
+//             showHapticFeedback(upgradeBtn);
+//             window.location.href = '/billing';
+//         });
+//     }
+
+//     const balanceAmount = document.getElementById('balance-amount');
+
+//     if (balanceAmount) {
+//         balanceAmount.addEventListener('click', toggleBalanceVisibility);
+//     }
+
+//     const closeModal = document.getElementById('closeModal');
+
+//     if (closeModal) {
+//         closeModal.addEventListener('click', hideModal);
+//     }
+
+//     const modalOverlay = document.getElementById('modalOverlay');
+
+//     if (modalOverlay) {
+//         modalOverlay.addEventListener('click', (e) => {
+//             if (e.target === modalOverlay) {
+//                 hideModal();
+//             }
+//         });
+//     }
+
+//     const modalActionBtn = document.getElementById('modalActionBtn');
+
+//     if (modalActionBtn) {
+//         modalActionBtn.addEventListener('click', () => {
+//             const redirectUrl = modalActionBtn.dataset.redirect;
+
+//             if (redirectUrl) {
+//                 window.location.href = redirectUrl;
+//             } else {
+//                 hideModal();
+//             }
+//         });
+//     }
+// }
+
+// // ==============================
+// // FETCH DASHBOARD DATA
+// // ==============================
+// let dashboardController = null;
+// let dashboardLoading = false;
+
+// const CACHE_KEY = "dashboard_data";
+// const CACHE_TIME_KEY = "dashboard_data_time";
+
+// const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+// async function fetchDashboardData(forceRefresh = false) {
+
+//     if (dashboardLoading) return;
+
+//     dashboardLoading = true;
+
+//     try {
+
+//         const cachedData =
+//             sessionStorage.getItem(CACHE_KEY);
+
+//         const cachedTime =
+//             sessionStorage.getItem(CACHE_TIME_KEY);
+
+//         const now = Date.now();
+
+//         // ==========================
+//         // USE CACHE
+//         // ==========================
+
+//         if (
+//             !forceRefresh &&
+//             cachedData &&
+//             cachedTime &&
+//             (now - Number(cachedTime)) < CACHE_DURATION
+//         ) {
+
+//        const parsed = JSON.parse(cachedData);
+//         renderDashboard(parsed);
+//         applyTheme(parsed.theme || "light");
+
+//             dashboardLoading = false;
+
+//             return;
+//         }
+
+//         showStatsLoading(true);
+
+//         // ==========================
+//         // CANCEL OLD REQUEST
+//         // ==========================
+
+//         if (dashboardController) {
+//             dashboardController.abort();
+//         }
+
+//         dashboardController =
+//             new AbortController();
+
+//         const response = await fetch(
+//             "/dashboard/data",
+//             {
+//                 method: "GET",
+//                 credentials: "include",
+//                 signal:
+//                     dashboardController.signal
+//             }
+//         );
+
+//         if (response.status === 401) {
+
+//             showModal(
+//                 "error",
+//                 "Session expired.",
+//                 "/login"
+//             );
+
+//             return;
+//         }
+
+//         if (!response.ok) {
+//             throw new Error(
+//                 `HTTP ${response.status}`
+//             );
+//         }
+
+//         const data = await response.json();
+
+//         // ==========================
+//         // SAVE CACHE
+//         // ==========================
+
+//         sessionStorage.setItem(
+//             CACHE_KEY,
+//             JSON.stringify(data)
+//         );
+
+//         sessionStorage.setItem(
+//             CACHE_TIME_KEY,
+//             Date.now()
+//         );
+
+//         renderDashboard(data);
+//         checkAccountCompletion(data);
+
+//     } catch (err) {
+
+//         if (err.name === "AbortError") {
+//             return;
+//         }
+
+//         console.error(
+//             "Dashboard fetch error:",
+//             err
+//         );
+
+//         // ==========================
+//         // FALLBACK TO CACHE
+//         // ==========================
+
+//         const cachedData =
+//             sessionStorage.getItem(CACHE_KEY);
+
+//         if (cachedData) {
+
+//             console.warn(
+//                 "Using cached dashboard data"
+//             );
+
+//             renderDashboard(
+//                 JSON.parse(cachedData)
+//             );
+
+//             return;
+//         }
+
+//         showModal(
+//             "error",
+//             "Failed to load dashboard data."
+//         );
+
+//     } finally {
+
+//         showStatsLoading(false);
+
+//         dashboardLoading = false;
+//     }
+// }
+
+// function applyTheme(theme) {
+//     const body = document.body;
+
+//     if (theme === "dark") {
+//         body.classList.add("dark");
+//         body.classList.remove("light");
+//     } else {
+//         body.classList.remove("dark");
+//         body.classList.add("light");
+//     }
+
+//     // optional: persist it
+//     localStorage.setItem("theme", theme);
+// }
+// // ================= ACCOUNT DETAILS COMPLETION CHECK =================
+// function checkAccountCompletion(data) {
+
+//     const dismissedAt =
+//         localStorage.getItem(
+//             "accountModalDismissedAt"
+//         );
+
+//     const now =
+//         Date.now();
+
+//     const hoursSinceDismissed =
+//         dismissedAt
+//             ? (
+//                 now -
+//                 parseInt(
+//                     dismissedAt
+//                 )
+//             ) /
+//             (
+//                 1000 *
+//                 60 *
+//                 60
+//             )
+//             : Infinity;
+
+
+//     const notRecentlyDismissed =
+//         hoursSinceDismissed > 24;
+
+
+//     window.userAccountComplete =
+//         data.account;
+
+
+//     const accountIncomplete =
+//         !window.userAccountComplete;
+
+
+//     console.log(
+//         "Complete:",
+//         window.userAccountComplete
+//     );
+
+//     console.log(
+//         "Incomplete:",
+//         accountIncomplete
+//     );
+
+
+//     if (
+//         accountIncomplete &&
+//         notRecentlyDismissed
+//     ) {
+
+//         setTimeout(
+//             () => {
+
+//                 showAccountModal();
+
+//             },
+//             1500
+//         );
+//     }
+// }
+
+// function showAccountModal() {
+
+//     const modal =
+//         document.getElementById(
+//             "accountModalOverlay"
+//         );
+
+//     console.log(
+//         modal
+//     );
+
+//     if(!modal){
+
+//         console.error(
+//             "Modal not found"
+//         );
+
+//         return;
+//     }
+
+//     modal.classList.add(
+//         "active"
+//     );
+
+//     console.log(
+//         modal.className
+//     );
+
+//     document.body.style.overflow =
+//         "hidden";
+// }
+
+// function hideAccountModal() {
+//     const modal = document.getElementById('accountModalOverlay');
+//     modal.classList.remove('active');
+//     document.body.style.overflow = '';
+// }
+
+// function setupAccountModal() {
+//     const modal = document.getElementById('accountModalOverlay');
+//     const remindLaterBtn = document.getElementById('remindLaterBtn');
+    
+//     // Close on overlay click
+//     modal.addEventListener('click', (e) => {
+//         if (e.target === modal) {
+//             hideAccountModal();
+//             // Remember dismissal time
+//             localStorage.setItem('accountModalDismissedAt', Date.now().toString());
+//         }
+//     });
+    
+//     // Remind Later button
+//     remindLaterBtn.addEventListener('click', () => {
+//         hideAccountModal();
+//         // Remember dismissal time - don't show again for 24 hours
+//         localStorage.setItem('accountModalDismissedAt', Date.now().toString());
+//     });
+    
+//     // ESC key to close
+//     document.addEventListener('keydown', (e) => {
+//         if (e.key === 'Escape' && modal.classList.contains('active')) {
+//             hideAccountModal();
+//             localStorage.setItem('accountModalDismissedAt', Date.now().toString());
+//         }
+//     });
+// }
+
+
+
+// function renderDashboard(data) {
+//     applyTheme(data.theme || localStorage.getItem("theme") || "light");
+//     currencySymbol =
+//         data.currency_symbol || "$";
+
+//     const username =
+//         `Hi, ${data.username || "User"}`;
+
+//     const plan =
+//         data.plan || "Trial";
+
+//     const profilepicurl =
+//         data.profilepicurl ||
+//         "/static/images/default-profile.png";
+
+//     const profilename =
+//         data.profilename ||
+//         data.username ||
+//         "User";
+
+//     const usernameEl = document.getElementById("username-placeholder");
+
+//     if (usernameEl) {
+//         usernameEl.textContent = username;
+//     }
+
+//     const planBadge =
+//         document.getElementById("planBadge");
+
+//     if (planBadge) {
+
+//         planBadge.textContent = plan;
+
+//         planBadge.className =
+//             `plan-badge ${
+//                 plan === "Trial"
+//                     ? "trial"
+//                     : ""
+//             }`;
+//     }
+
+//     document.getElementById(
+//         "dashboard-profile-pic"
+//     )?.setAttribute(
+//         "src",
+//         profilepicurl
+//     );
+
+//     const greetText =     document.getElementById(
+//         "greeting-text"
+//     );
+
+//     if (greetText) {
+//         greetText.innerHTML =
+//         `Good ${getTimeOfDay()}, ${profilename} 👋`;
+//     }
+
+//     const totInv =     document.getElementById(
+//         "total-invoices"
+//     );
+
+//     if (totInv){
+//        totInv .replaceChildren(
+//             document.createTextNode(
+//                 data.total_invoices || 0
+//             )
+//         );
+//     }
+
+//     const padInv =    document.getElementById(
+//         "paid-invoices"
+//     );
+
+//     if (padInv){
+//         padInv.replaceChildren(
+//             document.createTextNode(
+//                 data.paid_invoices || 0
+//             )
+//         );
+//     }
+
+//     const pendInv =     document.getElementById(
+//         "pending-invoices"
+//     );
+
+//     if (pendInv) {
+//         pendInv.replaceChildren(
+//             document.createTextNode(
+//                 data.pending_invoices || 0
+//             )
+//         );
+//     }
+
+//     const totRev =     document.getElementById(
+//         "total-revenue"
+//     );
+
+//     if (totRev) {
+//         totRev.replaceChildren(
+//             document.createTextNode(
+//                 formatCurrency(
+//                     data.total_revenue || 0,
+//                     currencySymbol
+//                 )
+//             )
+//         );
+//     }
+
+//     const balanceElement =
+//         document.getElementById(
+//             "balance-amount"
+//         );
+
+//     if (balanceElement) {
+
+//         const formattedBalance =
+//             formatCurrency(
+//                 data.balance || 0,
+//                 currencySymbol
+//             );
+
+//         balanceElement.textContent =
+//             formattedBalance;
+
+//         balanceElement.dataset.balance =
+//             formattedBalance;
+//     }
+
+//     const notifyCount =
+//         document.getElementById(
+//             "notifyCount"
+//         );
+
+//     if (notifyCount) {
+
+//         notifyCount.textContent =
+//             data.unread_count || 0;
+
+//         notifyCount.style.display =
+//             data.unread_count > 0
+//                 ? "flex"
+//                 : "none";
+//     }
+
+//     document
+//         .getElementById(
+//             "upgradeBanner"
+//         )
+//         ?.classList.toggle(
+//             "hidden",
+//             plan !== "Trial"
+//         );
+
+//     populateActivityList(
+//         data.activities || []
+//     );
+
+//     animateStatsCards();
+// }
+// // ==============================
+// // STATS LOADING FIX
+// // ==============================
+// function showStatsLoading(isLoading) {
+
+//     const statValues = document.querySelectorAll('.stat-value');
+
+//     statValues.forEach(el => {
+
+//         if (isLoading) {
+
+//             el.dataset.original = el.textContent;
+
+//             el.innerHTML = `
+//                 <div class="skeleton skeleton-title"></div>
+//             `;
+
+//         } else {
+
+//             const skeleton = el.querySelector('.skeleton');
+
+//             if (skeleton) {
+//                 el.innerHTML = el.dataset.original || "0";
+//             }
+//         }
+//     });
+// }
+
+// // ==============================
+// // FORMAT CURRENCY
+// // ==============================
+// function formatCurrency(amount, currency = 'USD') {
+
+//     if (amount == null) {
+//         amount = 0;
+//     }
+
+//     try {
+
+//         return new Intl.NumberFormat('en-US', {
+//             style: 'currency',
+//             currency: currency,
+//             minimumFractionDigits: 2,
+//             maximumFractionDigits: 2
+//         }).format(amount);
+
+//     } catch (e) {
+
+//         return `${currency} ${amount}`;
+//     }
+// }
+
+// // ==============================
+// // GREETING
+// // ==============================
+// function getTimeOfDay() {
+//     const hour = new Date().getHours();
+
+//     if (hour < 12) return 'morning';
+//     if (hour < 17) return 'afternoon';
+
+//     return 'evening';
+// }
+
+// function updateGreeting() {
+
+//     const greetingText =
+//         document.getElementById('greeting-text');
+
+//     if (greetingText) {
+//         greetingText.innerHTML =
+//             `Good ${getTimeOfDay()}, User 👋`;
+//     }
+// }
+
+// // ==============================
+// // ACTIVITY LIST
+// // ==============================
+// function populateActivityList(activities) {
+
+//     const activityList =
+//         document.getElementById('activity-list');
+
+//     if (!activityList) return;
+
+//     if (activities.length === 0) {
+
+//         activityList.innerHTML = `
+//             <div class="activity-item">
+//                 <div class="activity-content">
+//                     <div class="activity-title">
+//                         No recent activity
+//                     </div>
+
+//                     <div class="activity-time">
+//                         Get started by creating your first invoice
+//                     </div>
+//                 </div>
+//             </div>
+//         `;
+
+//         return;
+//     }
+
+//     let html = '';
+
+//     activities.slice(0, 5).forEach(activity => {
+
+//         html += `
+//             <div class="activity-item">
+//                 <div class="activity-content">
+
+//                     <div class="activity-title">
+//                         ${activity.title || "Activity"}
+//                     </div>
+
+//                     <div class="activity-time">
+//                         ${activity.created_at || ""}
+//                     </div>
+
+//                 </div>
+
+//                 <div class="activity-amount">
+//                     ${formatCurrency(activity.amount || 0, currencySymbol)}
+//                 </div>
+//             </div>
+//         `;
+//     });
+
+//     activityList.innerHTML = html;
+// }
+
+// // ==============================
+// // ANIMATION
+// // ==============================
+// function animateStatsCards() {
+
+//     const statCards =
+//         document.querySelectorAll('.stat-card');
+
+//     statCards.forEach((card, index) => {
+
+//         setTimeout(() => {
+//             card.classList.add('visible');
+//         }, 200 * index);
+
+//     });
+// }
+
+// // ==============================
+// // BALANCE TOGGLE
+// // ==============================
+// function toggleBalanceVisibility() {
+
+//     const balanceElement =
+//         document.getElementById('balance-amount');
+
+//     if (!balanceElement) return;
+
+//     const isHidden =
+//         balanceElement.textContent.trim() === '••••••';
+
+//     if (isHidden) {
+
+//         balanceElement.textContent =
+//             balanceElement.dataset.balance;
+
+//     } else {
+
+//         balanceElement.textContent = '••••••';
+//     }
+// }
+
+// // ==============================
+// // HAPTIC
+// // ==============================
+// function showHapticFeedback(element) {
+
+//     if (!element) return;
+
+//     element.classList.add('haptic-feedback');
+
+//     setTimeout(() => {
+//         element.classList.remove('haptic-feedback');
+//     }, 200);
+// }
+
+// // ==============================
+// // TOAST
+// // ==============================
+// function showToast(message) {
+
+//     const existingToast =
+//         document.querySelector('.toast');
+
+//     if (existingToast) {
+//         existingToast.remove();
+//     }
+
+//     const toast = document.createElement('div');
+
+//     toast.className = 'toast';
+
+//     toast.textContent = message;
+
+//     document.body.appendChild(toast);
+
+//     setTimeout(() => {
+//         toast.remove();
+//     }, 3000);
+// }
+
+// // ==============================
+// // MODAL
+// // ==============================
+// function showModal(type, message, redirectUrl = null) {
+
+//     const modalOverlay =
+//         document.getElementById('modalOverlay');
+
+//     const modalMessage =
+//         document.getElementById('modalMessage');
+
+//     const modalBtn =
+//         document.getElementById('modalActionBtn');
+
+//     if (!modalOverlay || !modalMessage || !modalBtn) {
+//         return;
+//     }
+
+//     modalMessage.textContent = message;
+
+//     modalBtn.dataset.redirect = redirectUrl || '';
+
+//     modalOverlay.classList.add('show');
+// }
+
+// function hideModal() {
+
+//     const modalOverlay =
+//         document.getElementById('modalOverlay');
+
+//     if (modalOverlay) {
+//         modalOverlay.classList.remove('show');
+//     }
+// }
+
+// // ==============================
+// // SCROLL INDICATOR
+// // ==============================
+// function setupScrollIndicator() {
+
+//     const scrollIndicator =
+//         document.getElementById('scrollIndicator');
+
+//     if (!scrollIndicator) return;
+
+//     window.addEventListener('scroll', () => {
+
+//         const scrollTop =
+//             window.pageYOffset ||
+//             document.documentElement.scrollTop;
+
+//         if (scrollTop > 100) {
+//             scrollIndicator.classList.add('visible');
+//         } else {
+//             scrollIndicator.classList.remove('visible');
+//         }
+//     });
+// }
+
 document.addEventListener('DOMContentLoaded', function () {
     // Initialize particles background
     createParticles();
@@ -13,53 +897,40 @@ document.addEventListener('DOMContentLoaded', function () {
     if (saved) applyTheme(saved);
 
     // Fetch dashboard data
-    const cachedData =
-            sessionStorage.getItem(
-                "dashboard_data"
-            );
+    const cachedData = sessionStorage.getItem("dashboard_data");
 
     if (cachedData) {
-
-            renderDashboard(
-                JSON.parse(cachedData)
-            );
-
-            // silent refresh in background
-            setTimeout(() => {
-                fetchDashboardData(true);
-            }, 1000);
-
-        } else {
-
-            fetchDashboardData();
-        }
+        renderDashboard(JSON.parse(cachedData));
+        // silent refresh in background
+        setTimeout(() => {
+            fetchDashboardData(true);
+        }, 1000);
+    } else {
+        fetchDashboardData();
+    }
 
     // Set up scroll indicator
     setupScrollIndicator();
 });
-let currencySymbol = "$"; 
 
+let currencySymbol = "$";
 
 // ==============================
 // PARTICLES
 // ==============================
 function createParticles() {
     const particlesContainer = document.getElementById('particles');
-
     if (!particlesContainer) return;
 
     const particleCount = window.innerWidth > 768 ? 40 : 25;
 
     for (let i = 0; i < particleCount; i++) {
         const particle = document.createElement('div');
-
         particle.classList.add('particle');
 
         const size = Math.random() * 7 + 3;
-
         particle.style.width = `${size}px`;
         particle.style.height = `${size}px`;
-
         particle.style.left = `${Math.random() * 100}%`;
         particle.style.top = `${Math.random() * 100}%`;
 
@@ -68,7 +939,6 @@ function createParticles() {
 
         particle.style.animationDuration = `${duration}s`;
         particle.style.animationDelay = `${delay}s`;
-
         particle.style.opacity = `${Math.random() * 0.5 + 0.1}`;
 
         particlesContainer.appendChild(particle);
@@ -80,16 +950,14 @@ function createParticles() {
 // ==============================
 function setupEventListeners() {
     const helpBtn = document.getElementById('helpBtn');
-
     if (helpBtn) {
         helpBtn.addEventListener('click', () => {
             showHapticFeedback(helpBtn);
-       window.location.href = '/support';
+            window.location.href = '/support';
         });
     }
 
     const notifyBtn = document.getElementById('notifyBtn');
-
     if (notifyBtn) {
         notifyBtn.addEventListener('click', () => {
             showHapticFeedback(notifyBtn);
@@ -99,7 +967,6 @@ function setupEventListeners() {
     }
 
     const showInvoiceBtn = document.getElementById('show-invoice-btn');
-
     if (showInvoiceBtn) {
         showInvoiceBtn.addEventListener('click', () => {
             showHapticFeedback(showInvoiceBtn);
@@ -108,7 +975,6 @@ function setupEventListeners() {
     }
 
     const upgradeBtn = document.getElementById('upgradeBtn');
-
     if (upgradeBtn) {
         upgradeBtn.addEventListener('click', () => {
             showHapticFeedback(upgradeBtn);
@@ -117,19 +983,16 @@ function setupEventListeners() {
     }
 
     const balanceAmount = document.getElementById('balance-amount');
-
     if (balanceAmount) {
         balanceAmount.addEventListener('click', toggleBalanceVisibility);
     }
 
     const closeModal = document.getElementById('closeModal');
-
     if (closeModal) {
         closeModal.addEventListener('click', hideModal);
     }
 
     const modalOverlay = document.getElementById('modalOverlay');
-
     if (modalOverlay) {
         modalOverlay.addEventListener('click', (e) => {
             if (e.target === modalOverlay) {
@@ -139,11 +1002,9 @@ function setupEventListeners() {
     }
 
     const modalActionBtn = document.getElementById('modalActionBtn');
-
     if (modalActionBtn) {
         modalActionBtn.addEventListener('click', () => {
             const redirectUrl = modalActionBtn.dataset.redirect;
-
             if (redirectUrl) {
                 window.location.href = redirectUrl;
             } else {
@@ -161,151 +1022,83 @@ let dashboardLoading = false;
 
 const CACHE_KEY = "dashboard_data";
 const CACHE_TIME_KEY = "dashboard_data_time";
-
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 async function fetchDashboardData(forceRefresh = false) {
-
     if (dashboardLoading) return;
-
     dashboardLoading = true;
 
     try {
-
-        const cachedData =
-            sessionStorage.getItem(CACHE_KEY);
-
-        const cachedTime =
-            sessionStorage.getItem(CACHE_TIME_KEY);
-
+        const cachedData = sessionStorage.getItem(CACHE_KEY);
+        const cachedTime = sessionStorage.getItem(CACHE_TIME_KEY);
         const now = Date.now();
 
-        // ==========================
         // USE CACHE
-        // ==========================
-
-        if (
-            !forceRefresh &&
-            cachedData &&
-            cachedTime &&
-            (now - Number(cachedTime)) < CACHE_DURATION
-        ) {
-
-       const parsed = JSON.parse(cachedData);
-        renderDashboard(parsed);
-        applyTheme(parsed.theme || "light");
-
+        if (!forceRefresh && cachedData && cachedTime && (now - Number(cachedTime)) < CACHE_DURATION) {
+            const parsed = JSON.parse(cachedData);
+            renderDashboard(parsed);
+            applyTheme(parsed.theme || "light");
             dashboardLoading = false;
-
             return;
         }
 
         showStatsLoading(true);
 
-        // ==========================
         // CANCEL OLD REQUEST
-        // ==========================
-
         if (dashboardController) {
             dashboardController.abort();
         }
 
-        dashboardController =
-            new AbortController();
+        dashboardController = new AbortController();
 
-        const response = await fetch(
-            "/dashboard/data",
-            {
-                method: "GET",
-                credentials: "include",
-                signal:
-                    dashboardController.signal
-            }
-        );
+        const response = await fetch("/dashboard/data", {
+            method: "GET",
+            credentials: "include",
+            signal: dashboardController.signal
+        });
 
         if (response.status === 401) {
-
-            showModal(
-                "error",
-                "Session expired.",
-                "/login"
-            );
-
+            showModal("error", "Session expired.", "/login");
             return;
         }
 
         if (!response.ok) {
-            throw new Error(
-                `HTTP ${response.status}`
-            );
+            throw new Error(`HTTP ${response.status}`);
         }
 
         const data = await response.json();
 
-        // ==========================
         // SAVE CACHE
-        // ==========================
-
-        sessionStorage.setItem(
-            CACHE_KEY,
-            JSON.stringify(data)
-        );
-
-        sessionStorage.setItem(
-            CACHE_TIME_KEY,
-            Date.now()
-        );
+        sessionStorage.setItem(CACHE_KEY, JSON.stringify(data));
+        sessionStorage.setItem(CACHE_TIME_KEY, Date.now());
 
         renderDashboard(data);
         checkAccountCompletion(data);
 
     } catch (err) {
-
         if (err.name === "AbortError") {
             return;
         }
 
-        console.error(
-            "Dashboard fetch error:",
-            err
-        );
+        console.error("Dashboard fetch error:", err);
 
-        // ==========================
         // FALLBACK TO CACHE
-        // ==========================
-
-        const cachedData =
-            sessionStorage.getItem(CACHE_KEY);
-
+        const cachedData = sessionStorage.getItem(CACHE_KEY);
         if (cachedData) {
-
-            console.warn(
-                "Using cached dashboard data"
-            );
-
-            renderDashboard(
-                JSON.parse(cachedData)
-            );
-
+            console.warn("Using cached dashboard data");
+            renderDashboard(JSON.parse(cachedData));
             return;
         }
 
-        showModal(
-            "error",
-            "Failed to load dashboard data."
-        );
-
+        showModal("error", "Failed to load dashboard data.");
     } finally {
-
         showStatsLoading(false);
-
         dashboardLoading = false;
     }
 }
 
 function applyTheme(theme) {
     const body = document.body;
-
     if (theme === "dark") {
         body.classList.add("dark");
         body.classList.remove("light");
@@ -313,133 +1106,133 @@ function applyTheme(theme) {
         body.classList.remove("dark");
         body.classList.add("light");
     }
-
-    // optional: persist it
     localStorage.setItem("theme", theme);
 }
+
 // ================= ACCOUNT DETAILS COMPLETION CHECK =================
 function checkAccountCompletion(data) {
+    console.log("=== CHECKING ACCOUNT COMPLETION ===");
+    console.log("Full data object:", data);
+    console.log("data.account:", data.account);
 
-    const dismissedAt =
-        localStorage.getItem(
-            "accountModalDismissedAt"
-        );
+    const dismissedAt = localStorage.getItem("accountModalDismissedAt");
+    const now = Date.now();
+    const hoursSinceDismissed = dismissedAt ? (now - parseInt(dismissedAt)) / (1000 * 60 * 60) : Infinity;
+    const notRecentlyDismissed = hoursSinceDismissed > 24;
 
-    const now =
-        Date.now();
+    console.log("Dismissed at:", dismissedAt);
+    console.log("Hours since dismissed:", hoursSinceDismissed);
+    console.log("Not recently dismissed:", notRecentlyDismissed);
 
-    const hoursSinceDismissed =
-        dismissedAt
-            ? (
-                now -
-                parseInt(
-                    dismissedAt
-                )
-            ) /
-            (
-                1000 *
-                60 *
-                60
-            )
-            : Infinity;
+    // Check if account is actually complete by checking specific fields
+    let isAccountComplete = false;
+    
+    if (data.account) {
+        // If account is an object, check for required fields
+        if (typeof data.account === 'object') {
+            isAccountComplete = Boolean(
+                data.account.bank_name && 
+                data.account.account_number && 
+                data.account.account_name
+            );
+            console.log("Account is object, checking fields:", {
+                bank_name: data.account.bank_name,
+                account_number: data.account.account_number,
+                account_name: data.account.account_name,
+                isComplete: isAccountComplete
+            });
+        } 
+        // If account is a boolean
+        else if (typeof data.account === 'boolean') {
+            isAccountComplete = data.account;
+            console.log("Account is boolean:", isAccountComplete);
+        }
+        // If account is a string or number (truthy value)
+        else {
+            isAccountComplete = Boolean(data.account);
+            console.log("Account is truthy value:", isAccountComplete);
+        }
+    } else {
+        console.log("No account data found");
+        isAccountComplete = false;
+    }
 
+    window.userAccountComplete = isAccountComplete;
+    const accountIncomplete = !isAccountComplete;
 
-    const notRecentlyDismissed =
-        hoursSinceDismissed > 24;
+    console.log("Final result - Account Complete:", isAccountComplete);
+    console.log("Final result - Account Incomplete:", accountIncomplete);
+    console.log("Should show modal:", accountIncomplete && notRecentlyDismissed);
 
-
-    window.userAccountComplete =
-        data.account;
-
-
-    const accountIncomplete =
-        !window.userAccountComplete;
-
-
-    console.log(
-        "Complete:",
-        window.userAccountComplete
-    );
-
-    console.log(
-        "Incomplete:",
-        accountIncomplete
-    );
-
-
-    if (
-        accountIncomplete &&
-        notRecentlyDismissed
-    ) {
-
-        setTimeout(
-            () => {
-
-                showAccountModal();
-
-            },
-            1500
-        );
+    if (accountIncomplete && notRecentlyDismissed) {
+        console.log("✅ SHOWING MODAL IN 1.5 SECONDS");
+        setTimeout(() => {
+            showAccountModal();
+        }, 1500);
+    } else {
+        console.log("❌ NOT SHOWING MODAL");
+        if (!accountIncomplete) {
+            console.log("Reason: Account is complete");
+        }
+        if (!notRecentlyDismissed) {
+            console.log("Reason: Modal was dismissed recently");
+        }
     }
 }
 
 function showAccountModal() {
-
-    const modal =
-        document.getElementById(
-            "accountModalOverlay"
-        );
-
-    console.log(
-        modal
-    );
-
-    if(!modal){
-
-        console.error(
-            "Modal not found"
-        );
-
+    console.log("=== SHOWING ACCOUNT MODAL ===");
+    const modal = document.getElementById("accountModalOverlay");
+    
+    if (!modal) {
+        console.error("❌ Modal element not found in DOM!");
         return;
     }
-
-    modal.classList.add(
-        "active"
-    );
-
-    console.log(
-        modal.className
-    );
-
-    document.body.style.overflow =
-        "hidden";
+    
+    console.log("Modal element found:", modal);
+    console.log("Modal current classes:", modal.className);
+    
+    modal.classList.add("active");
+    
+    console.log("Modal classes after adding active:", modal.className);
+    console.log("Modal computed display:", window.getComputedStyle(modal).display);
+    
+    document.body.style.overflow = "hidden";
+    console.log("✅ Modal should now be visible");
 }
 
 function hideAccountModal() {
     const modal = document.getElementById('accountModalOverlay');
-    modal.classList.remove('active');
-    document.body.style.overflow = '';
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
 }
 
 function setupAccountModal() {
     const modal = document.getElementById('accountModalOverlay');
     const remindLaterBtn = document.getElementById('remindLaterBtn');
     
+    if (!modal) {
+        console.error("Account modal not found during setup!");
+        return;
+    }
+    
     // Close on overlay click
     modal.addEventListener('click', (e) => {
         if (e.target === modal) {
             hideAccountModal();
-            // Remember dismissal time
             localStorage.setItem('accountModalDismissedAt', Date.now().toString());
         }
     });
     
     // Remind Later button
-    remindLaterBtn.addEventListener('click', () => {
-        hideAccountModal();
-        // Remember dismissal time - don't show again for 24 hours
-        localStorage.setItem('accountModalDismissedAt', Date.now().toString());
-    });
+    if (remindLaterBtn) {
+        remindLaterBtn.addEventListener('click', () => {
+            hideAccountModal();
+            localStorage.setItem('accountModalDismissedAt', Date.now().toString());
+        });
+    }
     
     // ESC key to close
     document.addEventListener('keydown', (e) => {
@@ -450,188 +1243,85 @@ function setupAccountModal() {
     });
 }
 
-
-
 function renderDashboard(data) {
     applyTheme(data.theme || localStorage.getItem("theme") || "light");
-    currencySymbol =
-        data.currency_symbol || "$";
+    currencySymbol = data.currency_symbol || "$";
 
-    const username =
-        `Hi, ${data.username || "User"}`;
-
-    const plan =
-        data.plan || "Trial";
-
-    const profilepicurl =
-        data.profilepicurl ||
-        "/static/images/default-profile.png";
-
-    const profilename =
-        data.profilename ||
-        data.username ||
-        "User";
+    const username = `Hi, ${data.username || "User"}`;
+    const plan = data.plan || "Trial";
+    const profilepicurl = data.profilepicurl || "/static/images/default-profile.png";
+    const profilename = data.profilename || data.username || "User";
 
     const usernameEl = document.getElementById("username-placeholder");
-
     if (usernameEl) {
         usernameEl.textContent = username;
     }
 
-    const planBadge =
-        document.getElementById("planBadge");
-
+    const planBadge = document.getElementById("planBadge");
     if (planBadge) {
-
         planBadge.textContent = plan;
-
-        planBadge.className =
-            `plan-badge ${
-                plan === "Trial"
-                    ? "trial"
-                    : ""
-            }`;
+        planBadge.className = `plan-badge ${plan === "Trial" ? "trial" : ""}`;
     }
 
-    document.getElementById(
-        "dashboard-profile-pic"
-    )?.setAttribute(
-        "src",
-        profilepicurl
-    );
+    document.getElementById("dashboard-profile-pic")?.setAttribute("src", profilepicurl);
 
-    const greetText =     document.getElementById(
-        "greeting-text"
-    );
-
+    const greetText = document.getElementById("greeting-text");
     if (greetText) {
-        greetText.innerHTML =
-        `Good ${getTimeOfDay()}, ${profilename} 👋`;
+        greetText.innerHTML = `Good ${getTimeOfDay()}, ${profilename} 👋`;
     }
 
-    const totInv =     document.getElementById(
-        "total-invoices"
-    );
-
-    if (totInv){
-       totInv .replaceChildren(
-            document.createTextNode(
-                data.total_invoices || 0
-            )
-        );
+    const totInv = document.getElementById("total-invoices");
+    if (totInv) {
+        totInv.replaceChildren(document.createTextNode(data.total_invoices || 0));
     }
 
-    const padInv =    document.getElementById(
-        "paid-invoices"
-    );
-
-    if (padInv){
-        padInv.replaceChildren(
-            document.createTextNode(
-                data.paid_invoices || 0
-            )
-        );
+    const padInv = document.getElementById("paid-invoices");
+    if (padInv) {
+        padInv.replaceChildren(document.createTextNode(data.paid_invoices || 0));
     }
 
-    const pendInv =     document.getElementById(
-        "pending-invoices"
-    );
-
+    const pendInv = document.getElementById("pending-invoices");
     if (pendInv) {
-        pendInv.replaceChildren(
-            document.createTextNode(
-                data.pending_invoices || 0
-            )
-        );
+        pendInv.replaceChildren(document.createTextNode(data.pending_invoices || 0));
     }
 
-    const totRev =     document.getElementById(
-        "total-revenue"
-    );
-
+    const totRev = document.getElementById("total-revenue");
     if (totRev) {
         totRev.replaceChildren(
-            document.createTextNode(
-                formatCurrency(
-                    data.total_revenue || 0,
-                    currencySymbol
-                )
-            )
+            document.createTextNode(formatCurrency(data.total_revenue || 0, currencySymbol))
         );
     }
 
-    const balanceElement =
-        document.getElementById(
-            "balance-amount"
-        );
-
+    const balanceElement = document.getElementById("balance-amount");
     if (balanceElement) {
-
-        const formattedBalance =
-            formatCurrency(
-                data.balance || 0,
-                currencySymbol
-            );
-
-        balanceElement.textContent =
-            formattedBalance;
-
-        balanceElement.dataset.balance =
-            formattedBalance;
+        const formattedBalance = formatCurrency(data.balance || 0, currencySymbol);
+        balanceElement.textContent = formattedBalance;
+        balanceElement.dataset.balance = formattedBalance;
     }
 
-    const notifyCount =
-        document.getElementById(
-            "notifyCount"
-        );
-
+    const notifyCount = document.getElementById("notifyCount");
     if (notifyCount) {
-
-        notifyCount.textContent =
-            data.unread_count || 0;
-
-        notifyCount.style.display =
-            data.unread_count > 0
-                ? "flex"
-                : "none";
+        notifyCount.textContent = data.unread_count || 0;
+        notifyCount.style.display = data.unread_count > 0 ? "flex" : "none";
     }
 
-    document
-        .getElementById(
-            "upgradeBanner"
-        )
-        ?.classList.toggle(
-            "hidden",
-            plan !== "Trial"
-        );
+    document.getElementById("upgradeBanner")?.classList.toggle("hidden", plan !== "Trial");
 
-    populateActivityList(
-        data.activities || []
-    );
-
+    populateActivityList(data.activities || []);
     animateStatsCards();
 }
+
 // ==============================
 // STATS LOADING FIX
 // ==============================
 function showStatsLoading(isLoading) {
-
     const statValues = document.querySelectorAll('.stat-value');
-
     statValues.forEach(el => {
-
         if (isLoading) {
-
             el.dataset.original = el.textContent;
-
-            el.innerHTML = `
-                <div class="skeleton skeleton-title"></div>
-            `;
-
+            el.innerHTML = `<div class="skeleton skeleton-title"></div>`;
         } else {
-
             const skeleton = el.querySelector('.skeleton');
-
             if (skeleton) {
                 el.innerHTML = el.dataset.original || "0";
             }
@@ -643,22 +1333,15 @@ function showStatsLoading(isLoading) {
 // FORMAT CURRENCY
 // ==============================
 function formatCurrency(amount, currency = 'USD') {
-
-    if (amount == null) {
-        amount = 0;
-    }
-
+    if (amount == null) amount = 0;
     try {
-
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
             currency: currency,
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         }).format(amount);
-
     } catch (e) {
-
         return `${currency} ${amount}`;
     }
 }
@@ -668,21 +1351,15 @@ function formatCurrency(amount, currency = 'USD') {
 // ==============================
 function getTimeOfDay() {
     const hour = new Date().getHours();
-
     if (hour < 12) return 'morning';
     if (hour < 17) return 'afternoon';
-
     return 'evening';
 }
 
 function updateGreeting() {
-
-    const greetingText =
-        document.getElementById('greeting-text');
-
+    const greetingText = document.getElementById('greeting-text');
     if (greetingText) {
-        greetingText.innerHTML =
-            `Good ${getTimeOfDay()}, User 👋`;
+        greetingText.innerHTML = `Good ${getTimeOfDay()}, User 👋`;
     }
 }
 
@@ -690,52 +1367,30 @@ function updateGreeting() {
 // ACTIVITY LIST
 // ==============================
 function populateActivityList(activities) {
-
-    const activityList =
-        document.getElementById('activity-list');
-
+    const activityList = document.getElementById('activity-list');
     if (!activityList) return;
 
     if (activities.length === 0) {
-
         activityList.innerHTML = `
             <div class="activity-item">
                 <div class="activity-content">
-                    <div class="activity-title">
-                        No recent activity
-                    </div>
-
-                    <div class="activity-time">
-                        Get started by creating your first invoice
-                    </div>
+                    <div class="activity-title">No recent activity</div>
+                    <div class="activity-time">Get started by creating your first invoice</div>
                 </div>
             </div>
         `;
-
         return;
     }
 
     let html = '';
-
     activities.slice(0, 5).forEach(activity => {
-
         html += `
             <div class="activity-item">
                 <div class="activity-content">
-
-                    <div class="activity-title">
-                        ${activity.title || "Activity"}
-                    </div>
-
-                    <div class="activity-time">
-                        ${activity.created_at || ""}
-                    </div>
-
+                    <div class="activity-title">${activity.title || "Activity"}</div>
+                    <div class="activity-time">${activity.created_at || ""}</div>
                 </div>
-
-                <div class="activity-amount">
-                    ${formatCurrency(activity.amount || 0, currencySymbol)}
-                </div>
+                <div class="activity-amount">${formatCurrency(activity.amount || 0, currencySymbol)}</div>
             </div>
         `;
     });
@@ -747,16 +1402,11 @@ function populateActivityList(activities) {
 // ANIMATION
 // ==============================
 function animateStatsCards() {
-
-    const statCards =
-        document.querySelectorAll('.stat-card');
-
+    const statCards = document.querySelectorAll('.stat-card');
     statCards.forEach((card, index) => {
-
         setTimeout(() => {
             card.classList.add('visible');
         }, 200 * index);
-
     });
 }
 
@@ -764,22 +1414,13 @@ function animateStatsCards() {
 // BALANCE TOGGLE
 // ==============================
 function toggleBalanceVisibility() {
-
-    const balanceElement =
-        document.getElementById('balance-amount');
-
+    const balanceElement = document.getElementById('balance-amount');
     if (!balanceElement) return;
 
-    const isHidden =
-        balanceElement.textContent.trim() === '••••••';
-
+    const isHidden = balanceElement.textContent.trim() === '••••••';
     if (isHidden) {
-
-        balanceElement.textContent =
-            balanceElement.dataset.balance;
-
+        balanceElement.textContent = balanceElement.dataset.balance;
     } else {
-
         balanceElement.textContent = '••••••';
     }
 }
@@ -788,11 +1429,8 @@ function toggleBalanceVisibility() {
 // HAPTIC
 // ==============================
 function showHapticFeedback(element) {
-
     if (!element) return;
-
     element.classList.add('haptic-feedback');
-
     setTimeout(() => {
         element.classList.remove('haptic-feedback');
     }, 200);
@@ -802,20 +1440,12 @@ function showHapticFeedback(element) {
 // TOAST
 // ==============================
 function showToast(message) {
-
-    const existingToast =
-        document.querySelector('.toast');
-
-    if (existingToast) {
-        existingToast.remove();
-    }
+    const existingToast = document.querySelector('.toast');
+    if (existingToast) existingToast.remove();
 
     const toast = document.createElement('div');
-
     toast.className = 'toast';
-
     toast.textContent = message;
-
     document.body.appendChild(toast);
 
     setTimeout(() => {
@@ -827,32 +1457,19 @@ function showToast(message) {
 // MODAL
 // ==============================
 function showModal(type, message, redirectUrl = null) {
+    const modalOverlay = document.getElementById('modalOverlay');
+    const modalMessage = document.getElementById('modalMessage');
+    const modalBtn = document.getElementById('modalActionBtn');
 
-    const modalOverlay =
-        document.getElementById('modalOverlay');
-
-    const modalMessage =
-        document.getElementById('modalMessage');
-
-    const modalBtn =
-        document.getElementById('modalActionBtn');
-
-    if (!modalOverlay || !modalMessage || !modalBtn) {
-        return;
-    }
+    if (!modalOverlay || !modalMessage || !modalBtn) return;
 
     modalMessage.textContent = message;
-
     modalBtn.dataset.redirect = redirectUrl || '';
-
     modalOverlay.classList.add('show');
 }
 
 function hideModal() {
-
-    const modalOverlay =
-        document.getElementById('modalOverlay');
-
+    const modalOverlay = document.getElementById('modalOverlay');
     if (modalOverlay) {
         modalOverlay.classList.remove('show');
     }
@@ -862,18 +1479,11 @@ function hideModal() {
 // SCROLL INDICATOR
 // ==============================
 function setupScrollIndicator() {
-
-    const scrollIndicator =
-        document.getElementById('scrollIndicator');
-
+    const scrollIndicator = document.getElementById('scrollIndicator');
     if (!scrollIndicator) return;
 
     window.addEventListener('scroll', () => {
-
-        const scrollTop =
-            window.pageYOffset ||
-            document.documentElement.scrollTop;
-
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
         if (scrollTop > 100) {
             scrollIndicator.classList.add('visible');
         } else {
@@ -881,3 +1491,15 @@ function setupScrollIndicator() {
         }
     });
 }
+
+// ==============================
+// TEST FUNCTION - FORCE SHOW MODAL
+// ==============================
+function forceShowAccountModal() {
+    console.log("=== FORCE SHOWING ACCOUNT MODAL ===");
+    localStorage.removeItem('accountModalDismissedAt');
+    showAccountModal();
+}
+
+// Make it available in console for testing
+window.forceShowAccountModal = forceShowAccountModal;
