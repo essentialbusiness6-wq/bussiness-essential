@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request,current_app
-from backend.utils import token_required
+from backend.utils import token_required,db_cursor
 import requests
 import os
 from requests.adapters import HTTPAdapter
