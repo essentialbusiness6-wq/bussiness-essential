@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 let currencySymbol = "$"; 
 
+
 // ==============================
 // PARTICLES
 // ==============================
@@ -255,6 +256,7 @@ async function fetchDashboardData(forceRefresh = false) {
         );
 
         renderDashboard(data);
+        checkAccountCompletion(data);
 
     } catch (err) {
 
@@ -314,6 +316,67 @@ function applyTheme(theme) {
     // optional: persist it
     localStorage.setItem("theme", theme);
 }
+// ================= ACCOUNT DETAILS COMPLETION CHECK =================
+function checkAccountCompletion(data) {
+    // Check if user has already dismissed the modal recently
+    const dismissedAt = localStorage.getItem('accountModalDismissedAt');
+    const now = Date.now();
+    const hoursSinceDismissed = dismissedAt ? (now - parseInt(dismissedAt)) / (1000 * 60 * 60) : Infinity;
+    
+
+    const accountIncomplete = data.account
+    const notRecentlyDismissed = hoursSinceDismissed > 24;
+    
+    if (accountIncomplete && notRecentlyDismissed) {
+        setTimeout(() => {
+            showAccountModal();
+        }, 1500); // Show after 1.5 seconds for better UX
+    }
+}
+
+function showAccountModal() {
+    const modal = document.getElementById('accountModalOverlay');
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function hideAccountModal() {
+    const modal = document.getElementById('accountModalOverlay');
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function setupAccountModal() {
+    const modal = document.getElementById('accountModalOverlay');
+    const remindLaterBtn = document.getElementById('remindLaterBtn');
+    
+    // Close on overlay click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            hideAccountModal();
+            // Remember dismissal time
+            localStorage.setItem('accountModalDismissedAt', Date.now().toString());
+        }
+    });
+    
+    // Remind Later button
+    remindLaterBtn.addEventListener('click', () => {
+        hideAccountModal();
+        // Remember dismissal time - don't show again for 24 hours
+        localStorage.setItem('accountModalDismissedAt', Date.now().toString());
+    });
+    
+    // ESC key to close
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            hideAccountModal();
+            localStorage.setItem('accountModalDismissedAt', Date.now().toString());
+        }
+    });
+}
+
+// Initialize account modal
+setupAccountModal();
 
 function renderDashboard(data) {
     applyTheme(data.theme || localStorage.getItem("theme") || "light");
