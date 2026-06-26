@@ -1173,6 +1173,16 @@ def get_dashboard_data(user_id, user_role):
             LIMIT 10
         """, (user_id,))
         activities = cursor.fetchall()
+        cursor.execute("""
+            SELECT id 
+            FROM payment_subaccounts
+            WHERE user_id=%s
+        """, (user_id,))
+        if cursor.fetchone():
+            account = cursor.fetchone()
+        else:
+            account = None
+       
 
     return {
         "status": "success",
@@ -1202,6 +1212,7 @@ def get_dashboard_data(user_id, user_role):
 
         "activities": activities,
 
+        "account":account,
         "user": {
             "id": user_id,
             "role": user_role
