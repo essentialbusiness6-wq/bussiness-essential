@@ -1181,7 +1181,7 @@ def get_dashboard_data(user_id, user_role):
         if cursor.fetchone():
             account = cursor.fetchone()
         else:
-            account = None
+            account = False
        
 
     return {
