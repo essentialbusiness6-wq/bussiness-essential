@@ -37,15 +37,31 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 db_pool = MySQLConnectionPool(
     pool_name="business_pool",
     pool_size=20,
+    pool_reset_session=False,
     host= os.getenv("DBHOST"),
     user= os.getenv("DBUSER"),
     password = os.getenv("DBPASS"),
     database = os.getenv("DB"),
-    port= os.getenv("DBPORT")
+    port= os.getenv("DBPORT"),
+    autocommit=False,
+    connection_timeout=20,
+    pool_timeout=15
 )
 
+
 def get_db():
-    return db_pool.get_connection()
+
+    conn = (
+        db_pool.get_connection()
+    )
+
+    conn.ping(
+        reconnect=True,
+        attempts=3,
+        delay=2
+    )
+
+    return conn
 
 
 def get_user_id(username):
@@ -1189,30 +1205,91 @@ def send_pro_plan_invoice_email(
 
 from contextlib import contextmanager
 
+
 @contextmanager
-def db_cursor(dictionary=False):
+def db_cursor(
+    dictionary=False
+):
+
     conn = None
     cursor = None
 
     try:
+
         conn = get_db()
-        cursor = conn.cursor(dictionary=dictionary,buffered=True)
+
+        # reconnect if dead
+        if not conn.is_connected():
+
+            print(
+                "DB reconnecting..."
+            )
+
+            conn.reconnect(
+                attempts=3,
+                delay=2
+            )
+
+        cursor = conn.cursor(
+            dictionary=dictionary,
+            buffered=True
+        )
 
         yield conn, cursor
 
-        conn.commit()
+        if conn.is_connected():
+            conn.commit()
 
-    except:
-        if conn:
-            conn.rollback()
+    except Exception:
+
+        # rollback safely
+        try:
+
+            if (
+                conn
+                and
+                conn.is_connected()
+            ):
+                conn.rollback()
+
+        except Exception as rollback_error:
+
+            print(
+                "Rollback failed:",
+                rollback_error
+            )
+
         raise
 
     finally:
-        if cursor:
-            cursor.close()
 
-        if conn:
-            conn.close()
+        try:
+
+            if cursor:
+                cursor.close()
+
+        except Exception as e:
+
+            print(
+                "Cursor close failed:",
+                e
+            )
+
+        try:
+
+            if (
+                conn
+                and
+                conn.is_connected()
+            ):
+                conn.close()
+
+        except Exception as e:
+
+            print(
+                "Connection close failed:",
+                e
+            )
 
 
 
