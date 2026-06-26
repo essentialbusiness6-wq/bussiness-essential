@@ -100,6 +100,34 @@ flask_profiler.init_app(app)
 Compress(app)
 
 
+cloudinary.config(
+    cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME"),
+    api_key =  os.getenv("CLOUDINARY_API_KEY"),
+    api_secret = os.getenv("CLOUDINARY_API_SECRET")
+)
+
+
+
+cache = Cache()
+
+app.config.update({
+
+    "CACHE_TYPE":
+    "RedisCache",
+
+    "CACHE_REDIS_URL":
+    os.getenv(
+        "REDIS_URL"
+    ),
+
+    "CACHE_DEFAULT_TIMEOUT":
+    300
+
+})
+
+cache.init_app(app)
+socketio.init_app(app)
+
 
 app.wsgi_app=WhiteNoise(
 app.wsgi_app,
@@ -115,14 +143,7 @@ def refresh_activity():
     if token:
         update_session_activity(token)
 
-cloudinary.config(
-    cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME"),
-    api_key =  os.getenv("CLOUDINARY_API_KEY"),
-    api_secret = os.getenv("CLOUDINARY_API_SECRET")
-)
 
-cache.init_app(app)
-socketio.init_app(app)
 
 @app.route("/test-notification")
 def test_notification():
