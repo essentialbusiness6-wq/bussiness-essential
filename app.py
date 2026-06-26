@@ -6368,6 +6368,17 @@ def payment_webhook():
                 expires
 
             ))
+              
+            cursor.execute(
+                """
+                INSERT INTO transactions
+                (user_id,invoice_id,amount,reference,status,paid_at,transaction_type)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """,
+                (current_user_id,0,amount,reference,"paid",datetime.now(),"subscription")
+            )
+
+  
 
             conn.commit()
 
