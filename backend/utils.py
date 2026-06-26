@@ -602,132 +602,446 @@ def log_session(
             conn.close()
 
 
-LOGO_PATH = "C:\\Users\\Elitebook 1040 G6\\OneDrive\\Desktop\\web developmen\\reciept app\\static\\media\\app logo.png"  # Replace with your logo path
+LOGO_PATH = "https://res.cloudinary.com/dkb987i8w/image/upload/v1772108684/app_logo_ky1yis.png" 
 
 
-def generate_invoice_pdf(invoice_id, client_name, client_email,
-                         invoice_date, due_date, status,
-                         items, subtotal, tax, total,
-                         amount_paid, balance, notes):
+def generate_invoice_pdf(
+    invoice_id,
+    client_name,
+    client_email,
+    invoice_date,
+    due_date,
+    status,
+    items,
+    subtotal,
+    tax,
+    total,
+    amount_paid,
+    balance,
+    notes
+):
 
     filename = f"invoice_{invoice_id}.pdf"
-    file_path = os.path.join("C:\\Users\\Elitebook 1040 G6\\OneDrive\\Desktop\\web developmen\\reciept app\\static\\invoices", filename)
-    os.makedirs("C:\\Users\\Elitebook 1040 G6\\OneDrive\\Desktop\\web developmen\\reciept app\\static\\invoices", exist_ok=True)
 
+    invoice_dir = os.path.join(
+        app.root_path,
+        "static",
+        "invoices"
+    )
 
-    doc = SimpleDocTemplate(file_path, pagesize=A4,
-                            rightMargin=40, leftMargin=40,
-                            topMargin=40, bottomMargin=40)
+    os.makedirs(
+        invoice_dir,
+        exist_ok=True
+    )
+
+    file_path = os.path.join(
+        invoice_dir,
+        filename
+    )
+
+    doc = SimpleDocTemplate(
+        file_path,
+        pagesize=A4,
+        rightMargin=35,
+        leftMargin=35,
+        topMargin=35,
+        bottomMargin=35
+    )
 
     styles = getSampleStyleSheet()
+
+    PRIMARY = colors.HexColor("#1558B0")
+    DARK = colors.HexColor("#111827")
+    LIGHT = colors.HexColor("#F8FAFC")
+    BORDER = colors.HexColor("#E5E7EB")
+    TEXT = colors.HexColor("#4B5563")
+
+    PAID = colors.HexColor("#10B981")
+    UNPAID = colors.HexColor("#EF4444")
+
     elements = []
 
-    brand_color = colors.HexColor("#1558B0")  # Brand primary color
+    status_color = (
+        PAID
+        if status.lower() == "paid"
+        else UNPAID
+    )
 
-    # ---------- App Logo ----------
-    logo_path = LOGO_PATH
-    if os.path.exists(logo_path):
-        logo = Image(logo_path, width=120, height=40)
-        logo.hAlign = 'CENTER'
-        elements.append(logo)
-        elements.append(Spacer(1, 12))
+    # --------------------
+    # Header
+    # --------------------
 
-    # ---------- Invoice Header ----------
-    status_color = colors.green if status.lower() == "paid" else colors.red
-    elements.append(Paragraph(
-        f"<b>Invoice #{invoice_id}</b>",
-        ParagraphStyle(
-            name="InvoiceTitle",
-            fontSize=20,
-            textColor=brand_color,
-            alignment=0,  # left
-            spaceAfter=8
+    header = []
+
+    if os.path.exists(LOGO_PATH):
+
+        logo = Image(
+            LOGO_PATH,
+            width=140,
+            height=45
         )
-    ))
-    elements.append(Paragraph(
-        f"<b>Status:</b> <font color='#{status_color.hexval()}'>{status.upper()}</font>",
-        ParagraphStyle(
-            name="InvoiceStatus",
-            fontSize=12,
-            spaceAfter=15
-        )
-    ))
 
-    # ---------- Client & Invoice Info ----------
-    info_table = Table([
-        ["Bill To:", client_name, "Invoice Date:", invoice_date],
-        ["Email:", client_email, "Due Date:", due_date],
-    ], colWidths=[70, 180, 90, 140])
+        header.append([
+            logo,
 
-    info_table.setStyle(TableStyle([
-        ("BACKGROUND", (0,0), (-1,0), colors.HexColor("#f2f2f2")),
-        ("GRID", (0,0), (-1,-1), 0.5, colors.grey),
-        ("FONT", (0,0), (-1,-1), "Helvetica"),
-        ("VALIGN", (0,0), (-1,-1), "MIDDLE"),
-        ("BOTTOMPADDING", (0,0), (-1,-1), 6),
-        ("TOPPADDING", (0,0), (-1,-1), 6),
-    ]))
-    elements.append(info_table)
-    elements.append(Spacer(1, 20))
+            Paragraph(
+                f"""
+                <font size=24 color="#1558B0">
+                <b>INVOICE</b>
+                </font><br/>
+                <font size=11 color="#6B7280">
+                #{invoice_id}
+                </font>
+                """,
 
-    # ---------- Items Table ----------
-    item_data = [["Description", "Qty", "Price", "Total"]]
-    for idx, item in enumerate(items):
-        line_total = item["quantity"] * item["price"]
-        item_data.append([
-            item["description"],
-            item["quantity"],
-            f"₦{item['price']:,.2f}",
-            f"₦{line_total:,.2f}"
+                styles["Normal"]
+            )
         ])
 
-    items_table = Table(item_data, colWidths=[250, 60, 90, 90])
-    # Alternating row colors for readability
-    row_colors = [colors.HexColor("#f9f9f9") if i % 2 == 0 else colors.white for i in range(len(item_data))]
-    items_table.setStyle(TableStyle([
-        ("BACKGROUND", (0,0), (-1,0), brand_color),
-        ("TEXTCOLOR", (0,0), (-1,0), colors.white),
-        ("ALIGN", (1,1), (-1,-1), "CENTER"),
-        ("GRID", (0,0), (-1,-1), 0.5, colors.grey),
-        ("BOTTOMPADDING", (0,0), (-1,0), 10),
-        ("TOPPADDING", (0,0), (-1,0), 10),
-        ("VALIGN", (0,0), (-1,-1), "MIDDLE"),
-    ]))
-    for i, color in enumerate(row_colors):
-        if i == 0:  # skip header
-            continue
-        items_table.setStyle(TableStyle([("BACKGROUND", (0,i), (-1,i), color)]))
+        table = Table(
+            header,
+            colWidths=[250, 250]
+        )
 
-    elements.append(items_table)
-    elements.append(Spacer(1, 20))
+        table.setStyle(TableStyle([
+            ("VALIGN",(0,0),(-1,-1),"TOP")
+        ]))
 
-    # ---------- Totals Table ----------
-    totals_data = [
-        ["Subtotal:", f"₦{subtotal:,.2f}"],
-        ["Tax:", f"₦{tax:,.2f}"],
-        ["Total:", f"₦{total:,.2f}"],
-        ["Amount Paid:", f"₦{amount_paid:,.2f}"],
-        ["Balance:", f"₦{balance:,.2f}"]
+        elements.append(table)
+
+    elements.append(
+        Spacer(
+            1,
+            20
+        )
+    )
+
+    # --------------------
+    # Status pill
+    # --------------------
+
+    status_box = Table(
+        [[
+            Paragraph(
+                f"""
+                <font color="white">
+                <b>{status.upper()}</b>
+                </font>
+                """,
+
+                styles["BodyText"]
+            )
+        ]],
+
+        colWidths=100
+    )
+
+    status_box.setStyle(
+        TableStyle([
+
+            (
+                "BACKGROUND",
+                (0,0),
+                (-1,-1),
+                status_color
+            ),
+
+            (
+                "BOX",
+                (0,0),
+                (-1,-1),
+                0,
+                status_color
+            ),
+
+            (
+                "ALIGN",
+                (0,0),
+                (-1,-1),
+                "CENTER"
+            ),
+
+            (
+                "PADDING",
+                (0,0),
+                (-1,-1),
+                10
+            )
+        ])
+    )
+
+    elements.append(status_box)
+
+    elements.append(
+        Spacer(
+            1,
+            20
+        )
+    )
+
+    # --------------------
+    # Client card
+    # --------------------
+
+    info = Table([[
+        Paragraph(
+            f"""
+            <b>Bill To</b><br/><br/>
+            {client_name}<br/>
+            {client_email}
+            """,
+
+            styles["Normal"]
+        ),
+
+        Paragraph(
+            f"""
+            <b>Invoice Date</b><br/>
+            {invoice_date}
+
+            <br/><br/>
+
+            <b>Due Date</b><br/>
+            {due_date}
+            """,
+
+            styles["Normal"]
+        )
+    ]])
+
+    info.setStyle(
+        TableStyle([
+
+            (
+                "BACKGROUND",
+                (0,0),
+                (-1,-1),
+                LIGHT
+            ),
+
+            (
+                "BOX",
+                (0,0),
+                (-1,-1),
+                1,
+                BORDER
+            ),
+
+            (
+                "PADDING",
+                (0,0),
+                (-1,-1),
+                18
+            )
+        ])
+    )
+
+    elements.append(info)
+
+    elements.append(
+        Spacer(
+            1,
+            25
+        )
+    )
+
+    # --------------------
+    # Items
+    # --------------------
+
+    rows = [[
+        "Description",
+        "Qty",
+        "Price",
+        "Total"
+    ]]
+
+    for item in items:
+
+        rows.append([
+
+            item["description"],
+
+            str(
+                item["quantity"]
+            ),
+
+            f"₦{item['price']:,.2f}",
+
+            f"₦{
+                item['price']
+                *
+                item['quantity']
+            :,.2f}"
+
+        ])
+
+    table = Table(
+        rows,
+
+        colWidths=[
+            250,
+            60,
+            90,
+            100
+        ]
+    )
+
+    style = [
+
+        (
+            "BACKGROUND",
+            (0,0),
+            (-1,0),
+            PRIMARY
+        ),
+
+        (
+            "TEXTCOLOR",
+            (0,0),
+            (-1,0),
+            colors.white
+        ),
+
+        (
+            "LINEBELOW",
+            (0,1),
+            (-1,-1),
+            0.5,
+            BORDER
+        ),
+
+        (
+            "PADDING",
+            (0,0),
+            (-1,-1),
+            12
+        )
     ]
-    totals_table = Table(totals_data, colWidths=[350, 140], hAlign="RIGHT")
-    totals_table.setStyle(TableStyle([
-        ("ALIGN", (1,0), (-1,-1), "RIGHT"),
-        ("FONT", (0,0), (-1,-1), "Helvetica-Bold"),
-        ("LINEBEFORE", (1,0), (1,-1), 0.5, colors.grey),
-        ("LINEABOVE", (0,-1), (-1,-1), 1, colors.black),
-        ("TOPPADDING", (0,0), (-1,-1), 5),
-        ("BOTTOMPADDING", (0,0), (-1,-1), 5),
-        ("TEXTCOLOR", (1,4), (1,4), colors.red if balance > 0 else colors.green)  # Balance
-    ]))
-    elements.append(totals_table)
-    elements.append(Spacer(1, 20))
 
-    # ---------- Notes ----------
+    table.setStyle(
+        TableStyle(
+            style
+        )
+    )
+
+    elements.append(table)
+
+    elements.append(
+        Spacer(
+            1,
+            30
+        )
+    )
+
+    # --------------------
+    # Totals
+    # --------------------
+
+    totals = Table([
+
+        ["Subtotal", f"₦{subtotal:,.2f}"],
+        ["Tax", f"₦{tax:,.2f}"],
+        ["Total", f"₦{total:,.2f}"],
+        ["Paid", f"₦{amount_paid:,.2f}"],
+        ["Balance", f"₦{balance:,.2f}"]
+
+    ],
+
+    colWidths=[
+        120,
+        130
+    ],
+
+    hAlign="RIGHT"
+    )
+
+    totals.setStyle(
+        TableStyle([
+
+            (
+                "BACKGROUND",
+                (0,0),
+                (-1,-1),
+                LIGHT
+            ),
+
+            (
+                "PADDING",
+                (0,0),
+                (-1,-1),
+                12
+            ),
+
+            (
+                "TEXTCOLOR",
+                (1,4),
+                (1,4),
+
+                PAID
+                if balance <= 0
+                else UNPAID
+            )
+
+        ])
+    )
+
+    elements.append(totals)
+
+    elements.append(
+        Spacer(
+            1,
+            25
+        )
+    )
+
+    # --------------------
+    # Notes
+    # --------------------
+
     if notes:
-        elements.append(Paragraph(f"<b>Notes:</b><br/>{notes}", styles["Normal"]))
 
-    # ---------- Build PDF ----------
-    doc.build(elements)
+        elements.append(
+            Paragraph(
+                "<b>Notes</b>",
+                styles["Heading3"]
+            )
+        )
+
+        elements.append(
+            Paragraph(
+                notes,
+                styles["BodyText"]
+            )
+        )
+
+    elements.append(
+        Spacer(
+            1,
+            40
+        )
+    )
+
+    # --------------------
+    # Footer
+    # --------------------
+
+    elements.append(
+        Paragraph(
+            """
+            <font color="#9CA3AF">
+            Generated by BusinessEssentia
+            </font>
+            """,
+
+            styles["Normal"]
+        )
+    )
+
+    doc.build(
+        elements
+    )
+
     return file_path
 
 def send_basic_plan_invoice_email(
@@ -746,12 +1060,10 @@ def send_basic_plan_invoice_email(
         amount_paid, balance, notes
     )
 
-    app_logo = os.path.join("static", "media", "app logo.png")
-
     html_body = f"""
     <div style="font-family:Arial, sans-serif; max-width:650px; margin:auto; border:1px solid #e0e0e0; padding:20px; background:#fdfdfd;">
         <div style="text-align:center; margin-bottom:20px;">
-            <img src='{app_logo}' alt='Business Essential' style='height:50px;'/>
+            <img src='{LOGO_PATH}' alt='Business Essential' style='height:50px;'/>
             <h2 style="color:#1558B0; margin:5px 0;">Invoice #{invoice_id}</h2>
         </div>
 
@@ -817,12 +1129,12 @@ def send_pro_plan_invoice_email(
         items, subtotal, tax, total,
         amount_paid, balance, notes
     )
-    app_logo = os.path.join("static", "media", "app logo.png")
+ 
 
     html_body = f"""
     <div style="font-family:'Segoe UI', Arial, sans-serif; max-width:700px; margin:auto; border:1px solid #e0e0e0; padding:25px; background:#fff;">
         <div style="text-align:center; margin-bottom:25px;">
-            <img src='{app_logo}' alt='Business Essential' style='height:60px;'/>
+            <img src='{LOGO_PATH}' alt='Business Essential' style='height:60px;'/>
             <h1 style="color:#1558B0; margin:5px 0;">Invoice #{invoice_id}</h1>
         </div>
 
@@ -1772,3 +2084,289 @@ def process_expired_subscriptions():
             "SUB EXPIRY ERROR:",
             e
         )
+
+def process_invoice_due_notifications():
+
+    now = datetime.utcnow()
+
+    with db_cursor(
+        dictionary=True
+    ) as (conn, cursor):
+
+        cursor.execute("""
+        SELECT
+
+            i.id,
+            i.invoice_number,
+            i.due_date,
+            i.total,
+            i.status,
+
+            u.user_id,
+            u.email user_email,
+            u.plan,
+
+            c.client_name,
+            c.client_email
+
+        FROM invoices i
+
+        JOIN user_base u
+            ON u.user_id=i.user_id
+
+        LEFT JOIN clients c
+            ON c.id=i.client_id
+
+        WHERE
+            i.status
+            IN (
+                'pending',
+                'unpaid'
+            )
+        """)
+
+        invoices =
+        cursor.fetchall()
+
+        for inv in invoices:
+
+            days_left = (
+                inv["due_date"]
+                -
+                now
+            ).days
+
+            notification = None
+
+            if days_left == 3:
+                notification = "due_3"
+
+            elif days_left == 1:
+                notification = "due_1"
+
+            elif days_left < 0:
+                notification = "overdue"
+
+            if not notification:
+                continue
+
+
+            recipients = [
+                (
+                    "user",
+                    inv[
+                        "user_email"
+                    ]
+                )
+            ]
+
+
+            if (
+                inv["plan"]
+                .lower()
+                !=
+                "basic"
+            ):
+
+                if (
+                    inv[
+                        "client_email"
+                    ]
+                ):
+
+                    recipients.append(
+                        (
+                            "client",
+
+                            inv[
+                                "client_email"
+                            ]
+                        )
+                    )
+
+
+            for role,email in recipients:
+
+                cursor.execute("""
+                SELECT id
+
+                FROM invoice_notifications
+
+                WHERE
+                invoice_id=%s
+
+                AND notification_type=%s
+
+                AND recipient=%s
+                """,
+
+                (
+                    inv["id"],
+                    notification,
+                    role
+                ))
+
+                if cursor.fetchone():
+                    continue
+
+
+                subject = (
+                    f"Invoice {inv['invoice_number']} Reminder"
+                )
+
+
+                html = (
+                    build_invoice_reminder_email(
+                        invoice=inv,
+                        days_left=days_left
+                    )
+                )
+
+
+                sent = send_email(
+                    recipient=email,
+                    subject=subject,
+                    body=html,
+                    html=True
+                )
+
+
+                if sent:
+
+                    cursor.execute("""
+                    INSERT INTO
+                    invoice_notifications(
+
+                        invoice_id,
+                        notification_type,
+                        recipient
+
+                    )
+
+                    VALUES(
+                        %s,
+                        %s,
+                        %s
+                    )
+                    """,
+
+                    (
+                        inv["id"],
+                        notification,
+                        role
+                    ))
+
+        conn.commit()
+
+def build_invoice_reminder_email(
+    invoice,
+    days_left
+):
+
+    title = (
+        "Invoice Overdue"
+        if days_left < 0
+        else
+        "Upcoming Invoice Due"
+    )
+
+    color = (
+        "#DC2626"
+        if days_left < 0
+        else
+        "#1558B0"
+    )
+
+    text = (
+
+        "This invoice is overdue."
+
+        if days_left < 0
+
+        else
+
+        f"This invoice becomes due in {days_left} day(s)."
+    )
+
+    return f"""
+<html>
+
+<body
+style="
+font-family:Arial;
+background:#f5f7fa;
+padding:30px;
+">
+
+<div
+style="
+background:white;
+max-width:650px;
+margin:auto;
+padding:40px;
+border-radius:14px;
+">
+
+<img
+src="{APP_LOGO}"
+width="140"
+/>
+
+<h2
+style="
+color:{color};
+">
+
+{title}
+
+</h2>
+
+<p>
+
+Hello,
+
+{text}
+
+</p>
+
+<div
+style="
+background:#f9fafb;
+padding:18px;
+border-radius:10px;
+">
+
+<b>Invoice:</b>
+{invoice["invoice_number"]}
+
+<br><br>
+
+<b>Client:</b>
+{invoice["client_name"]}
+
+<br><br>
+
+<b>Amount:</b>
+
+₦{invoice["total"]:,.2f}
+
+<br><br>
+
+<b>Due Date:</b>
+
+{invoice["due_date"]}
+
+</div>
+
+<p>
+
+Please take action to avoid payment delays.
+
+</p>
+
+</div>
+
+</body>
+
+</html>
+"""
