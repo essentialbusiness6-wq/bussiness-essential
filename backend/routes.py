@@ -274,7 +274,7 @@ def create_subaccount(
         percentage_charge = float(
             body.get(
                 "percentage_charge",
-                0
+                5
             )
         )
 
