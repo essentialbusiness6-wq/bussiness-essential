@@ -44,8 +44,7 @@ db_pool = MySQLConnectionPool(
     database = os.getenv("DB"),
     port= os.getenv("DBPORT"),
     autocommit=False,
-    connection_timeout=20,
-    pool_timeout=15
+    connection_timeout=20
 )
 
 
@@ -55,11 +54,20 @@ def get_db():
         db_pool.get_connection()
     )
 
-    conn.ping(
-        reconnect=True,
-        attempts=3,
-        delay=2
-    )
+    try:
+
+        conn.ping(
+            reconnect=True,
+            attempts=3,
+            delay=2
+        )
+
+    except Exception:
+
+        conn.reconnect(
+            attempts=3,
+            delay=2
+        )
 
     return conn
 
