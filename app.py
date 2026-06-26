@@ -1,5 +1,6 @@
 import traceback
 import hmac
+import html
 from flask import (
     Flask, json, request, jsonify, make_response, render_template,session,redirect, Blueprint,send_from_directory
 )
@@ -6292,6 +6293,222 @@ def payment_success():
         plan= sub['plan'],
         amount = sub['amount']
     )
+
+@app.route("/contact-business", methods=["POST"])
+def send_contact_email():
+
+    try:
+
+        data = request.get_json()
+
+        if not data:
+            return jsonify({
+                "status": "error",
+                "message": "Invalid JSON"
+            }), 400
+
+
+        required = [
+            "fullName",
+            "email",
+            "subject",
+            "message"
+        ]
+
+        for field in required:
+            if not str(
+                data.get(field, "")
+            ).strip():
+
+                return jsonify({
+                    "status": "error",
+                    "message":
+                    f"{field} is required"
+                }), 400
+
+
+        name = html.escape(
+            data["fullName"].strip()
+        )
+
+        email = html.escape(
+            data["email"].strip().lower()
+        )
+
+        subject = html.escape(
+            data["subject"].strip()
+        )
+
+        message = html.escape(
+            data["message"].strip()
+        )
+
+
+        html_body = f"""
+        <div style="
+            font-family:Arial;
+            max-width:650px;
+            margin:auto;
+            background:#fff;
+            border-radius:14px;
+            overflow:hidden;
+            border:1px solid #eee;
+        ">
+
+            <div style="
+                background:#0f172a;
+                color:white;
+                padding:25px;
+            ">
+
+                <img
+                    src="{APP_LOGO}"
+                    width="120"
+                >
+
+                <h2>
+                    New Contact Request
+                </h2>
+
+            </div>
+
+            <div style="
+                padding:30px;
+            ">
+
+                <p>
+                    Someone contacted
+                    BusinessEssentia.
+                </p>
+
+                <hr>
+
+                <p>
+                    <strong>Name:</strong>
+                    {name}
+                </p>
+
+                <p>
+                    <strong>Email:</strong>
+                    {email}
+                </p>
+
+                <p>
+                    <strong>Subject:</strong>
+                    {subject}
+                </p>
+
+                <p>
+                    <strong>Date:</strong>
+                    {datetime.utcnow()}
+                </p>
+
+                <div style="
+                    background:#f8fafc;
+                    padding:20px;
+                    border-radius:10px;
+                ">
+                    {message}
+                </div>
+
+            </div>
+
+        </div>
+        """
+
+
+        success = send_email(
+            recipient="support@businessessentia.net",
+            subject=f"[CONTACT] {subject}",
+            body=html_body,
+            html=True
+        )
+
+        if not success:
+
+            return jsonify({
+                "status": "error",
+                "message":
+                "Unable to send message"
+            }), 500
+
+
+        # auto reply
+
+        auto_reply = f"""
+        <div style="
+            font-family:Arial;
+            max-width:600px;
+            margin:auto;
+        ">
+
+            <img
+                src="{APP_LOGO}"
+                width="120"
+            >
+
+            <h2>
+                We received your message
+            </h2>
+
+            <p>
+                Hi {name},
+            </p>
+
+            <p>
+                Thanks for contacting
+                BusinessEssentia.
+            </p>
+
+            <p>
+                Our team will respond
+                shortly.
+            </p>
+
+            <br>
+
+            <p>
+                Subject:
+                <strong>
+                    {subject}
+                </strong>
+            </p>
+
+            <hr>
+
+            <small>
+                © BusinessEssentia
+            </small>
+
+        </div>
+        """
+
+        send_email(
+            recipient=email,
+            subject="We received your message",
+            body=auto_reply,
+            html=True
+        )
+
+
+        return jsonify({
+            "status": "success",
+            "message":
+            "Message sent successfully"
+        }), 200
+
+
+    except Exception as e:
+
+        traceback.print_exc()
+
+        return jsonify({
+            "status": "error",
+            "message":
+            "Internal server error",
+            "details":
+            str(e)
+        }), 500
         
 if __name__ == "__main__":
 
