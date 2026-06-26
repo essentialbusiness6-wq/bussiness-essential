@@ -547,52 +547,36 @@ body {
 
 /* ================= ACCOUNT DETAILS MODAL ================= */
 .account-modal-overlay {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    background: rgba(0, 0, 0, 0.6) !important;
-    backdrop-filter: blur(8px) !important;
-    -webkit-backdrop-filter: blur(8px) !important;
-    z-index: 999999 !important;
-    
-    /* Hidden state */
-    display: none !important;
-    opacity: 0 !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
-    transform: none !important;
-    
-    /* Centering */
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 20px !important;
-    margin: 0 !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 99999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
 }
 
-/* VISIBLE STATE */
 .account-modal-overlay.active {
-    display: flex !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-    pointer-events: auto !important;
+    display: flex;
 }
 
 .account-modal-card {
-    max-width: 480px !important;
-    width: 100% !important;
-    padding: 32px 28px !important;
-    text-align: center !important;
-    background: var(--bg-card, #ffffff) !important;
-    border-radius: 16px !important;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
-    border: 1px solid var(--border-color, #e2e8f0) !important;
-    position: relative !important;
-    z-index: 1000000 !important;
+    max-width: 480px;
+    width: 100%;
+    padding: 32px 28px;
+    text-align: center;
+    background: var(--bg-card);
+    border-radius: var(--radius-xl);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--border-color);
 }
 
-/* (Keep the rest of your modal styling for icons, steps, buttons below) */
 .account-modal-icon {
     width: 72px;
     height: 72px;
@@ -604,26 +588,31 @@ body {
     justify-content: center;
 }
 
+.dark .account-modal-icon {
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.2) 0%, rgba(56, 189, 248, 0.2) 100%);
+}
+
 .account-modal-icon svg {
     width: 32px;
     height: 32px;
-    color: var(--primary, #4361ee);
+    color: var(--primary);
 }
 
 .account-modal-card h2 {
     font-size: 1.4rem;
     font-weight: 700;
     margin-bottom: 8px;
-    color: var(--dark, #0f172a);
+    color: var(--dark);
 }
 
 .account-modal-text {
-    color: var(--gray, #64748b);
+    color: var(--gray);
     font-size: 0.95rem;
     line-height: 1.5;
     margin-bottom: 24px;
 }
 
+/* Steps */
 .account-modal-steps {
     display: flex;
     flex-direction: column;
@@ -637,16 +626,16 @@ body {
     align-items: center;
     gap: 12px;
     padding: 12px;
-    background: var(--bg-input, #f8fafc);
-    border-radius: 12px;
-    border: 1px solid var(--border-color, #e2e8f0);
+    background: var(--bg-input);
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
 }
 
 .account-step-icon {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: var(--gradient-bg, linear-gradient(135deg, #6a11cb 0%, #2575fc 100%));
+    background: var(--gradient-bg);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -659,18 +648,24 @@ body {
     color: white;
 }
 
+.account-step-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
 .account-step-text strong {
     font-size: 0.9rem;
     font-weight: 600;
-    color: var(--dark, #0f172a);
-    display: block;
+    color: var(--dark);
 }
 
 .account-step-text span {
     font-size: 0.8rem;
-    color: var(--gray, #64748b);
+    color: var(--gray);
 }
 
+/* Actions */
 .account-modal-actions {
     display: flex;
     flex-direction: column;
@@ -680,7 +675,8 @@ body {
 
 .account-modal-btn {
     padding: 14px 20px;
-    border-radius: 12px;
+    border-radius: var(--radius);
+    font-family: 'Inter', sans-serif;
     font-weight: 600;
     font-size: 0.95rem;
     cursor: pointer;
@@ -695,28 +691,66 @@ body {
 }
 
 .account-modal-btn.primary {
-    background: var(--gradient-bg, linear-gradient(135deg, #6a11cb 0%, #2575fc 100%));
+    background: var(--gradient-bg);
     color: white;
     box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
 }
 
-.account-modal-btn.secondary {
-    background: transparent;
-    color: var(--gray, #64748b);
-    border: 1px solid var(--border-color, #e2e8f0);
+.account-modal-btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(67, 97, 238, 0.45);
 }
 
+.account-modal-btn.secondary {
+    background: transparent;
+    color: var(--gray);
+    border: 1px solid var(--border-color);
+}
+
+.account-modal-btn.secondary:hover {
+    background: var(--bg-input);
+    color: var(--dark);
+}
+
+.account-modal-btn svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+}
+
+/* Security Note */
 .account-modal-secure {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
     font-size: 0.8rem;
-    color: var(--gray, #64748b);
+    color: var(--gray);
 }
 
 .account-modal-secure svg {
     width: 14px;
     height: 14px;
-    color: var(--success, #2ecc71);
+    color: var(--success);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .account-modal-overlay {
+        padding: 16px;
+    }
+    
+    .account-modal-card {
+        padding: 24px 20px;
+    }
+    
+    .account-modal-card h2 {
+        font-size: 1.2rem;
+    }
+    
+    .account-modal-text {
+        font-size: 0.9rem;
+    }
 }
