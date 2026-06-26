@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 
-from backend.services import PaystackService
+from backend.service import PaystackService
 
 bp = Blueprint("paystack", __name__)
 
