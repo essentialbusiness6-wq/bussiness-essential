@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify, request
+from backend.utils import token_required
 import requests
 import os
 from requests.adapters import HTTPAdapter
@@ -236,4 +237,401 @@ def resolve_account():
             "success": False,
             "message":
             str(e)
+        }), 500
+
+@bp.post("/create-subaccount")
+@token_required
+def create_subaccount(
+    current_user_id,
+    current_user_role
+):
+
+    try:
+
+        body = (
+            request.get_json()
+            or {}
+        )
+
+        account_number = (
+            str(
+                body.get(
+                    "account_number",
+                    ""
+                )
+            )
+            .strip()
+        )
+
+        bank_code = (
+            body.get(
+                "bank_code",
+                ""
+            )
+            .strip()
+        )
+
+        percentage_charge = float(
+            body.get(
+                "percentage_charge",
+                0
+            )
+        )
+
+        business_name = (
+            body.get(
+                "business_name"
+            )
+        )
+
+        if (
+            len(account_number)
+            != 10
+        ):
+
+            return jsonify({
+                "success": False,
+                "message":
+                "Invalid account number"
+            }), 400
+
+
+        if not bank_code:
+
+            return jsonify({
+                "success": False,
+                "message":
+                "Bank code required"
+            }), 400
+
+
+        with db_cursor(
+            dictionary=True
+        ) as (
+            conn,
+            cursor
+        ):
+
+            if not business_name:
+
+                cursor.execute(
+                    """
+                    SELECT
+                        business_name
+                    FROM users
+                    WHERE id=%s
+                    LIMIT 1
+                    """,
+                    (
+                        current_user_id,
+                    )
+                )
+
+                user = (
+                    cursor.fetchone()
+                )
+
+                business_name = (
+                    user[
+                        "business_name"
+                    ]
+                    if user
+                    else "Business"
+                )
+
+
+        session = requests.Session()
+
+        headers = {
+
+            "Authorization":
+            f"Bearer {os.getenv('PAYSTACK_SECRET_KEY')}",
+
+            "Content-Type":
+            "application/json"
+        }
+
+        # ------------------
+        # Resolve account
+        # ------------------
+
+        verify = session.get(
+
+            "https://api.paystack.co/bank/resolve",
+
+            headers=headers,
+
+            params={
+
+                "account_number":
+                account_number,
+
+                "bank_code":
+                bank_code
+            },
+
+            timeout=20
+        )
+
+        verify.raise_for_status()
+
+        verified = (
+            verify.json()
+        )
+
+        if not verified.get(
+            "status"
+        ):
+
+            return jsonify({
+
+                "success": False,
+
+                "message":
+                verified.get(
+                    "message"
+                )
+            }), 400
+
+
+        account = (
+            verified[
+                "data"
+            ]
+        )
+
+        account_name = (
+            account[
+                "account_name"
+            ]
+        )
+
+        bank_name = (
+            account[
+                "bank_name"
+            ]
+        )
+
+        # ------------------
+        # Create subaccount
+        # ------------------
+
+        create = session.post(
+
+            "https://api.paystack.co/subaccount",
+
+            headers=headers,
+
+            json={
+
+                "business_name":
+                business_name,
+
+                "settlement_bank":
+                bank_code,
+
+                "account_number":
+                account_number,
+
+                "percentage_charge":
+                percentage_charge
+            },
+
+            timeout=20
+        )
+
+        create.raise_for_status()
+
+        sub = (
+            create.json()
+        )
+
+        if not sub.get(
+            "status"
+        ):
+
+            return jsonify({
+
+                "success": False,
+
+                "message":
+                sub.get(
+                    "message"
+                )
+            }), 400
+
+
+        sub_data = (
+            sub[
+                "data"
+            ]
+        )
+
+        # ------------------
+        # Save
+        # ------------------
+
+        with db_cursor() as (
+            conn,
+            cursor
+        ):
+
+            cursor.execute(
+                """
+                INSERT INTO
+                payment_subaccounts (
+
+                    user_id,
+
+                    business_name,
+
+                    account_name,
+
+                    account_number,
+
+                    bank_code,
+
+                    bank_name,
+
+                    subaccount_code,
+
+                    paystack_subaccount_id,
+
+                    percentage_charge,
+
+                    settlement_bank
+
+                )
+
+                VALUES (
+
+                    %s,
+                    %s,
+                    %s,
+                    %s,
+                    %s,
+                    %s,
+                    %s,
+                    %s,
+                    %s,
+                    %s
+
+                )
+
+                ON DUPLICATE KEY UPDATE
+
+                    business_name=
+                    VALUES(
+                        business_name
+                    ),
+
+                    account_name=
+                    VALUES(
+                        account_name
+                    ),
+
+                    account_number=
+                    VALUES(
+                        account_number
+                    ),
+
+                    bank_code=
+                    VALUES(
+                        bank_code
+                    ),
+
+                    bank_name=
+                    VALUES(
+                        bank_name
+                    ),
+
+                    subaccount_code=
+                    VALUES(
+                        subaccount_code
+                    ),
+
+                    paystack_subaccount_id=
+                    VALUES(
+                        paystack_subaccount_id
+                    ),
+
+                    percentage_charge=
+                    VALUES(
+                        percentage_charge
+                    ),
+
+                    settlement_bank=
+                    VALUES(
+                        settlement_bank
+                    ),
+
+                    active=TRUE
+                """,
+
+                (
+
+                    current_user_id,
+
+                    business_name,
+
+                    account_name,
+
+                    account_number,
+
+                    bank_code,
+
+                    bank_name,
+
+                    sub_data[
+                        "subaccount_code"
+                    ],
+
+                    sub_data[
+                        "id"
+                    ],
+
+                    percentage_charge,
+
+                    bank_name
+                )
+            )
+
+            conn.commit()
+
+        return jsonify({
+
+            "success": True,
+
+            "message":
+            "Subaccount created",
+
+            "data": {
+
+                "account_name":
+                account_name,
+
+                "bank_name":
+                bank_name,
+
+                "subaccount_code":
+                sub_data[
+                    "subaccount_code"
+                ]
+            }
+
+        })
+
+    except Exception as e:
+
+        current_app.logger.exception(
+            e
+        )
+
+        return jsonify({
+
+            "success": False,
+
+            "message":
+            str(e)
+
         }), 500
