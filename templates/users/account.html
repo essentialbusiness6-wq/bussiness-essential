@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Account Details - Business Essential</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/media/app logo.png"/>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --accent: #4895ef;
+            --success: #2ecc71;
+            --success-dark: #27ae60;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --gray: #64748b;
+            --medium-gray: #94a3b8;
+            --light-gray: #cbd5e1;
+            --danger: #e74c3c;
+            --warning: #f39c12;
+            --info: #3498db;
+            --bg-card: #ffffff;
+            --bg-input: #f8fafc;
+            --border-color: #e2e8f0;
+            --gradient-bg: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            --gradient-success: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
+            --transition-fast: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+            --transition: all 0.35s cubic-bezier(0.165, 0.84, 0.44, 1);
+            --radius-sm: 8px;
+            --radius: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            --radius-full: 9999px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root:not(.light) {
+                --dark: #f8fafc;
+                --light: #0f172a;
+                --gray: #94a3b8;
+                --medium-gray: #cbd5e1;
+                --light-gray: #64748b;
+                --bg-card: #1e293b;
+                --bg-input: #0f172a;
+                --border-color: #334155;
+                --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+                --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+                --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.5);
+            }
+        }
+
+        .dark {
+            --dark: #f8fafc;
+            --light: #0f172a;
+            --gray: #94a3b8;
+            --medium-gray: #cbd5e1;
+            --light-gray: #64748b;
+            --bg-card: #1e293b;
+            --bg-input: #0f172a;
+            --border-color: #334155;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--light);
+            color: var(--dark);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+            transition: background 0.4s ease, color 0.4s ease;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 20%, rgba(67, 97, 238, 0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 80%, rgba(46, 204, 113, 0.05) 0%, transparent 50%);
+            z-index: -1;
+            animation: rotate 35s linear infinite;
+            pointer-events: none;
+        }
+
+        .dark body::before {
+            background: radial-gradient(circle at 30% 20%, rgba(96, 165, 250, 0.06) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 80%, rgba(52, 211, 153, 0.04) 0%, transparent 50%);
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(67, 97, 238, 0.08);
+            animation: float 15s infinite linear;
+        }
+
+        .dark .particle {
+            background: rgba(96, 165, 250, 0.1);
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0) translateX(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100px) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* Main Container */
+        .container {
+            width: 100%;
+            max-width: 580px;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Page Header */
+        .page-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .page-icon {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 20px;
+            background: var(--gradient-bg);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 25px rgba(67, 97, 238, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        .dark .page-icon {
+            box-shadow: 0 8px 25px rgba(96, 165, 250, 0.3);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .page-icon svg {
+            width: 36px;
+            height: 36px;
+            fill: none;
+            stroke: white;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .page-header h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: var(--dark);
+        }
+
+        .page-header p {
+            color: var(--gray);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* Main Card */
+        .main-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 32px;
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+            transition: background 0.4s ease, border-color 0.4s ease;
+        }
+
+        .main-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-bg);
+        }
+
+        /* Form Sections */
+        .form-section {
+            margin-bottom: 24px;
+        }
+
+        .form-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+
+        .section-title svg {
+            width: 16px;
+            height: 16px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+        }
+
+        /* Form Groups */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-group label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+
+        .form-group label svg {
+            width: 14px;
+            height: 14px;
+            fill: none;
+            stroke: var(--primary);
+            stroke-width: 2;
+        }
+
+        .required {
+            color: var(--danger);
+        }
+
+        /* Input Wrapper */
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            width: 18px;
+            height: 18px;
+            color: var(--medium-gray);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .input-icon svg {
+            width: 100%;
+            height: 100%;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 14px 12px 42px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+            background: var(--bg-input);
+            font-family: inherit;
+            font-size: 0.95rem;
+            color: var(--dark);
+            transition: var(--transition-fast);
+            outline: none;
+        }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 40px;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+            background: var(--bg-card);
+        }
+
+        .dark input:focus, .dark select:focus {
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.15);
+        }
+
+        input::placeholder {
+            color: var(--medium-gray);
+        }
+
+        /* Account Number Input */
+        .account-input-wrapper {
+            position: relative;
+        }
+
+        .account-input-wrapper input {
+            padding-right: 100px;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+
+        .verify-btn {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: var(--transition-fast);
+            font-family: inherit;
+        }
+
+        .verify-btn:hover:not(:disabled) {
+            background: var(--secondary);
+            transform: translateY(-50%) scale(1.02);
+        }
+
+        .verify-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .verify-btn svg {
+            width: 12px;
+            height: 12px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+        }
+
+        .verify-btn.loading svg {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Account Name Display */
+        .account-name-display {
+            margin-top: 12px;
+            padding: 14px 16px;
+            background: rgba(46, 204, 113, 0.08);
+            border: 1px solid rgba(46, 204, 113, 0.2);
+            border-radius: var(--radius);
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .dark .account-name-display {
+            background: rgba(52, 211, 153, 0.08);
+            border-color: rgba(52, 211, 153, 0.2);
+        }
+
+        .account-name-display.active {
+            display: block;
+        }
+
+        .account-name-display.error {
+            background: rgba(231, 76, 60, 0.08);
+            border-color: rgba(231, 76, 60, 0.2);
+        }
+
+        .dark .account-name-display.error {
+            background: rgba(248, 113, 113, 0.08);
+            border-color: rgba(248, 113, 113, 0.2);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-4px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .account-name-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--success-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .account-name-display.error .account-name-label {
+            color: var(--danger);
+        }
+
+        .account-name-label svg {
+            width: 14px;
+            height: 14px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+        }
+
+        .account-name-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--dark);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .account-name-display.error .account-name-value {
+            color: var(--danger);
+            font-size: 0.9rem;
+            text-transform: none;
+        }
+
+        /* Divider */
+        .divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 24px 0;
+        }
+
+        /* Action Buttons */
+        .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: var(--radius);
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            flex: 1;
+            min-width: 140px;
+        }
+
+        .btn svg {
+            width: 16px;
+            height: 16px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+        }
+
+        .btn-primary {
+            background: var(--gradient-bg);
+            color: white;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+        }
+
+        .dark .btn-primary {
+            box-shadow: 0 4px 15px rgba(96, 165, 250, 0.3);
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.7s;
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(67, 97, 238, 0.45);
+        }
+
+        .dark .btn-primary:hover:not(:disabled) {
+            box-shadow: 0 6px 20px rgba(96, 165, 250, 0.45);
+        }
+
+        .btn-secondary {
+            background: var(--bg-input);
+            color: var(--dark);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-card);
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn.loading .btn-text {
+            opacity: 0;
+        }
+
+        .btn.loading .btn-loader {
+            display: flex;
+        }
+
+        .btn-loader {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        /* Info Banner */
+        .info-banner {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px 16px;
+            background: rgba(67, 97, 238, 0.05);
+            border: 1px solid rgba(67, 97, 238, 0.15);
+            border-radius: var(--radius);
+            margin-bottom: 24px;
+        }
+
+        .dark .info-banner {
+            background: rgba(96, 165, 250, 0.08);
+            border-color: rgba(96, 165, 250, 0.2);
+        }
+
+        .info-banner svg {
+            width: 18px;
+            height: 18px;
+            fill: none;
+            stroke: var(--primary);
+            stroke-width: 2;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .info-banner-content {
+            flex: 1;
+        }
+
+        .info-banner-content strong {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--dark);
+            margin-bottom: 2px;
+        }
+
+        .info-banner-content p {
+            font-size: 0.8rem;
+            color: var(--gray);
+            line-height: 1.5;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: var(--bg-card);
+            color: var(--dark);
+            padding: 14px 20px;
+            border-radius: var(--radius);
+            font-size: 0.9rem;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
+            pointer-events: auto;
+            max-width: 320px;
+        }
+
+        .toast.success {
+            background: var(--success);
+            color: white;
+            border-color: transparent;
+        }
+
+        .toast.error {
+            background: var(--danger);
+            color: white;
+            border-color: transparent;
+        }
+
+        .toast.warning {
+            background: var(--warning);
+            color: white;
+            border-color: transparent;
+        }
+
+        .toast svg {
+            width: 18px;
+            height: 18px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            flex-shrink: 0;
+        }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes toastOut {
+            from { opacity: 1; }
+            to { opacity: 0; transform: translateY(-10px); }
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            body {
+                padding: 16px;
+                align-items: flex-start;
+                padding-top: 24px;
+            }
+
+            .page-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .main-card {
+                padding: 24px 20px;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .account-input-wrapper input {
+                padding-right: 90px;
+                font-size: 0.9rem;
+            }
+
+            .verify-btn {
+                padding: 6px 10px;
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="particles" id="particles"></div>
+
+<div class="container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-icon">
+            <svg viewBox="0 0 24 24">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                <line x1="1" y1="10" x2="23" y2="10"></line>
+            </svg>
+        </div>
+        <h1>Update Account Details</h1>
+        <p>Add your bank account information to receive payments securely</p>
+    </div>
+
+    <!-- Main Card -->
+    <div class="main-card">
+        <!-- Info Banner -->
+        <div class="info-banner">
+            <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            <div class="info-banner-content">
+                <strong>Secure Payment Setup</strong>
+                <p>Your bank details are encrypted and securely stored. We'll verify your account before saving.</p>
+            </div>
+        </div>
+
+        <form id="accountForm">
+            <!-- Bank Details Section -->
+            <div class="form-section">
+                <div class="section-title">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"></path>
+                    </svg>
+                    Bank Information
+                </div>
+
+                <!-- Bank Name -->
+                <div class="form-group">
+                    <label for="bankName">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11"></path>
+                        </svg>
+                        Bank Name <span class="required">*</span>
+                    </label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11"></path>
+                            </svg>
+                        </span>
+                        <select id="bankName" required>
+                            <option value="" disabled selected>Select your bank</option>
+                            <option value="044">Access Bank</option>
+                            <option value="023">Citibank Nigeria</option>
+                            <option value="063">Diamond Bank</option>
+                            <option value="050">Ecobank Nigeria</option>
+                            <option value="070">Fidelity Bank</option>
+                            <option value="011">First Bank of Nigeria</option>
+                            <option value="214">First City Monument Bank</option>
+                            <option value="047">Globus Bank</option>
+                            <option value="058">Guaranty Trust Bank</option>
+                            <option value="030">Heritage Bank</option>
+                            <option value="301">Jaiz Bank</option>
+                            <option value="082">Keystone Bank</option>
+                            <option value="221">Providus Bank</option>
+                            <option value="232">Sparkle Bank</option>
+                            <option value="068">Standard Chartered Bank</option>
+                            <option value="100">Sterling Bank</option>
+                            <option value="101">Taj Bank</option>
+                            <option value="032">Titan Trust Bank</option>
+                            <option value="033">Union Bank of Nigeria</option>
+                            <option value="035">United Bank for Africa</option>
+                            <option value="036">Unity Bank</option>
+                            <option value="120">Wema Bank</option>
+                            <option value="057">Zenith Bank</option>
+                            <option value="custom">Other (Custom Bank)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Custom Bank Name (hidden by default) -->
+                <div class="form-group" id="customBankGroup" style="display: none;">
+                    <label for="customBankName">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                        Bank Name <span class="required">*</span>
+                    </label>
+                    <div class="input-wrapper">
+                        <span class="input-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11"></path>
+                            </svg>
+                        </span>
+                        <input type="text" id="customBankName" placeholder="Enter bank name">
+                    </div>
+                </div>
+
+                <!-- Account Number -->
+                <div class="form-group">
+                    <label for="accountNumber">
+                        <svg viewBox="0 0 24 24">
+                            <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                            <line x1="2" y1="10" x2="22" y2="10"></line>
+                        </svg>
+                        Account Number <span class="required">*</span>
+                    </label>
+                    <div class="input-wrapper account-input-wrapper">
+                        <span class="input-icon">
+                            <svg viewBox="0 0 24 24">
+                                <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                                <line x1="2" y1="10" x2="22" y2="10"></line>
+                            </svg>
+                        </span>
+                        <input type="text" id="accountNumber" placeholder="Enter 10-digit account number" maxlength="10" inputmode="numeric" required>
+                        <button type="button" class="verify-btn" id="verifyBtn" disabled>
+                            <svg viewBox="0 0 24 24">
+                                <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+                                <polyline points="21 3 21 9 15 9"></polyline>
+                            </svg>
+                            <span>Verify</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Account Name Display (read-only, shown after verification) -->
+                <div class="account-name-display" id="accountNameDisplay">
+                    <div class="account-name-label">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                        <span id="accountNameLabelText">Verified Account Name</span>
+                    </div>
+                    <div class="account-name-value" id="accountNameValue">-</div>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Action Buttons -->
+            <div class="actions">
+                <a href="/billing" class="btn btn-secondary">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M19 12H5"></path>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    <span>Cancel</span>
+                </a>
+                <button type="submit" class="btn btn-primary" id="saveBtn" disabled>
+                    <span class="btn-text">Save Account Details</span>
+                    <span class="btn-loader"><span class="spinner"></span></span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="/static/js/account.js" ></script>
+
+</body>
+</html>
