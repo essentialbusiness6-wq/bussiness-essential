@@ -11,6 +11,7 @@ import time
 import flask_profiler
 from apscheduler.schedulers.background import BackgroundScheduler
 from backend.extentions import socketio, cache
+from backend.routes import bp as paystack_bp
 from backend.socket_events import register_socket_events
 from werkzeug import Client
 from backend.utils import (
@@ -65,6 +66,7 @@ print("STEP 1")
 app = Flask(__name__)
 app.register_blueprint(admin_bp)
 app.secret_key = os.getenv("SECRET_KEY")
+app.register_blueprint(paystack_bp, url_prefix="/api/paystack")
 
 print("STEP 2")
 CORS(app, supports_credentials=True)
