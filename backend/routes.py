@@ -1,6 +1,10 @@
 from flask import Blueprint, jsonify, request
 import requests
 import os
+from requests.adapters import HTTPAdapter
+from urllib3.poolmanager import PoolManager
+import ssl
+
 
 from backend.service import PaystackService
 
@@ -9,10 +13,39 @@ bp = Blueprint("paystack", __name__)
 paystack = PaystackService()
 
 
+class TLSAdapter(HTTPAdapter):
+
+    def init_poolmanager(
+        self,
+        connections,
+        maxsize,
+        block=False,
+        **pool_kwargs
+    ):
+
+        ctx = ssl.create_default_context()
+
+        ctx.minimum_version = ssl.TLSVersion.TLSv1_2
+
+        self.poolmanager = PoolManager(
+            num_pools=connections,
+            maxsize=maxsize,
+            block=block,
+            ssl_context=ctx
+        )
+
+
 @bp.route("/test-paystack")
 def test_paystack():
+    session = requests.Session()
 
-    response = requests.get(
+    session.mount(
+                    "https://",
+                    TLSAdapter()
+        )
+
+
+    response = session.get(
         "https://api.paystack.co/bank",
         headers={
             "Authorization":
