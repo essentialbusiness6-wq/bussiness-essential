@@ -4,6 +4,9 @@ import os
 from requests.adapters import HTTPAdapter
 from urllib3.poolmanager import PoolManager
 import ssl
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 from backend.service import PaystackService
@@ -59,12 +62,78 @@ def test_paystack():
 @bp.get("/banks")
 def banks():
 
-    result = paystack.get_banks()
+    try:
+         session = requests.Session()
 
-    if not result["success"]:
-        return jsonify(result), 400
+        session.mount(
+                    "https://",
+                    TLSAdapter()
+        )
 
-    return jsonify(result)
+        response = session.get(
+            "https://api.paystack.co/bank",
+            headers={
+                "Authorization":
+                f"Bearer {os.getenv('PAYSTACK_SECRET_KEY')}"
+            },
+            params={
+                "country": "nigeria",
+                "perPage": 500
+            },
+            timeout=20
+        )
+
+        response.raise_for_status()
+
+        result = response.json()
+
+        if not result.get("status"):
+
+            return jsonify({
+                "success": False,
+                "message": result.get(
+                    "message",
+                    "Unable to fetch banks"
+                )
+            }), 400
+
+        banks = sorted(
+            result.get("data", []),
+            key=lambda x: x["name"]
+        )
+
+        return jsonify({
+            "success": True,
+            "data": banks
+        })
+
+    except requests.Timeout:
+
+        return jsonify({
+            "success": False,
+            "message":
+            "Request timed out"
+        }), 504
+
+    except requests.RequestException as e:
+
+        logger.exception(e)
+
+        return jsonify({
+            "success": False,
+            "message":
+            str(e)
+        }), 500
+
+    except Exception as e:
+
+        logger.exception(e)
+
+        return jsonify({
+            "success": False,
+            "message":
+            "Unexpected error"
+        }), 500
 
 
 @bp.post("/resolve-account")
