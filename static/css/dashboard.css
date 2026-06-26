@@ -547,265 +547,230 @@ body {
 
 /* ================= ACCOUNT DETAILS MODAL ================= */
 .account-modal-overlay {
-    position: fixed;
-    inset: 0;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100vw;
-    height: 100vh;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.55);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    z-index: 10001;
-    padding: 20px;
-    overflow-y: auto;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    display: none !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    z-index: 99999 !important;
+    padding: 20px !important;
+    margin: 0 !important;
+    overflow-y: auto !important;
 }
 
 .account-modal-overlay.active {
     display: flex !important;
-    opacity: 1;
 }
 
 .account-modal-card {
-    max-width: 480px;
-    width: 100%;
-    padding: 32px 28px;
-    text-align: center;
-    background: var(--bg-card);
-    border-radius: var(--radius-xl);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    position: relative;
-    margin: auto;
-    animation: modalSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes modalSlideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-20px) scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
+    max-width: 480px !important;
+    width: 100% !important;
+    padding: 32px 28px !important;
+    text-align: center !important;
+    background: var(--bg-card) !important;
+    border-radius: var(--radius-xl) !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+    position: relative !important;
+    margin: auto !important;
+    border: 1px solid var(--border-color) !important;
 }
 
 .account-modal-icon {
-    width: 72px;
-    height: 72px;
-    margin: 0 auto 20px;
-    background: linear-gradient(135deg, rgba(67, 97, 238, 0.15) 0%, rgba(72, 149, 239, 0.15) 100%);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: pulseIcon 2s ease-in-out infinite;
+    width: 72px !important;
+    height: 72px !important;
+    margin: 0 auto 20px !important;
+    background: linear-gradient(135deg, rgba(67, 97, 238, 0.15) 0%, rgba(72, 149, 239, 0.15) 100%) !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 .dark .account-modal-icon {
-    background: linear-gradient(135deg, rgba(96, 165, 250, 0.2) 0%, rgba(56, 189, 248, 0.2) 100%);
-}
-
-@keyframes pulseIcon {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.2) 0%, rgba(56, 189, 248, 0.2) 100%) !important;
 }
 
 .account-modal-icon svg {
-    width: 32px;
-    height: 32px;
-    color: var(--primary);
+    width: 32px !important;
+    height: 32px !important;
+    color: var(--primary) !important;
 }
 
 .account-modal-card h2 {
-    font-size: 1.4rem;
-    font-weight: 700;
-    margin-bottom: 8px;
-    color: var(--dark);
+    font-size: 1.4rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 8px !important;
+    color: var(--dark) !important;
 }
 
 .account-modal-text {
-    color: var(--gray);
-    font-size: 0.95rem;
-    line-height: 1.5;
-    margin-bottom: 24px;
+    color: var(--gray) !important;
+    font-size: 0.95rem !important;
+    line-height: 1.5 !important;
+    margin-bottom: 24px !important;
 }
 
 /* Steps */
 .account-modal-steps {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 24px;
-    text-align: left;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    margin-bottom: 24px !important;
+    text-align: left !important;
 }
 
 .account-step {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px;
-    background: var(--bg-input);
-    border-radius: var(--radius);
-    border: 1px solid var(--border-color);
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 12px !important;
+    background: var(--bg-input) !important;
+    border-radius: var(--radius) !important;
+    border: 1px solid var(--border-color) !important;
 }
 
 .account-step-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: var(--gradient-bg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 50% !important;
+    background: var(--gradient-bg) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
 }
 
 .account-step-icon svg {
-    width: 16px;
-    height: 16px;
-    color: white;
+    width: 16px !important;
+    height: 16px !important;
+    color: white !important;
 }
 
 .account-step-text {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
 }
 
 .account-step-text strong {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--dark);
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    color: var(--dark) !important;
 }
 
 .account-step-text span {
-    font-size: 0.8rem;
-    color: var(--gray);
+    font-size: 0.8rem !important;
+    color: var(--gray) !important;
 }
 
 /* Actions */
 .account-modal-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 16px;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    margin-bottom: 16px !important;
 }
 
 .account-modal-btn {
-    padding: 14px 20px;
-    border-radius: var(--radius);
-    font-family: 'Inter', sans-serif;
-    font-weight: 600;
-    font-size: 0.95rem;
-    cursor: pointer;
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: var(--transition);
-    text-decoration: none;
-    width: 100%;
+    padding: 14px 20px !important;
+    border-radius: var(--radius) !important;
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+    cursor: pointer !important;
+    border: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    transition: all 0.2s ease !important;
+    text-decoration: none !important;
+    width: 100% !important;
 }
 
 .account-modal-btn.primary {
-    background: var(--gradient-bg);
-    color: white;
-    box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+    background: var(--gradient-bg) !important;
+    color: white !important;
+    box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3) !important;
 }
 
 .account-modal-btn.primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(67, 97, 238, 0.45);
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(67, 97, 238, 0.45) !important;
 }
 
 .account-modal-btn.secondary {
-    background: transparent;
-    color: var(--gray);
-    border: 1px solid var(--border-color);
+    background: transparent !important;
+    color: var(--gray) !important;
+    border: 1px solid var(--border-color) !important;
 }
 
 .account-modal-btn.secondary:hover {
-    background: var(--bg-input);
-    color: var(--dark);
+    background: var(--bg-input) !important;
+    color: var(--dark) !important;
 }
 
 .account-modal-btn svg {
-    width: 16px;
-    height: 16px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2;
+    width: 16px !important;
+    height: 16px !important;
+    fill: none !important;
+    stroke: currentColor !important;
+    stroke-width: 2 !important;
 }
 
 /* Security Note */
 .account-modal-secure {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    font-size: 0.8rem;
-    color: var(--gray);
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    font-size: 0.8rem !important;
+    color: var(--gray) !important;
 }
 
 .account-modal-secure svg {
-    width: 14px;
-    height: 14px;
-    color: var(--success);
+    width: 14px !important;
+    height: 14px !important;
+    color: var(--success) !important;
 }
 
 /* Responsive */
 @media (max-width: 480px) {
     .account-modal-overlay {
-        padding: 16px;
-        align-items: flex-start;
-        padding-top: 40px;
+        padding: 16px !important;
     }
     
     .account-modal-card {
-        padding: 24px 20px;
-        margin: 0 auto;
+        padding: 24px 20px !important;
     }
     
     .account-modal-card h2 {
-        font-size: 1.2rem;
+        font-size: 1.2rem !important;
     }
     
     .account-modal-text {
-        font-size: 0.9rem;
+        font-size: 0.9rem !important;
     }
     
     .account-step {
-        padding: 10px;
+        padding: 10px !important;
     }
     
     .account-step-icon {
-        width: 32px;
-        height: 32px;
+        width: 32px !important;
+        height: 32px !important;
     }
     
     .account-step-icon svg {
-        width: 14px;
-        height: 14px;
-    }
-}
-
-@media (max-height: 700px) {
-    .account-modal-overlay {
-        align-items: flex-start;
-        padding-top: 20px;
-    }
-    
-    .account-modal-card {
-        max-height: calc(100vh - 40px);
-        overflow-y: auto;
+        width: 14px !important;
+        height: 14px !important;
     }
 }
