@@ -1,38 +1,10 @@
 import logging
 import os
 import requests
-from requests.adapters import HTTPAdapter
-from urllib3.poolmanager import PoolManager
-import ssl
+from typing import Dict
 
 
 logger = logging.getLogger(__name__)
-
-
-class TLSAdapter(HTTPAdapter):
-
-    def init_poolmanager(
-        self,
-        connections,
-        maxsize,
-        block=False,
-        **kwargs
-    ):
-
-        ctx = ssl.create_default_context()
-
-        ctx.check_hostname = True
-
-        ctx.minimum_version = (
-            ssl.TLSVersion.TLSv1_2
-        )
-
-        self.poolmanager = PoolManager(
-            num_pools=connections,
-            maxsize=maxsize,
-            block=block,
-            ssl_context=ctx
-        )
 
 
 class PaystackService:
@@ -45,11 +17,6 @@ class PaystackService:
 
         self.session = (
             requests.Session()
-        )
-
-        self.session.mount(
-            "https://",
-            TLSAdapter()
         )
 
         self.session.headers.update({
@@ -72,7 +39,7 @@ class PaystackService:
 
         try:
 
-            response = (
+            r = (
                 self.session.request(
 
                     method,
@@ -84,73 +51,71 @@ class PaystackService:
 
                     json=json,
 
-                    timeout=(
-                        10,
-                        30
-                    )
+                    timeout=20
                 )
             )
 
-            response.raise_for_status()
+            r.raise_for_status()
 
-            return response.json()
+            return r.json()
 
-        except Exception:
+        except Exception as e:
 
-            logger.exception(
-                "Paystack failed"
-            )
+            logger.exception(e)
 
-            raise
+            return {
 
-    # ---------------------------------------
+                "success":
+                False,
 
-    def get_banks(self, country: str = "nigeria") -> Dict:
+                "message":
+                str(e),
 
-        result = self._request(
+                "data":
+                None
+            }
+
+
+    def get_banks(
+        self,
+        country="nigeria"
+    ):
+
+        return self._request(
+
             "GET",
+
             "/bank",
+
             params={
-                "country": country,
-                "use_cursor": False,
-                "perPage": 500
+
+                "country":
+                country,
+
+                "perPage":
+                500
             }
         )
 
-        if not result["success"]:
-            return result
-
-        banks = sorted(
-            result["data"],
-            key=lambda x: x["name"]
-        )
-
-        return {
-            "success": True,
-            "message": "Banks fetched successfully.",
-            "data": banks
-        }
-
-    # ---------------------------------------
 
     def resolve_account(
         self,
-        account_number: str,
-        bank_code: str
-    ) -> Dict:
-
-        if len(account_number) != 10:
-            return {
-                "success": False,
-                "message": "Invalid account number.",
-                "data": None
-            }
+        account_number,
+        bank_code
+    ):
 
         return self._request(
+
             "GET",
+
             "/bank/resolve",
+
             params={
-                "account_number": account_number,
-                "bank_code": bank_code
+
+                "account_number":
+                account_number,
+
+                "bank_code":
+                bank_code
             }
         )
