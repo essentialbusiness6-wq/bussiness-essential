@@ -485,7 +485,7 @@ async function verifyAccount() {
         setTimeout(() => {
 
             window.location.href =
-            "/billing";
+            "/dashboard";
 
         }, 1200);
 
