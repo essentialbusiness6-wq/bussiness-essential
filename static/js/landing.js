@@ -110,21 +110,160 @@ mediaQuery.addEventListener("change", () => {
     }
 
     // Contact Form Submission
-    if(contactForm) {
-        contactForm.addEventListener('submit', (e) => {
+if (contactForm) {
+
+    contactForm.addEventListener(
+        "submit",
+        async (e) => {
+
             e.preventDefault();
-            const btn = document.getElementById('submitBtn');
-            const originalText = btn.textContent;
-            btn.disabled = true; btn.textContent = 'Sending...';
-            
-            // Simulate API call
-            setTimeout(() => {
-                btn.disabled = false; btn.textContent = originalText;
+
+            const btn =
+            document.getElementById(
+                "submitBtn"
+            );
+
+            const originalText =
+            btn.innerHTML;
+
+            try {
+
+                btn.disabled = true;
+
+                btn.innerHTML =
+                `
+                <span class="spinner"></span>
+                Sending...
+                `;
+
+                const payload = {
+
+                    fullName:
+                    document
+                    .getElementById(
+                        "name"
+                    )
+                    ?.value
+                    .trim(),
+
+                    email:
+                    document
+                    .getElementById(
+                        "email"
+                    )
+                    ?.value
+                    .trim(),
+
+                    subject:
+                    document
+                    .getElementById(
+                        "subject"
+                    )
+                    ?.value
+                    .trim(),
+
+                    message:
+                    document
+                    .getElementById(
+                        "message"
+                    )
+                    ?.value
+                    .trim()
+
+                };
+
+
+                if (
+                    !payload.fullName ||
+                    !payload.email ||
+                    !payload.subject ||
+                    !payload.message
+                ) {
+
+                    throw new Error(
+                        "Please complete all fields"
+                    );
+
+                }
+
+
+                const response =
+                await fetch(
+                    "/contact-business",
+                    {
+
+                        method:
+                        "POST",
+
+                        headers: {
+                            "Content-Type":
+                            "application/json"
+                        },
+
+                        body:
+                        JSON.stringify(
+                            payload
+                        )
+
+                    }
+                );
+
+
+                const result =
+                await response.json();
+
+
+                if (
+                    !response.ok
+                ) {
+
+                    throw new Error(
+                        result.message ||
+                        "Unable to send"
+                    );
+
+                }
+
+
                 contactForm.reset();
-                showToast('✅ Message sent successfully! We\'ll reply within 24 hours.', 'success');
-            }, 1200);
-        });
-    }
+
+
+                showToast(
+                    "✅ Message sent successfully! We'll reply within 24 hours.",
+                    "success"
+                );
+
+            }
+
+            catch(err){
+
+                console.error(
+                    "CONTACT ERROR:",
+                    err
+                );
+
+                showToast(
+                    err.message ||
+                    "Something went wrong",
+                    "error"
+                );
+
+            }
+
+            finally{
+
+                btn.disabled =
+                false;
+
+                btn.innerHTML =
+                originalText;
+
+            }
+
+        }
+    );
+
+}
 
     // Toast Notification System
     window.showToast = function(message, type = 'info') {
