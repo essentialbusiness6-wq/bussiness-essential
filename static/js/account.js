@@ -68,78 +68,191 @@
             saveBtn.disabled = true;
         }
 
-        async function verifyAccount() {
-            const bankCode = bankNameSelect.value;
-            const bankName = bankCode === 'custom' 
-                ? customBankName.value.trim() 
-                : bankNameSelect.options[bankNameSelect.selectedIndex].text;
-            const accountNumber = accountNumberInput.value;
+       async function verifyAccount() {
 
-            if (!bankName || accountNumber.length !== 10) {
-                showToast('Please enter valid bank details', 'warning');
-                return;
+    const bankCode =
+    bankNameSelect.value;
+
+    const bankName =
+    bankCode === "custom"
+    ? customBankName.value.trim()
+    : bankNameSelect.options[
+        bankNameSelect.selectedIndex
+    ].text;
+
+    const accountNumber =
+    accountNumberInput.value.trim();
+
+    if (
+        !bankCode ||
+        accountNumber.length !== 10
+    ) {
+
+        showToast(
+            "Enter valid bank details",
+            "warning"
+        );
+
+        return;
+    }
+
+    verifyBtn.classList.add(
+        "loading"
+    );
+
+    verifyBtn.disabled =
+    true;
+
+    verifyBtn.querySelector(
+        "span"
+    ).textContent =
+    "Verifying...";
+
+    try {
+
+        const response =
+        await fetch(
+            "/api/paystack/resolve-account",
+
+            {
+                method:
+                "POST",
+
+                headers: {
+                    "Content-Type":
+                    "application/json"
+                },
+
+                credentials:
+                "include",
+
+                body:
+                JSON.stringify({
+
+                    bank_code:
+                    bankCode,
+
+                    account_number:
+                    accountNumber
+                })
             }
+        );
 
-            // Show loading state
-            verifyBtn.classList.add('loading');
-            verifyBtn.disabled = true;
-            verifyBtn.querySelector('span').textContent = 'Verifying...';
+        const data =
+        await response.json();
 
-            // Simulate API call to verify account
-            try {
-                // In production, this would be a real API call:
-                // const response = await fetch('/api/verify-account', {
-                //     method: 'POST',
-                //     headers: { 'Content-Type': 'application/json' },
-                //     body: JSON.stringify({ bank_code: bankCode, account_number: accountNumber })
-                // });
-                // const data = await response.json();
+        if (
+            !response.ok
+        ) {
 
-                // Simulated response
-                await new Promise(resolve => setTimeout(resolve, 1500));
-
-                // Simulate successful verification (90% success rate for demo)
-                const isSuccess = Math.random() > 0.1;
-
-                if (isSuccess) {
-                    // Generate a realistic-looking account name
-                    const sampleNames = [
-                        'JOHN DOE',
-                        'JANE SMITH',
-                        'BUSINESS ESSENTIAL LTD',
-                        'ACME CORPORATION',
-                        'TECHSTART INC',
-                        'GLOBAL SOLUTIONS'
-                    ];
-                    const accountName = sampleNames[Math.floor(Math.random() * sampleNames.length)];
-
-                    state.isVerified = true;
-                    state.verifiedAccountName = accountName;
-                    
-                    accountNameLabelText.textContent = 'Verified Account Name';
-                    accountNameValue.textContent = accountName;
-                    accountNameDisplay.classList.remove('error');
-                    accountNameDisplay.classList.add('active');
-                    
-                    saveBtn.disabled = false;
-                    showToast('Account verified successfully!', 'success');
-                } else {
-                    accountNameLabelText.textContent = 'Verification Failed';
-                    accountNameValue.textContent = 'Account number not found. Please check and try again.';
-                    accountNameDisplay.classList.add('active', 'error');
-                    showToast('Account verification failed. Please check details.', 'error');
-                }
-            } catch (error) {
-                accountNameLabelText.textContent = 'Verification Failed';
-                accountNameValue.textContent = 'An error occurred. Please try again.';
-                accountNameDisplay.classList.add('active', 'error');
-                showToast('Network error. Please try again.', 'error');
-            } finally {
-                verifyBtn.classList.remove('loading');
-                verifyBtn.querySelector('span').textContent = 'Verify';
-                updateVerifyButton();
-            }
+            throw new Error(
+                data.message ||
+                "Verification failed"
+            );
         }
+
+        if (
+            data.status ===
+            "success"
+        ) {
+
+            state.isVerified =
+            true;
+
+            state.verifiedAccountName =
+            data.account_name;
+
+            accountNameLabelText.textContent =
+            "Verified Account Name";
+
+            accountNameValue.textContent =
+            data.account_name;
+
+            accountNameDisplay.classList.remove(
+                "error"
+            );
+
+            accountNameDisplay.classList.add(
+                "active"
+            );
+
+            saveBtn.disabled =
+            false;
+
+            showToast(
+                "Account verified",
+                "success"
+            );
+
+        } else {
+
+            accountNameLabelText.textContent =
+            "Verification Failed";
+
+            accountNameValue.textContent =
+            data.message ||
+            "Account not found";
+
+            accountNameDisplay.classList.add(
+                "active",
+                "error"
+            );
+
+            state.isVerified =
+            false;
+
+            showToast(
+                data.message,
+                "error"
+            );
+        }
+
+    }
+
+    catch (error) {
+
+        console.error(
+            error
+        );
+
+        state.isVerified =
+        false;
+
+        accountNameLabelText.textContent =
+        "Verification Failed";
+
+        accountNameValue.textContent =
+        error.message;
+
+        accountNameDisplay.classList.add(
+            "active",
+            "error"
+        );
+
+        showToast(
+            error.message,
+            "error"
+        );
+
+    }
+
+    finally {
+
+        verifyBtn.classList.remove(
+            "loading"
+        );
+
+        verifyBtn.disabled =
+        false;
+
+        verifyBtn.querySelector(
+            "span"
+        ).textContent =
+        "Verify";
+
+        updateVerifyButton();
+    }
+}
 
         // ================= SAVE =================
         async function handleSave(e) {
