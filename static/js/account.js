@@ -329,55 +329,201 @@ async function verifyAccount() {
 }
         // ================= SAVE =================
         async function handleSave(e) {
-            e.preventDefault();
 
-            if (!state.isVerified) {
-                showToast('Please verify your account first', 'warning');
-                return;
+    e.preventDefault();
+
+    if (!state.isVerified) {
+
+        showToast(
+            "Please verify your account first",
+            "warning"
+        );
+
+        return;
+    }
+
+    const bankCode =
+    bankNameSelect.value;
+
+    const bankName =
+    bankCode === "custom"
+
+    ? customBankName.value.trim()
+
+    : bankNameSelect.options[
+        bankNameSelect.selectedIndex
+    ]?.text || "";
+
+    const accountNumber =
+    accountNumberInput.value.trim();
+
+    const businessName =
+    (
+        document.getElementById(
+            "businessName"
+        )?.value
+        ||
+        ""
+    ).trim();
+
+
+    saveBtn.classList.add(
+        "loading"
+    );
+
+    saveBtn.disabled =
+    true;
+
+    state.isSaving =
+    true;
+
+    try {
+
+        const response =
+        await fetch(
+
+            "/api/paystack/create-subaccount",
+
+            {
+
+                method:
+                "POST",
+
+                credentials:
+                "include",
+
+                headers: {
+
+                    "Content-Type":
+                    "application/json"
+
+                },
+
+                body:
+                JSON.stringify({
+
+                    business_name:
+                    businessName,
+
+                    bank_code:
+                    bankCode,
+
+                    bank_name:
+                    bankName,
+
+                    account_number:
+                    accountNumber,
+
+                    account_name:
+                    state.verifiedAccountName,
+
+                    percentage_charge:
+                    0
+
+                })
+
             }
 
-            const bankCode = bankNameSelect.value;
-            const bankName = bankCode === 'custom' 
-                ? customBankName.value.trim() 
-                : bankNameSelect.options[bankNameSelect.selectedIndex].text;
-            const accountNumber = accountNumberInput.value;
+        );
 
-            // Show loading state
-            saveBtn.classList.add('loading');
-            saveBtn.disabled = true;
-            state.isSaving = true;
+        const data =
+        await response.json();
 
-            try {
-                // In production, this would be a real API call:
-                // const response = await fetch('/api/update-account', {
-                //     method: 'POST',
-                //     headers: { 'Content-Type': 'application/json' },
-                //     body: JSON.stringify({
-                //         bank_code: bankCode,
-                //         bank_name: bankName,
-                //         account_number: accountNumber,
-                //         account_name: state.verifiedAccountName
-                //     })
-                // });
-                // const data = await response.json();
 
-                // Simulate API call
-                await new Promise(resolve => setTimeout(resolve, 1500));
+        if (
+            !response.ok ||
+            !data.success
+        ) {
 
-                showToast('Account details saved successfully!', 'success');
+            throw new Error(
 
-                // Redirect to billing page after 1.5 seconds
-                setTimeout(() => {
-                    window.location.href = '/billing';
-                }, 1500);
+                data.message ||
 
-            } catch (error) {
-                showToast('Failed to save account details. Please try again.', 'error');
-                saveBtn.classList.remove('loading');
-                saveBtn.disabled = false;
-                state.isSaving = false;
-            }
+                "Failed to save account"
+
+            );
+
         }
+
+
+        state.accountComplete =
+        true;
+
+
+        localStorage.setItem(
+            "accountComplete",
+            "true"
+        );
+
+
+        showToast(
+
+            "Account details saved successfully!",
+
+            "success"
+
+        );
+
+
+        const modal =
+        document.getElementById(
+            "accountModalOverlay"
+        );
+
+        if (modal) {
+
+            modal.classList.remove(
+                "active"
+            );
+
+        }
+
+        document.body.style.overflow =
+        "";
+
+
+        setTimeout(() => {
+
+            window.location.href =
+            "/billing";
+
+        }, 1200);
+
+    }
+
+    catch (error) {
+
+        console.log(
+            error
+        );
+
+        showToast(
+
+            error.message ||
+
+            "Failed to save account",
+
+            "error"
+
+        );
+
+    }
+
+    finally {
+
+        saveBtn.classList.remove(
+            "loading"
+        );
+
+        saveBtn.disabled =
+        false;
+
+        state.isSaving =
+        false;
+
+    }
+
+}
 
         // ================= UTILITIES =================
         function showToast(message, type = 'info') {
