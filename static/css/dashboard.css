@@ -735,3 +735,31 @@ body {
         font-size: 0.9rem;
     }
 }
+
+/* hidden by default */
+.account-modal-overlay{
+    position: fixed;
+    inset: 0;
+
+    display: none;
+
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(0,0,0,.55);
+
+    opacity: 0;
+
+    transition: .25s;
+
+    z-index: 10001;
+}
+
+/* SHOW */
+.account-modal-overlay.active{
+
+    display: flex !important;
+
+    opacity: 1;
+
+}
