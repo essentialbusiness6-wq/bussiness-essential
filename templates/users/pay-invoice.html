@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pay Invoice #INV-2024-248 - Business Essential</title>
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/media/app logo.png"/>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        :root {
+            --primary: #4361ee; --secondary: #3f37c9; --accent: #4895ef;
+            --success: #2ecc71; --success-dark: #27ae60;
+            --dark: #0f172a; --light: #f8fafc;
+            --gray: #64748b; --medium-gray: #94a3b8; --light-gray: #cbd5e1;
+            --danger: #e74c3c; --warning: #f39c12; --info: #3498db;
+            --bg-card: #ffffff; --bg-input: #f8fafc;
+            --border-color: #e2e8f0;
+            --gradient-bg: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            --gradient-success: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
+            --transition-fast: all 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
+            --transition: all 0.35s cubic-bezier(0.165, 0.84, 0.44, 1);
+            --radius-sm: 8px; --radius: 12px; --radius-lg: 16px;
+            --radius-xl: 24px; --radius-full: 9999px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root:not(.light) {
+                --dark: #f8fafc; --light: #0f172a;
+                --gray: #94a3b8; --medium-gray: #cbd5e1; --light-gray: #64748b;
+                --bg-card: #1e293b; --bg-input: #0f172a;
+                --border-color: #334155;
+                --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+                --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+                --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.5);
+            }
+        }
+
+        .dark {
+            --dark: #f8fafc; --light: #0f172a;
+            --gray: #94a3b8; --medium-gray: #cbd5e1; --light-gray: #64748b;
+            --bg-card: #1e293b; --bg-input: #0f172a;
+            --border-color: #334155;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--light); color: var(--dark);
+            min-height: 100vh; position: relative;
+            overflow-x: hidden;
+            transition: background 0.4s ease, color 0.4s ease;
+        }
+
+        body::before {
+            content: ''; position: fixed; top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle at 30% 20%, rgba(67, 97, 238, 0.06) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 80%, rgba(46, 204, 113, 0.04) 0%, transparent 50%);
+            z-index: -1; animation: rotate 35s linear infinite; pointer-events: none;
+        }
+
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        /* Particles */
+        .particles { position: fixed; inset: 0; pointer-events: none; z-index: -1; }
+        .particle { position: absolute; border-radius: 50%; background: rgba(67, 97, 238, 0.08); animation: float 15s infinite linear; }
+        .dark .particle { background: rgba(96, 165, 250, 0.1); }
+        @keyframes float { 0% { transform: translateY(0) translateX(0); opacity: 1; } 100% { transform: translateY(-100vh) translateX(100px); opacity: 0; } }
+
+        /* Top Bar */
+        .top-bar {
+            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 24px; display: flex; justify-content: space-between;
+            align-items: center; position: sticky; top: 0; z-index: 100;
+            transition: background 0.4s ease;
+        }
+        .dark .top-bar { background: rgba(30, 41, 59, 0.85); }
+
+        .top-bar-left { display: flex; align-items: center; gap: 12px; }
+        .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1rem; color: var(--dark); text-decoration: none; }
+        .logo img { width: 32px; height: 32px; }
+
+        .invoice-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 6px 12px; background: rgba(67, 97, 238, 0.1);
+            color: var(--primary); border-radius: var(--radius-full);
+            font-size: 0.8rem; font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .invoice-badge svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2; }
+
+        .top-bar-right { display: flex; align-items: center; gap: 8px; }
+        .icon-btn {
+            width: 36px; height: 36px; border-radius: var(--radius);
+            background: var(--bg-input); border: 1px solid var(--border-color);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; color: var(--gray); transition: var(--transition-fast);
+        }
+        .icon-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+        .icon-btn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; }
+
+        /* Main Layout */
+        .main-layout {
+            display: grid; grid-template-columns: 1fr 380px;
+            gap: 24px; padding: 24px; max-width: 1400px; margin: 0 auto;
+        }
+
+        /* Invoice Document */
+        .invoice-document {
+            background: var(--bg-card); border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg); border: 1px solid var(--border-color);
+            padding: 40px; position: relative; overflow: hidden;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: background 0.4s ease, border-color 0.4s ease;
+        }
+
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .invoice-document::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0;
+            height: 4px; background: var(--gradient-bg);
+        }
+
+        /* Invoice Header */
+        .invoice-header {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            padding-bottom: 24px; border-bottom: 1px solid var(--border-color);
+            margin-bottom: 24px;
+        }
+
+        .invoice-brand { display: flex; gap: 12px; align-items: flex-start; }
+        .invoice-logo {
+            width: 56px; height: 56px; border-radius: var(--radius);
+            background: var(--gradient-bg); display: flex;
+            align-items: center; justify-content: center; flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+        }
+        .invoice-logo svg { width: 28px; height: 28px; fill: none; stroke: white; stroke-width: 2; }
+        .invoice-brand-info { display: flex; flex-direction: column; gap: 2px; }
+        .invoice-brand-info strong { font-size: 1.1rem; color: var(--dark); }
+        .invoice-brand-info span { font-size: 0.85rem; color: var(--gray); }
+
+        .invoice-title-block { text-align: right; }
+        .invoice-title {
+            font-size: 2.2rem; font-weight: 800; letter-spacing: 3px;
+            background: var(--gradient-bg); -webkit-background-clip: text;
+            background-clip: text; color: transparent; margin-bottom: 8px;
+        }
+        .invoice-number {
+            font-family: 'JetBrains Mono', monospace; font-size: 0.9rem;
+            font-weight: 600; color: var(--primary);
+        }
+        .invoice-status {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 6px 12px; border-radius: var(--radius-full);
+            font-size: 0.8rem; font-weight: 600; margin-top: 8px;
+            background: rgba(243, 156, 18, 0.1); color: var(--warning);
+        }
+        .invoice-status .status-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--warning); animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        /* Parties Info */
+        .parties-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 24px; margin-bottom: 32px;
+        }
+        .party-block { }
+        .party-label {
+            font-size: 0.75rem; font-weight: 700; color: var(--gray);
+            text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;
+        }
+        .party-name { font-size: 1.1rem; font-weight: 700; color: var(--dark); margin-bottom: 6px; }
+        .party-details { display: flex; flex-direction: column; gap: 3px; }
+        .party-details span { font-size: 0.85rem; color: var(--gray); line-height: 1.5; }
+        .party-details a { color: var(--primary); text-decoration: none; }
+        .party-details a:hover { text-decoration: underline; }
+
+        /* Dates Row */
+        .dates-row {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 16px; padding: 16px; background: var(--bg-input);
+            border-radius: var(--radius); margin-bottom: 32px;
+            border: 1px solid var(--border-color);
+        }
+        .date-block { display: flex; flex-direction: column; gap: 4px; }
+        .date-label { font-size: 0.75rem; font-weight: 600; color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px; }
+        .date-value { font-size: 0.95rem; font-weight: 600; color: var(--dark); }
+        .date-value.due { color: var(--warning); }
+
+        /* Items Table */
+        .items-section { margin-bottom: 24px; }
+        .section-heading {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 0.85rem; font-weight: 700; color: var(--gray);
+            text-transform: uppercase; letter-spacing: 0.5px;
+            margin-bottom: 16px; padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .section-heading svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; }
+
+        .items-table {
+            width: 100%; border-collapse: collapse;
+            border: 1px solid var(--border-color); border-radius: var(--radius);
+            overflow: hidden;
+        }
+        .items-table thead { background: var(--bg-input); }
+        .items-table th {
+            padding: 12px 16px; text-align: left;
+            font-size: 0.75rem; font-weight: 700; color: var(--gray);
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .items-table th.right { text-align: right; }
+        .items-table td {
+            padding: 16px; border-top: 1px solid var(--border-color);
+            font-size: 0.9rem; color: var(--dark);
+        }
+        .items-table td.right { text-align: right; font-family: 'JetBrains Mono', monospace; }
+        .items-table td.desc { }
+        .items-table td.desc strong { display: block; font-weight: 600; margin-bottom: 2px; }
+        .items-table td.desc small { color: var(--gray); font-size: 0.8rem; }
+
+        /* Totals Section */
+        .totals-section {
+            display: flex; justify-content: flex-end; margin-bottom: 32px;
+        }
+        .totals-box {
+            width: 100%; max-width: 360px;
+            background: var(--bg-input); border-radius: var(--radius);
+            padding: 20px; border: 1px solid var(--border-color);
+        }
+        .total-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 0; font-size: 0.9rem;
+        }
+        .total-row span:first-child { color: var(--gray); }
+        .total-row span:last-child {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600; color: var(--dark);
+        }
+        .total-row.discount span:last-child { color: var(--success-dark); }
+        .total-row.grand {
+            padding-top: 14px; margin-top: 8px;
+            border-top: 2px solid var(--primary);
+            font-size: 1.1rem;
+        }
+        .total-row.grand span:first-child { color: var(--dark); font-weight: 700; }
+        .total-row.grand span:last-child {
+            font-size: 1.5rem; font-weight: 800;
+            background: var(--gradient-bg); -webkit-background-clip: text;
+            background-clip: text; color: transparent;
+        }
+
+        /* Notes */
+        .notes-section {
+            padding: 20px; background: var(--bg-input);
+            border-radius: var(--radius); border: 1px solid var(--border-color);
+        }
+        .notes-section h4 {
+            font-size: 0.85rem; font-weight: 700; color: var(--dark);
+            margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .notes-section p {
+            font-size: 0.9rem; color: var(--gray); line-height: 1.6;
+        }
+        .notes-section p + p { margin-top: 12px; }
+
+        /* ================= PAYMENT PANEL ================= */
+        .payment-panel {
+            position: sticky; top: 80px; align-self: start;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s backwards;
+        }
+
+        .payment-card {
+            background: var(--bg-card); border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg); border: 1px solid var(--border-color);
+            padding: 28px; position: relative; overflow: hidden;
+            transition: background 0.4s ease, border-color 0.4s ease;
+        }
+
+        .payment-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0;
+            height: 4px; background: var(--gradient-success);
+        }
+
+        .payment-header {
+            text-align: center; padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color); margin-bottom: 20px;
+        }
+        .payment-label {
+            font-size: 0.75rem; font-weight: 700; color: var(--gray);
+            text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;
+        }
+        .payment-amount {
+            font-size: 2.8rem; font-weight: 800;
+            background: var(--gradient-success); -webkit-background-clip: text;
+            background-clip: text; color: transparent;
+            font-family: 'JetBrains Mono', monospace; line-height: 1;
+            margin-bottom: 6px;
+        }
+        .payment-currency {
+            font-size: 0.85rem; color: var(--gray); font-weight: 500;
+        }
+
+        /* Payment Methods */
+        .payment-methods { margin-bottom: 20px; }
+        .methods-label {
+            font-size: 0.75rem; font-weight: 700; color: var(--gray);
+            text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;
+        }
+        .method-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .method-option {
+            display: flex; flex-direction: column; align-items: center; gap: 6px;
+            padding: 12px 8px; background: var(--bg-input);
+            border: 2px solid var(--border-color); border-radius: var(--radius);
+            cursor: pointer; transition: var(--transition-fast);
+            font-size: 0.75rem; font-weight: 600; color: var(--dark);
+        }
+        .method-option:hover { border-color: var(--primary); }
+        .method-option.selected {
+            border-color: var(--primary);
+            background: rgba(67, 97, 238, 0.05);
+        }
+        .dark .method-option.selected { background: rgba(96, 165, 250, 0.1); }
+        .method-option svg { width: 24px; height: 24px; }
+        .method-option .method-icon {
+            width: 32px; height: 32px; border-radius: var(--radius-sm);
+            background: var(--bg-card); display: flex;
+            align-items: center; justify-content: center;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Pay Button */
+        .pay-btn {
+            width: 100%; padding: 16px; border-radius: var(--radius);
+            background: var(--gradient-bg); color: white;
+            border: none; cursor: pointer; font-family: inherit;
+            font-size: 1rem; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            gap: 10px; transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+            position: relative; overflow: hidden;
+            margin-bottom: 16px;
+        }
+        .pay-btn::before {
+            content: ''; position: absolute; top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.7s;
+        }
+        .pay-btn:hover::before { left: 100%; }
+        .pay-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(67, 97, 238, 0.45);
+        }
+        .pay-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
+        .pay-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; }
+
+        .pay-btn.loading .btn-text { opacity: 0; }
+        .pay-btn.loading .btn-loader { display: flex; }
+        .btn-loader {
+            display: none; position: absolute;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            align-items: center; gap: 8px;
+        }
+        .spinner {
+            width: 18px; height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white; border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Security Badges */
+        .security-badges {
+            display: flex; flex-direction: column; gap: 8px;
+            padding-top: 16px; border-top: 1px solid var(--border-color);
+        }
+        .security-badge {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 0.8rem; color: var(--gray);
+        }
+        .security-badge svg {
+            width: 14px; height: 14px; flex-shrink: 0;
+            fill: none; stroke: var(--success); stroke-width: 2;
+        }
+
+        /* Secondary Actions */
+        .secondary-actions {
+            display: flex; gap: 8px; margin-top: 16px;
+        }
+        .secondary-btn {
+            flex: 1; padding: 10px; border-radius: var(--radius);
+            background: var(--bg-input); border: 1px solid var(--border-color);
+            color: var(--dark); cursor: pointer; font-family: inherit;
+            font-size: 0.85rem; font-weight: 600;
+            display: flex; align-items: center; justify-content: center;
+            gap: 6px; transition: var(--transition-fast);
+        }
+        .secondary-btn:hover {
+            background: var(--bg-card); border-color: var(--primary);
+            color: var(--primary);
+        }
+        .secondary-btn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; }
+
+        /* Toast */
+        .toast-container {
+            position: fixed; bottom: 24px; right: 24px; z-index: 10000;
+            display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+        }
+        .toast {
+            background: var(--bg-card); color: var(--dark);
+            padding: 14px 20px; border-radius: var(--radius);
+            font-size: 0.9rem; box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            display: flex; align-items: center; gap: 10px;
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
+            pointer-events: auto; max-width: 320px;
+        }
+        .toast.success { background: var(--success); color: white; border-color: transparent; }
+        .toast.error { background: var(--danger); color: white; border-color: transparent; }
+        .toast svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; flex-shrink: 0; }
+        @keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-10px); } }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-layout { grid-template-columns: 1fr; }
+            .payment-panel { position: static; }
+        }
+
+        @media (max-width: 768px) {
+            .top-bar { padding: 10px 16px; }
+            .invoice-badge { font-size: 0.7rem; padding: 5px 10px; }
+            .main-layout { padding: 16px; gap: 16px; }
+            .invoice-document { padding: 24px 20px; }
+            .invoice-header { flex-direction: column; gap: 16px; }
+            .invoice-title-block { text-align: left; }
+            .invoice-title { font-size: 1.8rem; letter-spacing: 2px; }
+            .parties-grid { grid-template-columns: 1fr; gap: 16px; }
+            .dates-row { grid-template-columns: 1fr; gap: 10px; }
+            .items-table th, .items-table td { padding: 10px; font-size: 0.85rem; }
+            .items-table .hide-mobile { display: none; }
+            .payment-amount { font-size: 2.2rem; }
+            .method-options { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        @media (max-width: 480px) {
+            .invoice-document { padding: 20px 16px; }
+            .secondary-actions { flex-direction: column; }
+        }
+
+        /* Print Styles */
+        @media print {
+            body { background: white; }
+            body::before, .particles, .top-bar, .payment-panel, .toast-container { display: none !important; }
+            .main-layout { grid-template-columns: 1fr; padding: 0; }
+            .invoice-document {
+                box-shadow: none; border: none;
+                padding: 20px; border-radius: 0;
+            }
+            .invoice-document::before { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="particles" id="particles"></div>
+
+<!-- Top Bar -->
+<header class="top-bar">
+    <div class="top-bar-left">
+        <a href="/" class="logo">
+            <img src="/static/media/app logo.png" alt="Business Essential">
+            <span>Business Essential</span>
+        </a>
+        <span class="invoice-badge">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+            INV-2024-248
+        </span>
+    </div>
+    <div class="top-bar-right">
+        <button class="icon-btn" title="Print Invoice" onclick="window.print()">
+            <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+        </button>
+        <button class="icon-btn" title="Download PDF" id="downloadBtn">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        </button>
+    </div>
+</header>
+
+<!-- Main Layout -->
+<div class="main-layout">
+    <!-- Invoice Document -->
+    <div class="invoice-document">
+        <!-- Invoice Header -->
+        <div class="invoice-header">
+            <div class="invoice-brand">
+                <div class="invoice-logo">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                        <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                    </svg>
+                </div>
+                <div class="invoice-brand-info">
+                    <strong>Business Essential</strong>
+                    <span>123 Business Ave, Suite 100</span>
+                    <span>San Francisco, CA 94102</span>
+                    <span>hello@businesse.com</span>
+                </div>
+            </div>
+            <div class="invoice-title-block">
+                <div class="invoice-title">INVOICE</div>
+                <div class="invoice-number">#INV-2024-248</div>
+                <div class="invoice-status">
+                    <span class="status-dot"></span>
+                    <span>Pending Payment</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Parties Info -->
+        <div class="parties-grid">
+            <div class="party-block">
+                <div class="party-label">Billed From</div>
+                <div class="party-name">Business Essential Inc.</div>
+                <div class="party-details">
+                    <span>123 Business Ave, Suite 100</span>
+                    <span>San Francisco, CA 94102</span>
+                    <span>United States</span>
+                    <a href="mailto:hello@businesse.com">hello@businesse.com</a>
+                </div>
+            </div>
+            <div class="party-block">
+                <div class="party-label">Billed To</div>
+                <div class="party-name">Acme Corporation</div>
+                <div class="party-details">
+                    <span>Attn: John Smith</span>
+                    <span>456 Corporate Blvd</span>
+                    <span>New York, NY 10001</span>
+                    <a href="mailto:billing@acme.com">billing@acme.com</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dates -->
+        <div class="dates-row">
+            <div class="date-block">
+                <span class="date-label">Issue Date</span>
+                <span class="date-value">Nov 15, 2024</span>
+            </div>
+            <div class="date-block">
+                <span class="date-label">Due Date</span>
+                <span class="date-value due">Dec 15, 2024</span>
+            </div>
+            <div class="date-block">
+                <span class="date-label">Amount Due</span>
+                <span class="date-value due">$2,450.00</span>
+            </div>
+        </div>
+
+        <!-- Items -->
+        <div class="items-section">
+            <div class="section-heading">
+                <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+                Items & Services
+            </div>
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th class="right hide-mobile">Qty</th>
+                        <th class="right hide-mobile">Rate</th>
+                        <th class="right">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="desc">
+                            <strong>Website Design & Development</strong>
+                            <small>Custom responsive website with 5 pages</small>
+                        </td>
+                        <td class="right hide-mobile">1</td>
+                        <td class="right hide-mobile">$1,500.00</td>
+                        <td class="right">$1,500.00</td>
+                    </tr>
+                    <tr>
+                        <td class="desc">
+                            <strong>SEO Optimization</strong>
+                            <small>On-page SEO for all pages</small>
+                        </td>
+                        <td class="right hide-mobile">1</td>
+                        <td class="right hide-mobile">$500.00</td>
+                        <td class="right">$500.00</td>
+                    </tr>
+                    <tr>
+                        <td class="desc">
+                            <strong>Monthly Hosting</strong>
+                            <small>Premium hosting plan - 12 months</small>
+                        </td>
+                        <td class="right hide-mobile">12</td>
+                        <td class="right hide-mobile">$37.50</td>
+                        <td class="right">$450.00</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Totals -->
+        <div class="totals-section">
+            <div class="totals-box">
+                <div class="total-row">
+                    <span>Subtotal</span>
+                    <span>$2,450.00</span>
+                </div>
+                <div class="total-row discount">
+                    <span>Discount (0%)</span>
+                    <span>-$0.00</span>
+                </div>
+                <div class="total-row">
+                    <span>Tax (0%)</span>
+                    <span>$0.00</span>
+                </div>
+                <div class="total-row grand">
+                    <span>Total Due</span>
+                    <span>$2,450.00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="notes-section">
+            <h4>Notes</h4>
+            <p>Thank you for your business! We appreciate your trust in our services. Please don't hesitate to reach out if you have any questions.</p>
+            <h4 style="margin-top: 16px;">Terms & Conditions</h4>
+            <p>Payment is due within 30 days of the invoice date. Late payments may be subject to a 1.5% monthly finance charge.</p>
+        </div>
+    </div>
+
+    <!-- Payment Panel (Sticky) -->
+    <aside class="payment-panel">
+        <div class="payment-card">
+            <div class="payment-header">
+                <div class="payment-label">Amount Due</div>
+                <div class="payment-amount">$2,450.00</div>
+                <div class="payment-currency">USD - US Dollar</div>
+            </div>
+
+            <!-- Payment Methods -->
+            <div class="payment-methods">
+                <div class="methods-label">Payment Method</div>
+                <div class="method-options">
+                    <div class="method-option selected" data-method="card">
+                        <div class="method-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                                <line x1="1" y1="10" x2="23" y2="10"></line>
+                            </svg>
+                        </div>
+                        <span>Card</span>
+                    </div>
+                    <div class="method-option" data-method="bank">
+                        <div class="method-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11"></path>
+                            </svg>
+                        </div>
+                        <span>Bank</span>
+                    </div>
+                    <div class="method-option" data-method="ussd">
+                        <div class="method-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                                <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                            </svg>
+                        </div>
+                        <span>USSD</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pay Button -->
+            <button class="pay-btn" id="payBtn">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                <span class="btn-text">Pay Now - $2,450.00</span>
+                <span class="btn-loader"><span class="spinner"></span> Processing</span>
+            </button>
+
+            <!-- Security Badges -->
+            <div class="security-badges">
+                <div class="security-badge">
+                    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span>256-bit SSL encryption</span>
+                </div>
+                <div class="security-badge">
+                    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span>Secured by Paystack</span>
+                </div>
+                <div class="security-badge">
+                    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span>PCI DSS compliant</span>
+                </div>
+            </div>
+
+            <!-- Secondary Actions -->
+            <div class="secondary-actions">
+                <button class="secondary-btn" onclick="window.print()">
+                    <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                    Print
+                </button>
+                <button class="secondary-btn" id="downloadBtn2">
+                    <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    PDF
+                </button>
+            </div>
+        </div>
+    </aside>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // ================= DOM ELEMENTS =================
+        const payBtn = document.getElementById('payBtn');
+        const methodOptions = document.querySelectorAll('.method-option');
+        const toastContainer = document.getElementById('toastContainer');
+        const particlesContainer = document.getElementById('particles');
+
+        // ================= STATE =================
+        const state = {
+            selectedMethod: 'card',
+            invoiceData: {
+                number: 'INV-2024-248',
+                amount: 2450.00,
+                currency: 'USD',
+                email: 'billing@acme.com',
+                clientName: 'Acme Corporation'
+            }
+        };
+
+        // ================= INITIALIZATION =================
+        createParticles();
+        setupEventListeners();
+
+        function setupEventListeners() {
+            // Payment method selection
+            methodOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    methodOptions.forEach(o => o.classList.remove('selected'));
+                    option.classList.add('selected');
+                    state.selectedMethod = option.dataset.method;
+                });
+            });
+
+            // Pay button
+            payBtn.addEventListener('click', handlePayment);
+
+            // Download buttons
+            document.getElementById('downloadBtn').addEventListener('click', downloadPDF);
+            document.getElementById('downloadBtn2').addEventListener('click', downloadPDF);
+        }
+
+        // ================= PAYMENT =================
+        function handlePayment() {
+            // Show loading state
+            payBtn.classList.add('loading');
+            payBtn.disabled = true;
+
+            // Initialize Paystack
+            const handler = PaystackPop.setup({
+                key: 'pk_test_82f461e2353df26a67897a5611c412129cc8d30f',
+                email: state.invoiceData.email,
+                amount: Math.round(state.invoiceData.amount * 100), // Convert to kobo/cents
+                currency: state.invoiceData.currency,
+                ref: `INV_${state.invoiceData.number}_${Date.now()}`,
+                metadata: {
+                    custom_fields: [
+                        { display_name: "Invoice Number", variable_name: "invoice_number", value: state.invoiceData.number },
+                        { display_name: "Client Name", variable_name: "client_name", value: state.invoiceData.clientName }
+                    ]
+                },
+                callback: function(response) {
+                    // Payment successful
+                    showToast('Payment successful! Redirecting...', 'success');
+                    
+                    // Verify payment on backend
+                    fetch('/api/verify-payment', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            reference: response.reference,
+                            invoice_number: state.invoiceData.number
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        // Redirect to success page
+                        setTimeout(() => {
+                            window.location.href = `/payment-success?ref=${response.reference}`;
+                        }, 1500);
+                    })
+                    .catch(error => {
+                        console.error('Verification failed:', error);
+                        payBtn.classList.remove('loading');
+                        payBtn.disabled = false;
+                        showToast('Payment successful but verification failed', 'error');
+                    });
+                },
+                onClose: function() {
+                    // User closed the payment modal
+                    payBtn.classList.remove('loading');
+                    payBtn.disabled = false;
+                    showToast('Payment cancelled', 'error');
+                }
+            });
+
+            handler.openIframe();
+        }
+
+        // ================= DOWNLOAD =================
+        function downloadPDF() {
+            showToast('Preparing PDF download...', 'success');
+            // In production, this would generate and download the PDF
+            // window.open(`/api/invoices/${state.invoiceData.number}/pdf`, '_blank');
+        }
+
+        // ================= UTILITIES =================
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            let icon = '';
+            if (type === 'success') {
+                icon = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+            } else if (type === 'error') {
+                icon = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
+            }
+            
+            toast.innerHTML = `${icon}<span>${message}</span>`;
+            toastContainer.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function createParticles() {
+            const count = window.innerWidth > 768 ? 15 : 8;
+            for (let i = 0; i < count; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.cssText = `
+                    width: ${Math.random() * 6 + 2}px;
+                    height: ${Math.random() * 6 + 2}px;
+                    left: ${Math.random() * 100}%;
+                    top: ${Math.random() * 100}%;
+                    animation-duration: ${Math.random() * 10 + 15}s;
+                    animation-delay: ${Math.random() * 5}s;
+                    opacity: ${Math.random() * 0.5 + 0.1};
+                `;
+                particlesContainer.appendChild(p);
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
