@@ -165,162 +165,140 @@
             accountNameDisplay.classList.remove('active', 'error');
             saveBtn.disabled = true;
         }
-
-       async function verifyAccount() {
+async function verifyAccount() {
 
     const bankCode =
-    bankNameSelect.value;
-
-    const bankName =
-    bankCode === "custom"
-    ? customBankName.value.trim()
-    : bankNameSelect.options[
-        bankNameSelect.selectedIndex
-    ].text;
+        bankNameSelect.value?.trim();
 
     const accountNumber =
-    accountNumberInput.value.trim();
+        accountNumberInput.value?.trim();
 
-    if (
-        !bankCode ||
-        accountNumber.length !== 10
-    ) {
+    if (!bankCode || accountNumber.length !== 10) {
 
         showToast(
-            "Enter valid bank details",
+            "Enter a valid bank and account number",
             "warning"
         );
 
         return;
     }
 
-    verifyBtn.classList.add(
-        "loading"
-    );
+    verifyBtn.classList.add("loading");
+    verifyBtn.disabled = true;
 
-    verifyBtn.disabled =
-    true;
-
-    verifyBtn.querySelector(
-        "span"
-    ).textContent =
-    "Verifying...";
+    verifyBtn.querySelector("span").textContent =
+        "Verifying...";
 
     try {
 
         const response =
-        await fetch(
-            "/api/paystack/resolve-account",
+            await fetch(
+                "/api/paystack/resolve-account",
+                {
+                    method: "POST",
 
-            {
-                method:
-                "POST",
+                    headers: {
+                        "Content-Type":
+                        "application/json"
+                    },
 
-                headers: {
-                    "Content-Type":
-                    "application/json"
-                },
+                    credentials:
+                    "include",
 
-                credentials:
-                "include",
+                    body: JSON.stringify({
+                        account_number:
+                        accountNumber,
 
-                body:
-                JSON.stringify({
+                        bank_code:
+                        bankCode
+                    })
+                }
+            );
 
-                    bank_code:
-                    bankCode,
-
-                    account_number:
-                    accountNumber
-                })
-            }
-        );
-
-        const data =
-        await response.json();
+        const result =
+            await response.json();
 
         if (
-            !response.ok
+            !response.ok ||
+            !result.success
         ) {
 
             throw new Error(
-                data.message ||
-                "Verification failed"
+                result.message ||
+                "Account verification failed"
             );
         }
 
-        if (
-            data.status ===
-            "success"
-        ) {
+        /*
+            Expected backend response:
 
-            state.isVerified =
-            true;
+            {
+                success: true,
+                data: {
+                    account_name: "...",
+                    account_number: "...",
+                    bank_id: ...
+                }
+            }
+        */
 
-            state.verifiedAccountName =
-            data.account_name;
+        const accountName =
+            result.data?.account_name;
 
-            accountNameLabelText.textContent =
+        if (!accountName) {
+            throw new Error(
+                "Account name not returned"
+            );
+        }
+
+        state.isVerified = true;
+
+        state.verifiedAccountName =
+            accountName;
+
+        accountNameLabelText.textContent =
             "Verified Account Name";
 
-            accountNameValue.textContent =
-            data.account_name;
+        accountNameValue.textContent =
+            accountName;
 
-            accountNameDisplay.classList.remove(
-                "error"
-            );
+        accountNameDisplay.classList.remove(
+            "error"
+        );
 
-            accountNameDisplay.classList.add(
-                "active"
-            );
+        accountNameDisplay.classList.add(
+            "active"
+        );
 
-            saveBtn.disabled =
-            false;
+        saveBtn.disabled = false;
 
-            showToast(
-                "Account verified",
-                "success"
-            );
-
-        } else {
-
-            accountNameLabelText.textContent =
-            "Verification Failed";
-
-            accountNameValue.textContent =
-            data.message ||
-            "Account not found";
-
-            accountNameDisplay.classList.add(
-                "active",
-                "error"
-            );
-
-            state.isVerified =
-            false;
-
-            showToast(
-                data.message,
-                "error"
-            );
-        }
+        showToast(
+            "Account verified successfully",
+            "success"
+        );
 
     }
 
     catch (error) {
 
         console.error(
+            "VERIFY ERROR:",
             error
         );
 
-        state.isVerified =
-        false;
+        state.isVerified = false;
+
+        state.verifiedAccountName =
+            null;
+
+        saveBtn.disabled = true;
 
         accountNameLabelText.textContent =
-        "Verification Failed";
+            "Verification Failed";
 
         accountNameValue.textContent =
-        error.message;
+            error.message ||
+            "Unable to verify account";
 
         accountNameDisplay.classList.add(
             "active",
@@ -331,7 +309,6 @@
             error.message,
             "error"
         );
-
     }
 
     finally {
@@ -340,18 +317,16 @@
             "loading"
         );
 
-        verifyBtn.disabled =
-        false;
+        verifyBtn.disabled = false;
 
         verifyBtn.querySelector(
             "span"
         ).textContent =
-        "Verify";
+            "Verify";
 
         updateVerifyButton();
     }
 }
-
         // ================= SAVE =================
         async function handleSave(e) {
             e.preventDefault();
