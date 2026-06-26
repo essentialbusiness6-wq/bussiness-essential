@@ -73,6 +73,27 @@ app.config.update(
     SESSION_COOKIE_SAMESITE="Lax"
 )
 
+app.config["flask_profiler"] = {
+    "enabled": True,
+
+    "storage": {
+        "engine": "sqlite",
+        "FILE": "flask_profiler.sqlite"
+    },
+
+    "basicAuth": {
+        "enabled": True,
+        "username": "admin",
+        "password": os.getenv("PROFILER_PASSWORD")
+    },
+
+    "ignore": [
+        "/static"
+    ]
+}
+
+flask_profiler.init_app(app)
+
 Compress(app)
 
 
@@ -82,11 +103,7 @@ app.wsgi_app,
 root="static/"
 )
 
-app.config["flask_profiler"]={
-"enabled":True
-}
 
-flask_profiler.init_app(app)
 
 @app.before_request
 def refresh_activity():
