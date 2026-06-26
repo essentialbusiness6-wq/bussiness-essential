@@ -1,31 +1,23 @@
-import logging
 import os
+import logging
 import requests
+from typing import Dict
 
 logger = logging.getLogger(__name__)
 
 
 class PaystackService:
 
-    BASE_URL = (
-        "https://api.paystack.co"
-    )
+    BASE_URL = "https://api.paystack.co"
 
     def __init__(self):
 
-        self.session = (
-            requests.Session()
-        )
+        self.session = requests.Session()
 
         self.session.headers.update({
-
-            "Authorization":
-            f"Bearer {os.getenv('PAYSTACK_SECRET_KEY')}",
-
-            "Content-Type":
-            "application/json"
+            "Authorization": f"Bearer {os.getenv('PAYSTACK_SECRET_KEY')}",
+            "Content-Type": "application/json"
         })
-
 
     def _request(
         self,
@@ -36,68 +28,58 @@ class PaystackService:
     ):
 
         try:
-            print("HIT RESPONSE")
-            response = (
-                self.session.request(
 
-                    method=method,
-
-                    url=
-                    self.BASE_URL +
-                    endpoint,
-
-                    params=params,
-
-                    json=json,
-
-                    timeout=20
-                )
+            response = self.session.request(
+                method=method,
+                url=f"{self.BASE_URL}{endpoint}",
+                params=params,
+                json=json,
+                timeout=(10, 30)
             )
 
             response.raise_for_status()
-            print("FINISHED RESPONSE")
+
             return response.json()
 
         except requests.Timeout:
 
-            logger.exception(
-                "Paystack timeout"
-            )
+            logger.exception("Paystack timeout")
 
             return {
                 "success": False,
-                "message":
-                "Request timed out"
+                "message": "Request timed out"
             }
-
 
         except requests.RequestException as e:
 
-            logger.exception(
-                e
-            )
+            logger.exception(e)
 
             return {
                 "success": False,
-                "message":
-                str(e)
+                "message": str(e)
             }
 
+    def get_banks(self):
 
-    def get_banks(
-        self,
-        country="nigeria"
-    ):
-        print("HIT GET BANK")
-        return self._request(
+        result = self._request(
             "GET",
             "/bank",
             params={
-                "country":
-                country
+                "country": "nigeria",
+                "perPage": 500
             }
         )
 
+        if not result.get("status"):
+            return result
+
+        return {
+            "success": True,
+            "data": sorted(
+                result["data"],
+                key=lambda x: x["name"]
+            )
+        }
 
     def resolve_account(
         self,
@@ -106,17 +88,10 @@ class PaystackService:
     ):
 
         return self._request(
-
             "GET",
-
             "/bank/resolve",
-
             params={
-
-                "account_number":
-                account_number,
-
-                "bank_code":
-                bank_code
+                "account_number": account_number,
+                "bank_code": bank_code
             }
         )
