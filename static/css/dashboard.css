@@ -556,6 +556,11 @@ body {
     text-align: center;
 }
 
+
+.modal-overlay.active {
+  display: flex;
+}
+
 .account-modal-icon {
     width: 72px;
     height: 72px;
