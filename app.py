@@ -60,21 +60,23 @@ from whitenoise import WhiteNoise
 
 load_dotenv()
 
-SECRET_KEY = os.getenv("SECRET_KEY")
-PAYSTACK_PUBLIC=os.getenv("PAYSTACK_PUBLIC_KEY")
-PAYSTACK_SECRET=os.getenv("PAYSTACK_SECRET_KEY")
+
+print("STEP 1")
 app = Flask(__name__)
 app.register_blueprint(admin_bp)
 app.secret_key = os.getenv("SECRET_KEY")
 
-
+print("STEP 2")
 CORS(app, supports_credentials=True)
 
+print("STEP 3")    
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE="Lax"
 )
 
+
+print("STEP 4")
 app.config["flask_profiler"] = {
     "enabled": True,
 
@@ -98,17 +100,12 @@ app.config["flask_profiler"] = {
 
 flask_profiler.init_app(app)
 
+print("STEP 5")
 Compress(app)
 
 
-cloudinary.config(
-    cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME"),
-    api_key =  os.getenv("CLOUDINARY_API_KEY"),
-    api_secret = os.getenv("CLOUDINARY_API_SECRET")
-)
 
-
-
+print("STEP 6")
 cache = Cache()
 
 app.config.update({
@@ -126,15 +123,34 @@ app.config.update({
 
 })
 
-cache.init_app(app)
+try:
+    cache.init_app(app)
+    print("CACHE CONNECTED")
+
+except Exception as e:
+    print("CACHE FAILED:", e)
+    
 socketio.init_app(app)
 
+print("STEP 7")
+cloudinary.config(
+    cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME"),
+    api_key =  os.getenv("CLOUDINARY_API_KEY"),
+    api_secret = os.getenv("CLOUDINARY_API_SECRET")
+)
 
+
+print("STEP 8")
 app.wsgi_app=WhiteNoise(
 app.wsgi_app,
 root="static/"
 )
 
+SECRET_KEY = os.getenv("SECRET_KEY")
+PAYSTACK_PUBLIC=os.getenv("PAYSTACK_PUBLIC_KEY")
+PAYSTACK_SECRET=os.getenv("PAYSTACK_SECRET_KEY")SECRET_KEY = os.getenv("SECRET_KEY")
+PAYSTACK_PUBLIC=os.getenv("PAYSTACK_PUBLIC_KEY")
+PAYSTACK_SECRET=os.getenv("PAYSTACK_SECRET_KEY")
 
 
 @app.before_request
