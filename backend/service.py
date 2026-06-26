@@ -1,17 +1,13 @@
 import logging
-from typing import Dict, List, Optional
-import os 
+import os
 import requests
-from flask import current_app
-from dotenv import load_dotenv
 from requests.adapters import HTTPAdapter
 from urllib3.poolmanager import PoolManager
 import ssl
 
 
-load_dotenv()
-
 logger = logging.getLogger(__name__)
+
 
 class TLSAdapter(HTTPAdapter):
 
@@ -20,12 +16,16 @@ class TLSAdapter(HTTPAdapter):
         connections,
         maxsize,
         block=False,
-        **pool_kwargs
+        **kwargs
     ):
 
         ctx = ssl.create_default_context()
 
-        ctx.minimum_version = ssl.TLSVersion.TLSv1_2
+        ctx.check_hostname = True
+
+        ctx.minimum_version = (
+            ssl.TLSVersion.TLSv1_2
+        )
 
         self.poolmanager = PoolManager(
             num_pools=connections,
@@ -35,84 +35,73 @@ class TLSAdapter(HTTPAdapter):
         )
 
 
-
 class PaystackService:
-    BASE_URL = "https://api.paystack.co"
+
+    BASE_URL = (
+        "https://api.paystack.co"
+    )
 
     def __init__(self):
-    
-        self.session = requests.Session()
-        self.session.mount(
-                    "https://",
-                    TLSAdapter()
+
+        self.session = (
+            requests.Session()
         )
+
+        self.session.mount(
+            "https://",
+            TLSAdapter()
+        )
+
         self.session.headers.update({
-            "Authorization": f"Bearer {os.getenv("PAYSTACK_SECRET_KEY")}",
-            "Content-Type": "application/json"
+
+            "Authorization":
+            f"Bearer {os.getenv('PAYSTACK_SECRET_KEY')}",
+
+            "Content-Type":
+            "application/json"
         })
+
 
     def _request(
         self,
-        method: str,
-        endpoint: str,
-        params: Optional[Dict] = None,
-        json: Optional[Dict] = None
-    ) -> Dict:
-
-        url = f"{self.BASE_URL}{endpoint}"
+        method,
+        endpoint,
+        params=None,
+        json=None
+    ):
 
         try:
-            response = self.session.request(
-                method=method,
-                url=url,
-                params=params,
-                json=json,
-                timeout=20
+
+            response = (
+                self.session.request(
+
+                    method,
+
+                    self.BASE_URL +
+                    endpoint,
+
+                    params=params,
+
+                    json=json,
+
+                    timeout=(
+                        10,
+                        30
+                    )
+                )
             )
 
             response.raise_for_status()
 
-            payload = response.json()
+            return response.json()
 
-            if not payload.get("status"):
-                return {
-                    "success": False,
-                    "message": payload.get("message"),
-                    "data": None
-                }
+        except Exception:
 
-            return {
-                "success": True,
-                "message": payload.get("message"),
-                "data": payload.get("data")
-            }
+            logger.exception(
+                "Paystack failed"
+            )
 
-        except requests.Timeout:
-            logger.exception("Paystack timeout")
-
-            return {
-                "success": False,
-                "message": "Paystack request timed out.",
-                "data": None
-            }
-
-        except requests.RequestException as e:
-            logger.exception(e)
-
-            return {
-                "success": False,
-                "message": str(e),
-                "data": None
-            }
-
-        except Exception as e:
-            logger.exception(e)
-
-            return {
-                "success": False,
-                "message": "Unexpected Paystack error.",
-                "data": None
-            }
+            raise
 
     # ---------------------------------------
 
