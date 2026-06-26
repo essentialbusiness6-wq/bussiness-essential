@@ -76,9 +76,9 @@ app.config.update(
 app.config["flask_profiler"] = {
     "enabled": True,
 
-    "storage": {
-        "engine": "sqlite",
-        "FILE": "flask_profiler.sqlite"
+  
+    "storage":{
+        "engine":"memory"
     },
 
     "basicAuth": {
