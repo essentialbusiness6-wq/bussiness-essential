@@ -61,8 +61,7 @@
         </option>
         `;
 
-        data.banks
-        .forEach(
+        data.data.forEach(
             bank => {
 
                 const option =
@@ -77,8 +76,7 @@
                 bank.name;
 
                 bankSelect.appendChild(
-                    option
-                );
+                    option );
 
             }
         );
@@ -108,8 +106,7 @@
 
 
 
-
-        loadBanks();
+        
 
 
 
@@ -123,6 +120,7 @@
         // ================= INITIALIZATION =================
         createParticles();
         setupEventListeners();
+        loadBanks();
 
         function setupEventListeners() {
             // Bank selection - show custom input if "Other" selected
