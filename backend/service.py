@@ -1,8 +1,6 @@
 import logging
 import os
 import requests
-from typing import Dict
-
 
 logger = logging.getLogger(__name__)
 
@@ -38,12 +36,13 @@ class PaystackService:
     ):
 
         try:
-
-            r = (
+            Print("HIT RESPONSE")
+            response = (
                 self.session.request(
 
-                    method,
+                    method=method,
 
+                    url=
                     self.BASE_URL +
                     endpoint,
 
@@ -55,24 +54,33 @@ class PaystackService:
                 )
             )
 
-            r.raise_for_status()
+            response.raise_for_status()
+            print("FINISHED RESPONSE")
+            return response.json()
 
-            return r.json()
+        except requests.Timeout:
 
-        except Exception as e:
-
-            logger.exception(e)
+            logger.exception(
+                "Paystack timeout"
+            )
 
             return {
-
-                "success":
-                False,
-
+                "success": False,
                 "message":
-                str(e),
+                "Request timed out"
+            }
 
-                "data":
-                None
+
+        except requests.RequestException as e:
+
+            logger.exception(
+                e
+            )
+
+            return {
+                "success": False,
+                "message":
+                str(e)
             }
 
 
@@ -80,20 +88,13 @@ class PaystackService:
         self,
         country="nigeria"
     ):
-
+        print("HIT GET BANK")
         return self._request(
-
             "GET",
-
             "/bank",
-
             params={
-
                 "country":
-                country,
-
-                "perPage":
-                500
+                country
             }
         )
 
