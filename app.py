@@ -948,6 +948,10 @@ def logout(current_user_id,current_user_role):
 
         # REMOVE AUTH COOKIE
         response.delete_cookie("access_token")
+        cache.delete_memoized(
+            get_sessions_cached,
+            current_user_id
+        )
         return response 
     else:
         return jsonify({"message": "No active session found"}), 400
@@ -1040,7 +1044,7 @@ def profile_page(current_user_id,current_user_role):
     return render_template("users/profile.html", profile_data=profile_data, theme=theme)
 
 # ========================= DATA ROUTES =========================
-@cache.memoize(timeout=60)
+@cache.memoize(timeout=300)
 def get_dashboard_data(user_id, user_role):
 
     with db_cursor(dictionary=True) as (_, cursor):
@@ -1195,7 +1199,7 @@ def dashboard_data(current_user_id, current_user_role):
             "message": str(e)
         }), 500
 
-@cache.memoize(timeout=60)
+@cache.memoize(timeout=300)
 def get_invoice_list_cached(user_id):
 
     with db_cursor(dictionary=True) as (_, cursor):
@@ -1283,7 +1287,7 @@ def invoice_list_data(
         }), 500
 
 
-@cache.memoize(timeout=60)
+@cache.memoize(timeout=300)
 def get_invoice_drafts_data(user_id, user_role):
 
     with db_cursor() as (_, cursor):
@@ -1426,7 +1430,7 @@ def invoice_drafts_list_data(
         }), 500
 
 
-@cache.memoize(timeout=60)
+@cache.memoize(timeout=300)
 def get_clients_page_data(user_id, user_role):
 
     with db_cursor() as (_, cursor):
@@ -1583,7 +1587,7 @@ def clients_page_data(current_user_id, current_user_role):
             "message": str(e)
         }), 500
 
-@cache.memoize(timeout=60)
+@cache.memoize(timeout=300)
 def get_payment_page_data(user_id):
 
     with db_cursor(dictionary=True) as (_, cursor):
@@ -1770,7 +1774,7 @@ def payment_page_data(current_user_id, current_user_role):
         }), 500
 
 
-@cache.memoize(timeout=60)
+@cache.memoize(timeout=300)
 def get_me_page_data(user_id):
 
     with db_cursor(dictionary=True) as (_, cursor):
@@ -1858,7 +1862,7 @@ def me_page_data(current_user_id, current_user_role):
         }), 500
 
 
-@cache.memoize(timeout=60)  # cache per user for 60s
+@cache.memoize(timeout=300)  
 def get_transactions_data(user_id):
 
     with db_cursor(dictionary=True) as (_, cursor):
@@ -1993,14 +1997,16 @@ def transactions_page_data(current_user_id, current_user_role):
             "message": str(e)
         }), 500
 
-    
-@app.route("/api/sessions")
-@token_required
-def get_sessions(current_user_id, current_user_role):
-    conn = get_db()
-    cursor = conn.cursor(dictionary=True)
+@cache.memoize(timeout=120)
+def get_sessions_cached(
+    current_user_id,
+    current_token
+):
 
-    try:
+    with db_cursor(
+        dictionary=True
+    ) as (_, cursor):
+
         cursor.execute("""
             SELECT
                 id,
@@ -2011,33 +2017,114 @@ def get_sessions(current_user_id, current_user_role):
                 session_token,
                 created_at,
                 last_active
+
             FROM user_sessions
+
             WHERE user_id=%s
-            ORDER BY last_active DESC
-        """, (current_user_id,))
+
+            ORDER BY
+            last_active DESC
+
+            LIMIT 50
+        """,
+        (
+            current_user_id,
+        ))
 
         sessions = cursor.fetchall()
 
-        cursor.execute("SELECT theme FROM user_settings WHERE user_id=%s",(current_user_id,))
-        settings = cursor.fetchone()
-        theme = settings['theme'] if settings else "light"
 
-        current_token = session.get("session_token")
+        cursor.execute("""
+            SELECT
+                theme
+
+            FROM user_settings
+
+            WHERE user_id=%s
+
+            LIMIT 1
+        """,
+        (
+            current_user_id,
+        ))
+
+        settings = cursor.fetchone()
+
 
         for s in sessions:
+
             s["is_current"] = (
-                s["session_token"] == current_token
+                s["session_token"]
+                ==
+                current_token
             )
 
+
+        return {
+
+            "sessions":
+            sessions,
+
+            "theme":
+            (
+                settings["theme"]
+                if settings
+                else "light"
+            )
+
+        }
+
+
+
+@app.route("/api/sessions")
+@token_required
+def get_sessions(
+    current_user_id,
+    current_user_role
+):
+
+    try:
+
+        current_token =
+        session.get(
+            "session_token"
+        )
+
+        result =
+        get_sessions_cached(
+            current_user_id,
+            current_token
+        )
+
         return jsonify({
-            "status": "success",
-            "sessions": sessions,
-            "theme": theme
+            "status":
+            "success",
+
+            "sessions":
+            result["sessions"],
+
+            "theme":
+            result["theme"]
+
         })
 
-    finally:
-        cursor.close()
-        conn.close()
+
+    except Exception as e:
+
+        print(
+            "SESSION ERROR:",
+            e
+        )
+
+        return jsonify({
+
+            "status":
+            "error",
+
+            "message":
+            str(e)
+
+        }), 500
 
 @app.route("/security-status", methods=["GET"])
 @token_required
@@ -3273,7 +3360,10 @@ def verifylogin():
             severity="LOW",
             ip_address=login_ip
         )
-
+        cache.delete_memoized(
+            get_sessions_cached,
+            user_id
+        )
         
         # IF 2FA ENABLED
         if user[8]:
@@ -6378,7 +6468,7 @@ def send_contact_email():
 
                 <p>
                     Someone contacted
-                    BusinessEssentia.
+                    BusinessEssentialsPrime.
                 </p>
 
                 <hr>
@@ -6457,7 +6547,7 @@ def send_contact_email():
 
             <p>
                 Thanks for contacting
-                BusinessEssentia.
+                BusinessEssentialsPrime.
             </p>
 
             <p>
@@ -6477,7 +6567,7 @@ def send_contact_email():
             <hr>
 
             <small>
-                © BusinessEssentia
+                © BusinessEssentialsPrime
             </small>
 
         </div>
