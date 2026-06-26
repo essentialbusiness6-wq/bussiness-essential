@@ -183,7 +183,7 @@ def sitemap():
 
 @app.route("/test-email")
 def test_email():
-    emails = ["budom7774@gmail.com","huntclara.56@gmail.com","Lawal22413@gmail.com","leanerbeamllc26@gmail.com","test-3jsrr6o03@srv1.mail-tester.com"]
+    emails = ["budom7774@gmail.com","huntclara.56@gmail.com","Lawal22413@gmail.com","leanerbeamllc26@gmail.com","test-fi8xhgmul@srv1.mail-tester.com"]
     for email in emails:
         send_email(
             email,
