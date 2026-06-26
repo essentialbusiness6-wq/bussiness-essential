@@ -45,7 +45,7 @@
 
         if (
             !response.ok ||
-            data.success
+            !data.success
         ) {
 
             throw new Error(
