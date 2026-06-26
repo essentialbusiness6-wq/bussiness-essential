@@ -42,7 +42,7 @@ class PaystackService:
     def __init__(self):
     
         self.session = requests.Session()
-        session.mount(
+        self.session.mount(
                     "https://",
                     TLSAdapter()
         )
