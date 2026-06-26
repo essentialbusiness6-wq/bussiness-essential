@@ -544,3 +544,194 @@ body {
   .nav-item { gap: 2px; font-size: 0.7rem; padding: 6px 2px; }
   .nav-item svg { width: 22px; height: 22px; }
 }
+
+/* ================= ACCOUNT DETAILS MODAL ================= */
+.account-modal-overlay {
+    z-index: 10001;
+}
+
+.account-modal-card {
+    max-width: 480px;
+    padding: 32px 28px;
+    text-align: center;
+}
+
+.account-modal-icon {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 20px;
+    background: linear-gradient(135deg, rgba(67, 97, 238, 0.15) 0%, rgba(72, 149, 239, 0.15) 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulseIcon 2s ease-in-out infinite;
+}
+
+.dark .account-modal-icon {
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.2) 0%, rgba(56, 189, 248, 0.2) 100%);
+}
+
+@keyframes pulseIcon {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.account-modal-icon svg {
+    width: 32px;
+    height: 32px;
+    color: var(--primary);
+}
+
+.account-modal-card h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--dark);
+}
+
+.account-modal-text {
+    color: var(--gray);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 24px;
+}
+
+/* Steps */
+.account-modal-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+    text-align: left;
+}
+
+.account-step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--bg-input);
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+}
+
+.account-step-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--gradient-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.account-step-icon svg {
+    width: 16px;
+    height: 16px;
+    color: white;
+}
+
+.account-step-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.account-step-text strong {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--dark);
+}
+
+.account-step-text span {
+    font-size: 0.8rem;
+    color: var(--gray);
+}
+
+/* Actions */
+.account-modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.account-modal-btn {
+    padding: 14px 20px;
+    border-radius: var(--radius);
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: var(--transition);
+    text-decoration: none;
+    width: 100%;
+}
+
+.account-modal-btn.primary {
+    background: var(--gradient-bg);
+    color: white;
+    box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+}
+
+.account-modal-btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(67, 97, 238, 0.45);
+}
+
+.account-modal-btn.secondary {
+    background: transparent;
+    color: var(--gray);
+    border: 1px solid var(--border-color);
+}
+
+.account-modal-btn.secondary:hover {
+    background: var(--bg-input);
+    color: var(--dark);
+}
+
+.account-modal-btn svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+}
+
+/* Security Note */
+.account-modal-secure {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: var(--gray);
+}
+
+.account-modal-secure svg {
+    width: 14px;
+    height: 14px;
+    color: var(--success);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .account-modal-card {
+        padding: 24px 20px;
+    }
+    
+    .account-modal-card h2 {
+        font-size: 1.2rem;
+    }
+    
+    .account-modal-text {
+        font-size: 0.9rem;
+    }
+}
