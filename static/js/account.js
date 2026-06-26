@@ -281,7 +281,7 @@ async function verifyAccount() {
 
     catch (error) {
 
-        console.error(
+        console.log(
             "VERIFY ERROR:",
             error
         );
