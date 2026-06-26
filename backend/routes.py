@@ -43,9 +43,9 @@ def test_paystack():
     session = requests.Session()
 
     session.mount(
-                    "https://",
-                    TLSAdapter()
-        )
+            "https://",
+            TLSAdapter()
+    )
 
 
     response = session.get(
