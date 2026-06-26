@@ -1,4 +1,6 @@
 from flask import Blueprint, jsonify, request
+import requests
+import os
 
 from backend.service import PaystackService
 
@@ -6,6 +8,20 @@ bp = Blueprint("paystack", __name__)
 
 paystack = PaystackService()
 
+
+@app.route("/test-paystack")
+def test_paystack():
+
+    response = requests.get(
+        "https://api.paystack.co/bank",
+        headers={
+            "Authorization":
+            f"Bearer {os.getenv('PAYSTACK_SECRET_KEY')}"
+        },
+        timeout=20
+    )
+
+    return jsonify(response.json())
 
 @bp.get("/banks")
 def banks():
