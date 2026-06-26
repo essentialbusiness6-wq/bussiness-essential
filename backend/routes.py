@@ -411,10 +411,19 @@ def create_subaccount(
         )
 
         bank_name = (
-            account[
-                "bank_name"
-            ]
+            body.get(
+            "bank_name"
+            )
         )
+
+        if not bank_name:
+
+            bank_name = (
+                body.get(
+                    "bankCodeText",
+                    "Unknown Bank"
+                )
+            )
 
         # ------------------
         # Create subaccount
