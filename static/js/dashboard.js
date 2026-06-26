@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', function () {
     setupEventListeners();
 
     // Initialize greeting
+    setupAccountModal();
     updateGreeting();
 
     const saved = localStorage.getItem("theme");
@@ -324,7 +325,7 @@ function checkAccountCompletion(data) {
     const hoursSinceDismissed = dismissedAt ? (now - parseInt(dismissedAt)) / (1000 * 60 * 60) : Infinity;
     
 
-    const accountIncomplete = data.account
+    const accountIncomplete = data.account;
     const notRecentlyDismissed = hoursSinceDismissed > 24;
     
     if (accountIncomplete && notRecentlyDismissed) {
@@ -375,8 +376,7 @@ function setupAccountModal() {
     });
 }
 
-// Initialize account modal
-setupAccountModal();
+
 
 function renderDashboard(data) {
     applyTheme(data.theme || localStorage.getItem("theme") || "light");
@@ -650,17 +650,17 @@ function populateActivityList(activities) {
                 <div class="activity-content">
 
                     <div class="activity-title">
-                        ${activity[1] || "Activity"}
+                        ${activity.title || "Activity"}
                     </div>
 
                     <div class="activity-time">
-                        ${activity[2] || ""}
+                        ${activity.created_at || ""}
                     </div>
 
                 </div>
 
                 <div class="activity-amount">
-                    ${formatCurrency(activity[3] || 0, currencySymbol)}
+                    ${formatCurrency(activity.amount || 0, currencySymbol)}
                 </div>
             </div>
         `;
