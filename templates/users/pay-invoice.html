@@ -758,24 +758,18 @@
         }
 
         // ================= PAYMENT =================
-        async function initializePayment() {
+      async function initializePayment() {
 
     const btn =
-    document.getElementById(
-        "payBtn"
-    );
+    document.getElementById("payBtn");
 
     try {
 
         btn.disabled = true;
-
-        btn.textContent =
-        "Processing...";
+        btn.textContent = "Processing...";
 
         const amount =
-        Number(
-            btn.dataset.amount
-        );
+        Number(btn.dataset.amount);
 
         const email =
         btn.dataset.email;
@@ -789,115 +783,35 @@
         const handler =
         PaystackPop.setup({
 
-            key:
-            window.PAYSTACK_PUBLIC_KEY,
+            key: window.PAYSTACK_PUBLIC_KEY,
 
-            email,
+            email: email,
 
-            amount:
-            amount * 100,
+            amount: amount * 100,
 
-            currency:
-            "NGN",
+            currency: "NGN",
 
-            subaccount,
+            subaccount: subaccount,
 
             metadata: {
+                invoice_id: invoiceId
+            },
 
-                invoice_id:
-                invoiceId
+            callback: function (response) {
+
+                verifyPayment(
+                    response.reference,
+                    invoiceId
+                );
 
             },
 
-            callback:
-            async function(
-                response
-            ){
+            onClose: function () {
 
-                try{
+                btn.disabled = false;
 
-                    showToast(
-                        "Verifying payment...",
-                        "info"
-                    );
-
-                    const verify =
-                    await fetch(
-
-                        "/api/paystack/verify",
-
-                        {
-
-                            method:
-                            "POST",
-
-                            credentials:
-                            "include",
-
-                            headers:{
-                                "Content-Type":
-                                "application/json"
-                            },
-
-                            body:
-                            JSON.stringify({
-
-                                reference:
-                                response.reference,
-
-                                invoice_id:
-                                invoiceId
-
-                            })
-
-                        }
-
-                    );
-
-                    const result =
-                    await verify.json();
-
-                    if(
-                        !verify.ok ||
-                        !result.success
-                    ){
-
-                        throw new Error(
-                            result.message
-                        );
-
-                    }
-
-                    showToast(
-                        "Payment successful",
-                        "success"
-                    );
-
-                    setTimeout(()=>{
-
-                        location.reload();
-
-                    },1500);
-
-                }
-
-                catch(err){
-
-                    console.error(
-                        err
-                    );
-
-                    showToast(
-                        err.message,
-                        "error"
-                    );
-
-                }
-
-            },
-
-            onClose:
-            function(){
+                btn.textContent =
+                "Pay";
 
                 showToast(
                     "Payment cancelled",
@@ -912,11 +826,14 @@
 
     }
 
-    catch(err){
+    catch (err) {
 
-        console.error(
-            err
-        );
+        console.error(err);
+
+        btn.disabled = false;
+
+        btn.textContent =
+        "Pay";
 
         showToast(
             err.message,
@@ -925,18 +842,87 @@
 
     }
 
-    finally{
+}
 
-        btn.disabled =
-        false;
 
-        btn.textContent =
-        "Pay";
+async function verifyPayment(
+    reference,
+    invoiceId
+){
+
+    try{
+
+        showToast(
+            "Verifying payment...",
+            "info"
+        );
+
+        const verify =
+        await fetch(
+            "/api/paystack/verify",
+            {
+                method:"POST",
+
+                credentials:"include",
+
+                headers:{
+                    "Content-Type":
+                    "application/json"
+                },
+
+                body:
+                JSON.stringify({
+
+                    reference,
+
+                    invoice_id:
+                    invoiceId
+
+                })
+
+            }
+        );
+
+        const result =
+        await verify.json();
+
+        if(
+            !verify.ok ||
+            !result.success
+        ){
+
+            throw new Error(
+                result.message ||
+                "Verification failed"
+            );
+
+        }
+
+        showToast(
+            "Payment successful",
+            "success"
+        );
+
+        setTimeout(()=>{
+
+            location.reload();
+
+        },1500);
+
+    }
+
+    catch(err){
+
+        console.error(err);
+
+        showToast(
+            err.message,
+            "error"
+        );
 
     }
 
 }
-
         // ================= DOWNLOAD =================
         function downloadPDF() {
             showToast('Preparing PDF download...', 'success');
