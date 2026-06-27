@@ -556,15 +556,15 @@
         <div class="dates-row">
             <div class="date-block">
                 <span class="date-label">Issue Date</span>
-                <span class="date-value">Nov 15, 2024</span>
+                <span class="date-value">{{ invoiceDate }}</span>
             </div>
             <div class="date-block">
                 <span class="date-label">Due Date</span>
-                <span class="date-value due"> {{ invoiceDate }}</span>
+                <span class="date-value due">  {{ dueDate }} </span>
             </div>
             <div class="date-block">
                 <span class="date-label">Amount Due</span>
-                <span class="date-value due"> {{ dueDate }}</span>
+                <span class="date-value due"> {{currencySymbol}}{{ balance }} </span>
             </div>
         </div>
 
