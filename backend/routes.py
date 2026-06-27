@@ -59,6 +59,7 @@ def test_paystack():
     )
 
     return jsonify(response.json())
+    
 @bp.get("/banks")
 def banks():
 
@@ -611,6 +612,16 @@ def create_subaccount(
 
             conn.commit()
 
+        save_log_activity(
+            current_user_id,
+            "account",
+            "Added account information",
+            "Account and subaccount created successfully.",
+            0.00,
+            "paid"
+        )
+            
+
         return jsonify({
 
             "success": True,
@@ -671,6 +682,11 @@ def verify_payment(
     invoice_id = (
         body.get(
             "invoice_id"
+        )
+    )
+    clientName = (
+        body.get(
+            "client_name"
         )
     )
 
@@ -924,7 +940,14 @@ def verify_payment(
 
 
             conn.commit()
-
+            save_log_activity(
+                current_user_id,
+                "payment",
+                f"Client `{clientName}` Payment verfied",
+                "Payment successfully proccessed.",
+                paid_amount,
+                "paid"
+        )
 
         return jsonify({
 
