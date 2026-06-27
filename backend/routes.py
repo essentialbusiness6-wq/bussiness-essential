@@ -648,3 +648,324 @@ def create_subaccount(
             str(e)
 
         }), 500
+        
+
+@bp.post("/verify")
+@token_required
+def verify_payment(
+    current_user_id,
+    current_user_role
+):
+
+    body = (
+        request.get_json()
+        or {}
+    )
+
+    reference = (
+        body.get(
+            "reference"
+        )
+    )
+
+    invoice_id = (
+        body.get(
+            "invoice_id"
+        )
+    )
+
+    if (
+        not reference
+        or
+        not invoice_id
+    ):
+
+        return jsonify({
+
+            "success":
+            False,
+
+            "message":
+            "Missing payment details"
+
+        }), 400
+
+
+    try:
+
+        headers = {
+
+            "Authorization":
+
+            f"Bearer "
+            f"{os.getenv('PAYSTACK_SECRET_KEY')}"
+
+        }
+        session = requests.Session()
+        session.mount(
+            "https://",
+            TLSAdapter()
+        )
+
+        response = (
+            session .get(
+
+                f"https://api.paystack.co/transaction/verify/{reference}",
+
+                headers=headers,
+
+                timeout=20
+            )
+        )
+
+        response.raise_for_status()
+
+        result = (
+            response.json()
+        )
+
+        if (
+            not result.get(
+                "status"
+            )
+        ):
+
+            return jsonify({
+
+                "success":
+                False,
+
+                "message":
+                "Verification failed"
+
+            }), 400
+
+
+        trx = (
+            result["data"]
+        )
+
+
+        if (
+            trx["status"]
+            !=
+            "success"
+        ):
+
+            return jsonify({
+
+                "success":
+                False,
+
+                "message":
+                "Payment not completed"
+
+            }), 400
+
+
+        with db_cursor(
+            dictionary=True
+        ) as (
+            conn,
+            cursor
+        ):
+
+
+            cursor.execute(
+                """
+                SELECT
+                    id,
+                    total,
+                    status,
+                    user_id
+                FROM invoices
+                WHERE id=%s
+                LIMIT 1
+                """,
+                (
+                    invoice_id,
+                )
+            )
+
+            invoice = (
+                cursor.fetchone()
+            )
+
+            if (
+                not invoice
+            ):
+
+                return jsonify({
+
+                    "success":
+                    False,
+
+                    "message":
+                    "Invoice not found"
+
+                }), 404
+
+
+            if (
+                invoice[
+                    "status"
+                ]
+                ==
+                "paid"
+            ):
+
+                return jsonify({
+
+                    "success":
+                    True,
+
+                    "message":
+                    "Invoice already paid"
+
+                })
+
+
+            expected_amount = (
+                float(
+                    invoice[
+                        "total"
+                    ]
+                )
+            )
+
+
+            paid_amount = (
+                float(
+                    trx[
+                        "amount"
+                    ]
+                )
+                / 100
+            )
+
+
+            if (
+                paid_amount
+                <
+                expected_amount
+            ):
+
+                return jsonify({
+
+                    "success":
+                    False,
+
+                    "message":
+                    "Incorrect payment amount"
+
+                }), 400
+
+
+            cursor.execute(
+                """
+                UPDATE invoices
+                SET
+                    status='paid',
+                    amount_paid=%s,
+                    balance=0,
+                    paid_at=NOW(),
+                WHERE id=%s
+                """,
+
+                (
+                    paid_amount,
+                    invoice_id
+                )
+            )
+
+
+            cursor.execute(
+                """
+                INSERT INTO payments(
+
+                    invoice_id,
+
+                    user_id,
+
+                    reference,
+
+                    amount,
+
+                    provider,
+
+                    status
+
+                )
+
+                VALUES(
+
+                    %s,
+                    %s,
+                    %s,
+                    %s,
+                    'paystack',
+                    'success'
+
+                )
+                """,
+
+                (
+                    invoice_id,
+
+                    invoice[
+                        "user_id"
+                    ],
+
+                    reference,
+
+                    paid_amount
+                )
+            )
+
+
+            conn.commit()
+
+
+        return jsonify({
+
+            "success":
+            True,
+
+            "message":
+            "Payment verified",
+
+            "reference":
+            reference,
+
+            "amount":
+            paid_amount
+
+        })
+
+
+    except requests.Timeout:
+
+        return jsonify({
+
+            "success":
+            False,
+
+            "message":
+            "Verification timeout"
+
+        }), 504
+
+
+    except Exception as e:
+
+        logger.exception(e)
+
+        return jsonify({
+
+            "success":
+            False,
+
+            "message":
+            str(e)
+
+        }), 500
