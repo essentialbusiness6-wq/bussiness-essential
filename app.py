@@ -430,6 +430,9 @@ def pay_invoice_page():
         paymentTerms = payment_term,
         items=items_list,
         subaccount=subaccount,
+        PAYSTACK_PUBLIC_KEY=os.getenv(
+            "PAYSTACK_PUBLIC_KEY"
+        ),
         theme = settings['theme'] if settings else 'light'
     )
 
