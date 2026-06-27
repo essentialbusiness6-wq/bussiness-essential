@@ -631,3 +631,413 @@ body.dark {
 @media (min-width: 1024px) {
     .content { padding: 44px 40px; }
 }
+
+/* ================= TAB NAVIGATION ================= */
+.profile-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 4px;
+    background: var(--bg-input);
+    border-radius: var(--radius);
+    margin-bottom: 24px;
+    border: 1px solid var(--border-color);
+}
+
+.tab-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--gray);
+    transition: var(--transition-fast);
+}
+
+.tab-btn svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.tab-btn:hover {
+    color: var(--dark);
+    background: var(--bg-card);
+}
+
+.tab-btn.active {
+    background: var(--bg-card);
+    color: var(--primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.dark .tab-btn.active {
+    background: rgba(96, 165, 250, 0.1);
+}
+
+/* Tab Content */
+.tab-content {
+    display: none;
+    animation: tabFadeIn 0.3s ease;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@keyframes tabFadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ================= BANK STATUS CARD ================= */
+.bank-status-card {
+    background: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 24px;
+    transition: var(--transition);
+}
+
+.bank-status-card.empty {
+    background: rgba(243, 156, 18, 0.05);
+    border-color: rgba(243, 156, 18, 0.2);
+}
+
+.dark .bank-status-card.empty {
+    background: rgba(251, 191, 36, 0.08);
+    border-color: rgba(251, 191, 36, 0.2);
+}
+
+.bank-status-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.bank-status-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.bank-status-icon svg {
+    width: 24px;
+    height: 24px;
+}
+
+.bank-status-icon.verified {
+    background: rgba(46, 204, 113, 0.1);
+    color: var(--success);
+}
+
+.dark .bank-status-icon.verified {
+    background: rgba(52, 211, 153, 0.15);
+}
+
+.bank-status-icon.empty {
+    background: rgba(243, 156, 18, 0.1);
+    color: var(--warning);
+}
+
+.dark .bank-status-icon.empty {
+    background: rgba(251, 191, 36, 0.15);
+}
+
+.bank-status-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.bank-status-info h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 2px;
+}
+
+.bank-status-info p {
+    font-size: 0.85rem;
+    color: var(--gray);
+    line-height: 1.4;
+}
+
+.edit-bank-btn {
+    padding: 8px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--dark);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: var(--transition-fast);
+}
+
+.edit-bank-btn:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.edit-bank-btn svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* Bank Details Display */
+.bank-details-display {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    padding: 16px;
+    background: var(--bg-card);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+}
+
+.bank-detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.bank-detail-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--gray);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.bank-detail-value {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--dark);
+}
+
+.bank-detail-value.mono {
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 1px;
+}
+
+/* ================= BANK FORM ================= */
+.bank-form.hidden-form {
+    display: none;
+}
+
+.info-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    background: rgba(67, 97, 238, 0.05);
+    border: 1px solid rgba(67, 97, 238, 0.15);
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+}
+
+.dark .info-banner {
+    background: rgba(96, 165, 250, 0.08);
+    border-color: rgba(96, 165, 250, 0.2);
+}
+
+.info-banner svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    color: var(--primary);
+    margin-top: 2px;
+}
+
+.info-banner-content {
+    flex: 1;
+}
+
+.info-banner-content strong {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--dark);
+    margin-bottom: 2px;
+}
+
+.info-banner-content p {
+    font-size: 0.85rem;
+    color: var(--gray);
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Account Input with Verify Button */
+.account-input-wrapper {
+    position: relative;
+}
+
+.account-input-wrapper input {
+    padding-right: 100px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 1px;
+    font-weight: 500;
+}
+
+.verify-btn {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: var(--transition-fast);
+    font-family: inherit;
+}
+
+.verify-btn:hover:not(:disabled) {
+    background: var(--secondary);
+    transform: translateY(-50%) scale(1.02);
+}
+
+.verify-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.verify-btn svg {
+    width: 12px;
+    height: 12px;
+}
+
+.verify-btn.loading svg {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Account Name Display */
+.account-name-display {
+    margin-top: 12px;
+    padding: 14px 16px;
+    background: rgba(46, 204, 113, 0.08);
+    border: 1px solid rgba(46, 204, 113, 0.2);
+    border-radius: var(--radius);
+    display: none;
+    animation: fadeIn 0.4s ease;
+}
+
+.dark .account-name-display {
+    background: rgba(52, 211, 153, 0.08);
+    border-color: rgba(52, 211, 153, 0.2);
+}
+
+.account-name-display.active {
+    display: block;
+}
+
+.account-name-display.error {
+    background: rgba(231, 76, 60, 0.08);
+    border-color: rgba(231, 76, 60, 0.2);
+}
+
+.dark .account-name-display.error {
+    background: rgba(248, 113, 113, 0.08);
+    border-color: rgba(248, 113, 113, 0.2);
+}
+
+.account-name-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--success-dark);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.account-name-display.error .account-name-label {
+    color: var(--danger);
+}
+
+.account-name-label svg {
+    width: 14px;
+    height: 14px;
+}
+
+.account-name-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--dark);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.account-name-display.error .account-name-value {
+    color: var(--danger);
+    font-size: 0.9rem;
+    text-transform: none;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 640px) {
+    .profile-tabs {
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .tab-btn {
+        justify-content: flex-start;
+        padding: 10px 14px;
+    }
+    
+    .bank-status-header {
+        flex-wrap: wrap;
+    }
+    
+    .edit-bank-btn {
+        width: 100%;
+        justify-content: center;
+        margin-top: 8px;
+    }
+    
+    .bank-details-display {
+        grid-template-columns: 1fr;
+    }
+    
+    .account-input-wrapper input {
+        padding-right: 90px;
+        font-size: 0.9rem;
+    }
+    
+    .verify-btn {
+        padding: 6px 10px;
+        font-size: 0.75rem;
+    }
+}
