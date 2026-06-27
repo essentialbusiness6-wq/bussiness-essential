@@ -560,11 +560,11 @@
             </div>
             <div class="date-block">
                 <span class="date-label">Due Date</span>
-                <span class="date-value due"> {{currencySymbol}}{{ invoiceDate }}</span>
+                <span class="date-value due"> {{ invoiceDate }}</span>
             </div>
             <div class="date-block">
                 <span class="date-label">Amount Due</span>
-                <span class="date-value due"> {{currencySymbol}}{{ dueDate }}</span>
+                <span class="date-value due"> {{ dueDate }}</span>
             </div>
         </div>
 
@@ -634,8 +634,8 @@
         <div class="payment-card">
             <div class="payment-header">
                 <div class="payment-label">Amount Due</div>
-                <div class="payment-amount">$2,450.00</div>
-                <div class="payment-currency">USD - US Dollar</div>
+                <div class="payment-amount">{{currencySymbol}}{{ balance }}</div>
+                <div class="payment-currency">NGN - NG Naira</div>
             </div>
 
             <!-- Payment Methods -->
@@ -722,19 +722,6 @@
         const methodOptions = document.querySelectorAll('.method-option');
         const toastContainer = document.getElementById('toastContainer');
         const particlesContainer = document.getElementById('particles');
-
-        // ================= STATE =================
-        const state = {
-            selectedMethod: 'card',
-            invoiceData: {
-                number: 'INV-2024-248',
-                amount: 2450.00,
-                currency: 'USD',
-                email: 'billing@acme.com',
-                clientName: 'Acme Corporation'
-            }
-        };
-
         // ================= INITIALIZATION =================
         createParticles();
         setupEventListeners();
