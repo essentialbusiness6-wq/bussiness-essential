@@ -293,7 +293,7 @@ def login_page():
 
 @app.route("/pay/invoice/<int:invoiceId>")
 def pay_invoice_page():
-    with (db_cursor) as (conn,cursor)
+    with (db_cursor) as (conn,cursor):
         cursor.execute(
             """
             SELECT 
