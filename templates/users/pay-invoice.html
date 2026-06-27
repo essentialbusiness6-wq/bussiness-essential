@@ -755,7 +755,11 @@
         btn.disabled = true;
         btn.textContent = "Processing...";
 
-        const amount = Number(btn.dataset.amount);
+       const amount = btn.dataset.amount;
+
+        const paystackAmount = Math.round(
+            parseFloat(amount) * 100
+        );
 
         const email = btn.dataset.email;
         console.log(email);
@@ -770,7 +774,7 @@
 
             email: email,
 
-            amount: amount * 100,
+            amount: paystackAmount,
 
             currency: "NGN",
 
