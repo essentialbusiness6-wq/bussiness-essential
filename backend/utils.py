@@ -1145,7 +1145,7 @@ def send_pro_plan_invoice_email(
 ):
     from pathlib import Path
 
-    pay_link = f"https://yourapp.com/pay/invoice/{invoice_id}"
+    pay_link = f"https://www.businessessentia.net/pay/invoice/{invoice_id}"
 
     # Generate PDF
     pdf_path = generate_invoice_pdf(
