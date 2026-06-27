@@ -21,6 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize
     createParticles();
     setupEventListeners();
+    setupTabs();
+    setupBankVerification();
     const theme = document.body.dataset.theme;
     if (theme) {
         applyTheme(theme);
@@ -153,7 +155,224 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 2000);
         });
     }
+    // ================= TAB NAVIGATION =================
+function setupTabs() {
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
     
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const targetTab = btn.dataset.tab;
+            
+            // Update buttons
+            tabBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // Update content
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+                if (content.id === `tab-${targetTab}`) {
+                    content.classList.add('active');
+                }
+            });
+            
+            // Haptic feedback
+            showHapticFeedback(btn);
+        });
+    });
+}
+
+// ================= BANK VERIFICATION =================
+function setupBankVerification() {
+    const bankNameSelect = document.getElementById('bankName');
+    const accountNumberInput = document.getElementById('accountNumber');
+    const verifyBtn = document.getElementById('verifyBankBtn');
+    const accountNameDisplay = document.getElementById('accountNameDisplay');
+    const accountNameValue = document.getElementById('accountNameValue');
+    const accountNameLabelText = document.getElementById('accountNameLabelText');
+    const saveBankBtn = document.getElementById('saveBankBtn');
+    const bankForm = document.getElementById('bankForm');
+    const editBankBtn = document.getElementById('editBankBtn');
+    const cancelBankEdit = document.getElementById('cancelBankEdit');
+    const bankStatusCard = document.getElementById('bankStatusCard');
+    
+    let isVerified = false;
+    let verifiedAccountName = '';
+    
+    // Update verify button state
+    function updateVerifyButton() {
+        const bankSelected = bankNameSelect.value !== '';
+        const accountValid = accountNumberInput.value.length === 10;
+        verifyBtn.disabled = !(bankSelected && accountValid);
+    }
+    
+    // Bank selection change
+    if (bankNameSelect) {
+        bankNameSelect.addEventListener('change', () => {
+            resetVerification();
+            updateVerifyButton();
+        });
+    }
+    
+    // Account number input
+    if (accountNumberInput) {
+        accountNumberInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+            resetVerification();
+            updateVerifyButton();
+        });
+    }
+    
+    function resetVerification() {
+        isVerified = false;
+        verifiedAccountName = '';
+        if (accountNameDisplay) accountNameDisplay.classList.remove('active', 'error');
+        if (saveBankBtn) saveBankBtn.disabled = true;
+    }
+    
+    // Verify button click
+    if (verifyBtn) {
+        verifyBtn.addEventListener('click', async () => {
+            const bankCode = bankNameSelect.value;
+            const accountNumber = accountNumberInput.value;
+            
+            if (!bankCode || accountNumber.length !== 10) {
+                showToast('Please enter valid bank details', 'warning');
+                return;
+            }
+            
+            // Show loading state
+            verifyBtn.classList.add('loading');
+            verifyBtn.disabled = true;
+            verifyBtn.querySelector('span').textContent = 'Verifying...';
+            
+            try {
+                const response = await fetch('/profile/verify-account', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        bank_code: bankCode,
+                        account_number: accountNumber
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    isVerified = true;
+                    verifiedAccountName = data.account_name;
+                    
+                    accountNameLabelText.textContent = 'Verified Account Name';
+                    accountNameValue.textContent = data.account_name;
+                    accountNameDisplay.classList.remove('error');
+                    accountNameDisplay.classList.add('active');
+                    
+                    saveBankBtn.disabled = false;
+                    showToast('Account verified successfully!', 'success');
+                } else {
+                    accountNameLabelText.textContent = 'Verification Failed';
+                    accountNameValue.textContent = data.message || 'Account number not found. Please check and try again.';
+                    accountNameDisplay.classList.add('active', 'error');
+                    showToast('Account verification failed', 'error');
+                }
+            } catch (error) {
+                console.error('Verification error:', error);
+                accountNameLabelText.textContent = 'Verification Failed';
+                accountNameValue.textContent = 'An error occurred. Please try again.';
+                accountNameDisplay.classList.add('active', 'error');
+                showToast('Network error. Please try again.', 'error');
+            } finally {
+                verifyBtn.classList.remove('loading');
+                verifyBtn.querySelector('span').textContent = 'Verify';
+                updateVerifyButton();
+            }
+        });
+    }
+    
+    // Edit bank button
+    if (editBankBtn) {
+        editBankBtn.addEventListener('click', () => {
+            bankStatusCard.style.display = 'none';
+            bankForm.classList.remove('hidden-form');
+            showHapticFeedback(editBankBtn);
+        });
+    }
+    
+    // Cancel bank edit
+    if (cancelBankEdit) {
+        cancelBankEdit.addEventListener('click', () => {
+            bankForm.classList.add('hidden-form');
+            bankStatusCard.style.display = 'block';
+            resetVerification();
+            
+            // Reset form to original values
+            bankForm.reset();
+            // Re-populate with existing data
+            const originalBankCode = '{{ bank_data["bank_code"] if bank_data else "" }}';
+            const originalAccountNumber = '{{ bank_data["account_number"] if bank_data else "" }}';
+            if (originalBankCode) bankNameSelect.value = originalBankCode;
+            if (originalAccountNumber) accountNumberInput.value = originalAccountNumber;
+        });
+    }
+    
+    // Save bank details
+    if (bankForm) {
+        bankForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!isVerified) {
+                showToast('Please verify your account first', 'warning');
+                return;
+            }
+            
+            const bankCode = bankNameSelect.value;
+            const bankName = bankNameSelect.options[bankNameSelect.selectedIndex].text;
+            const accountNumber = accountNumberInput.value;
+            
+            // Show loading state
+            saveBankBtn.disabled = true;
+            saveBankBtn.querySelector('.btn-text').style.display = 'none';
+            saveBankBtn.querySelector('.btn-loader').style.display = 'inline-flex';
+            
+            try {
+                const response = await fetch('/profile/update-bank', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        bank_code: bankCode,
+                        bank_name: bankName,
+                        account_number: accountNumber,
+                        account_name: verifiedAccountName
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('Bank details saved successfully!', 'success');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else {
+                    showToast(data.message || 'Failed to save bank details', 'error');
+                    saveBankBtn.disabled = false;
+                    saveBankBtn.querySelector('.btn-text').style.display = 'inline';
+                    saveBankBtn.querySelector('.btn-loader').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Save error:', error);
+                showToast('Network error. Please try again.', 'error');
+                saveBankBtn.disabled = false;
+                saveBankBtn.querySelector('.btn-text').style.display = 'inline';
+                saveBankBtn.querySelector('.btn-loader').style.display = 'none';
+            }
+        });
+    }
+}
+
+
     async function handleFormSubmit() {
         // Validate form
         if (!validateForm()) return;
