@@ -538,7 +538,7 @@
                 <div class="party-details">
                     <span>{{ companyAddress }}</span>
                     <span>Nigeria</span>
-                    <a href="mailto:{{ companyEmail }}">{{ companyEmail }}</a>
+                    <a href="mailto:{{ companyEmail }}"> {{ companyEmail }} </a>
                 </div>
             </div>
             <div class="party-block">
@@ -547,7 +547,7 @@
                 <div class="party-details">
                     <span>{{ clientAddress }}</span>
                     <span>Nigeria</span>
-                    <a href="mailto:{{ clientEmail }}">{{ clientEmail }}/a>
+                    <a href="mailto:{{ clientEmail }}"> {{ clientEmail }} </a>
                 </div>
             </div>
         </div>
@@ -676,7 +676,7 @@
                 <svg viewBox="0 0 24 24">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                 </svg>
-                <span class="btn-text" data-invoice="{{ invoiceId }}" data-email="{{clientEmail}}" data-subaccount="{{ subaccount }}">Pay Now - {{ currencySymbol }}{{ balance }}</span>
+                <span class="btn-text" data-invoice="{{ invoiceId }}" data-email="{{ clientEmail }}" data-subaccount="{{ subaccount }}">Pay Now - {{ currencySymbol }}{{ balance }}</span>
                 <span class="btn-loader"><span class="spinner"></span> Processing</span>
             </button>
 
