@@ -884,7 +884,7 @@ def verify_payment(
                     status='paid',
                     amount_paid=%s,
                     balance=0,
-                    paid_at=NOW(),
+                    paid_at=NOW()
                 WHERE id=%s
                 """,
 
