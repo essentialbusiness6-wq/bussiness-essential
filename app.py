@@ -292,7 +292,7 @@ def login_page():
     return render_template("users/auth/login.html")
 
 @app.route("/pay/invoice/<int:invoiceId>")
-def pay_invoice_page():
+def pay_invoice_page(invoiceId):
     with (db_cursor) as (conn,cursor):
         cursor.execute(
             """
