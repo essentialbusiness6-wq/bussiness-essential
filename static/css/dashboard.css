@@ -754,3 +754,662 @@ body {
         font-size: 0.9rem;
     }
 }
+
+/* ================= PERSISTENT ACCOUNT SETUP BANNER ================= */
+.account-setup-banner {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, rgba(243, 156, 18, 0.08) 0%, rgba(231, 76, 60, 0.05) 100%);
+    border: 1px solid rgba(243, 156, 18, 0.25);
+    border-left: 4px solid var(--warning);
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+    animation: slideDown 0.4s ease;
+    position: relative;
+}
+
+.dark .account-setup-banner {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(248, 113, 113, 0.08) 100%);
+    border-color: rgba(251, 191, 36, 0.3);
+}
+
+.account-setup-banner.hidden {
+    display: none;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.setup-banner-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(243, 156, 18, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--warning);
+}
+
+.dark .setup-banner-icon {
+    background: rgba(251, 191, 36, 0.2);
+}
+
+.setup-banner-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.setup-banner-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.setup-banner-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 2px;
+}
+
+.setup-banner-text {
+    font-size: 0.85rem;
+    color: var(--gray);
+    line-height: 1.4;
+}
+
+.setup-banner-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: var(--warning);
+    color: white;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: var(--transition-fast);
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.setup-banner-btn:hover {
+    background: #d35400;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
+}
+
+.setup-banner-btn svg {
+    width: 14px;
+    height: 14px;
+}
+
+.setup-banner-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: transparent;
+    border: none;
+    color: var(--gray);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-fast);
+}
+
+.setup-banner-close:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--dark);
+}
+
+.dark .setup-banner-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.setup-banner-close svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* ================= ADVANCED ANALYTICS SECTION ================= */
+.analytics-section {
+    margin-top: 8px;
+}
+
+.analytics-section.hidden {
+    display: none;
+}
+
+.pro-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    background: var(--gradient-bg);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 700;
+    border-radius: var(--radius-full);
+    letter-spacing: 0.5px;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+/* Analytics Stats Grid */
+.analytics-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.analytics-stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 20px;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.analytics-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.analytics-stat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.analytics-stat-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--gray);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.analytics-stat-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.analytics-stat-icon svg {
+    width: 16px;
+    height: 16px;
+}
+
+.analytics-stat-icon.growth {
+    background: rgba(46, 204, 113, 0.1);
+    color: var(--success);
+}
+
+.analytics-stat-icon.success {
+    background: rgba(52, 152, 219, 0.1);
+    color: var(--info);
+}
+
+.analytics-stat-icon.avg {
+    background: rgba(147, 51, 234, 0.1);
+    color: #9333ea;
+}
+
+.analytics-stat-icon.cashflow {
+    background: rgba(67, 97, 238, 0.1);
+    color: var(--primary);
+}
+
+.analytics-stat-value {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--dark);
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 4px;
+    line-height: 1;
+}
+
+.analytics-stat-trend {
+    font-size: 0.8rem;
+    color: var(--gray);
+}
+
+.analytics-stat-trend.positive {
+    color: var(--success);
+}
+
+.analytics-stat-trend.negative {
+    color: var(--danger);
+}
+
+/* Charts Row */
+.analytics-charts {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.chart-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 20px;
+}
+
+.chart-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.chart-card-header h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 2px;
+}
+
+.chart-card-header p {
+    font-size: 0.8rem;
+    color: var(--gray);
+}
+
+.chart-total {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--dark);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.view-all-link {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.view-all-link:hover {
+    text-decoration: underline;
+}
+
+/* Bar Chart */
+.bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    height: 180px;
+    padding: 0 8px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 12px;
+}
+
+.bar-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    height: 100%;
+    justify-content: flex-end;
+}
+
+.bar-stack {
+    width: 100%;
+    display: flex;
+    gap: 3px;
+    align-items: flex-end;
+    height: 100%;
+}
+
+.bar {
+    flex: 1;
+    border-radius: 4px 4px 0 0;
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer;
+    position: relative;
+    min-height: 4px;
+}
+
+.bar.paid {
+    background: var(--primary);
+}
+
+.bar.pending {
+    background: var(--warning);
+    opacity: 0.7;
+}
+
+.bar:hover {
+    opacity: 0.8;
+    transform: scaleY(1.02);
+    transform-origin: bottom;
+}
+
+.bar-label {
+    font-size: 0.7rem;
+    color: var(--gray);
+    font-weight: 500;
+    margin-top: 6px;
+}
+
+.chart-legend-bar {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-top: 8px;
+}
+
+.chart-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: var(--gray);
+}
+
+.legend-bar {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+}
+
+.legend-bar.paid {
+    background: var(--primary);
+}
+
+.legend-bar.pending {
+    background: var(--warning);
+}
+
+/* Top Clients */
+.top-clients-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.top-client-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    border-radius: var(--radius-sm);
+    transition: var(--transition-fast);
+}
+
+.top-client-item:hover {
+    background: var(--bg-input);
+}
+
+.client-rank {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--bg-input);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--gray);
+    flex-shrink: 0;
+}
+
+.top-client-item:nth-child(1) .client-rank {
+    background: var(--gradient-bg);
+    color: white;
+}
+
+.top-client-item:nth-child(2) .client-rank {
+    background: var(--info);
+    color: white;
+}
+
+.top-client-item:nth-child(3) .client-rank {
+    background: var(--success);
+    color: white;
+}
+
+.client-avatar-small {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.7rem;
+    color: white;
+    flex-shrink: 0;
+}
+
+.client-info-small {
+    flex: 1;
+    min-width: 0;
+}
+
+.client-name-small {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.client-invoices-small {
+    font-size: 0.7rem;
+    color: var(--gray);
+}
+
+.client-revenue-small {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--dark);
+    font-family: 'JetBrains Mono', monospace;
+    flex-shrink: 0;
+}
+
+/* Cash Flow Card */
+.cash-flow-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 20px;
+}
+
+.cash-flow-visual {
+    margin-top: 16px;
+}
+
+.cash-flow-bar {
+    display: flex;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background: var(--bg-input);
+    margin-bottom: 16px;
+}
+
+.cash-flow-income {
+    background: linear-gradient(90deg, var(--success), #27ae60);
+    transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+}
+
+.cash-flow-expense {
+    background: linear-gradient(90deg, var(--danger), #c0392b);
+    transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cash-flow-details {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.cash-flow-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cash-flow-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.cash-flow-item.income .cash-flow-dot {
+    background: var(--success);
+}
+
+.cash-flow-item.expense .cash-flow-dot {
+    background: var(--danger);
+}
+
+.cash-flow-item.net .cash-flow-dot {
+    background: var(--primary);
+}
+
+.cash-flow-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.cash-flow-label {
+    font-size: 0.75rem;
+    color: var(--gray);
+    font-weight: 500;
+}
+
+.cash-flow-amount {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--dark);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* Empty State for Analytics */
+.analytics-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--gray);
+}
+
+.analytics-empty svg {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 12px;
+    opacity: 0.5;
+}
+
+.analytics-empty p {
+    font-size: 0.9rem;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 1024px) {
+    .analytics-charts {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .account-setup-banner {
+        flex-wrap: wrap;
+        padding: 14px 16px;
+        gap: 10px;
+    }
+    
+    .setup-banner-icon {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .setup-banner-content {
+        flex: 1;
+        min-width: calc(100% - 50px);
+    }
+    
+    .setup-banner-title {
+        font-size: 0.9rem;
+    }
+    
+    .setup-banner-text {
+        font-size: 0.8rem;
+    }
+    
+    .setup-banner-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 10px;
+    }
+    
+    .analytics-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    
+    .analytics-stat-value {
+        font-size: 1.4rem;
+    }
+    
+    .bar-chart {
+        height: 140px;
+    }
+    
+    .cash-flow-details {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .analytics-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .analytics-stat-card {
+        padding: 16px;
+    }
+    
+    .chart-card {
+        padding: 16px;
+    }
+    
+    .bar-chart {
+        height: 120px;
+        gap: 8px;
+    }
+    
+    .bar-label {
+        font-size: 0.65rem;
+    }
+}
