@@ -367,6 +367,19 @@ def pay_invoice_page():
         if not profile:
             return jsonify({"error": "Profile not found"}), 404
 
+        cursor.execute(
+            """
+            SELECT subaccount_code
+            FROM payment_subaccounts
+            WHERE user_id=%s
+            """,
+            (invoice['user_id'],)
+        )
+        subaccount = cursor.fetchone()
+        if not subaccount:
+            return jsonify({"error": "Subaccount not found. Update account details first"}), 404
+        
+
    
 
         invoice_date =invoice["invoice_date"]
@@ -416,6 +429,7 @@ def pay_invoice_page():
         companyPhone = profile['phone'],
         paymentTerms = payment_term,
         items=items_list,
+        subaccount=subaccount,
         theme = settings['theme'] if settings else 'light'
     )
 
