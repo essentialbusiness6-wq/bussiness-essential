@@ -291,9 +291,133 @@ def register_page():
 def login_page():
     return render_template("users/auth/login.html")
 
-@app.route("/invoice/pay")
+@app.route("/pay/invoice/<int:invoiceId>")
 def pay_invoice_page():
-    return render_template("users/pay-invoice.html")
+    with (db_cursor) as (conn,cursor)
+        cursor.execute(
+            """
+            SELECT 
+                invoices.id,
+                invoices.user_id,
+                invoices.client_id,
+                invoices.invoice_number,
+                invoices.invoice_date,
+                invoices.due_date,
+                invoices.total AS amount,
+                invoices.status,
+                invoices.subtotal,
+                invoices.tax,
+                invoices.amount_paid,
+                invoices.balance,
+                invoices.note
+            FROM invoices
+            WHERE invoices.id=%s
+            """,
+            (invoiceId,)
+        )
+
+        
+        invoice = cursor.fetchone()
+        if not invoice:
+            return jsonify({
+                "status": "error",
+                "message": "Invoice not found"
+            }), 404
+    
+        cursor.execute("""
+            SELECT description, quantity, price
+            FROM invoice_items
+            WHERE invoice_id=%s
+        """, (invoiceId,))
+        items = cursor.fetchall()
+        items_list = [{"desc": i['description'], "qty": i['quantity'], "price": i['price'], "total": i['quantity'] * i['price']} for i in items]
+             cursor.execute(
+            """
+            SELECT client_name, client_email, client_address
+            FROM clients
+            WHERE user_id=%s AND id=%s
+            """,
+            (invoice['user_id'], invoice['client_id'])
+        )
+        client = cursor.fetchone()
+        if not client:
+            return jsonify({"error": "Client not found"}), 404
+    
+        cursor.execute(
+            """
+            SELECT currency, currency_symbol, theme
+            FROM user_settings
+            WHERE user_id=%s
+            """,
+            (invoice['user_id'],)
+        )
+        settings = cursor.fetchone()
+        if not settings:
+            return jsonify({"error": "Settings not found"}), 404
+
+        cursor.execute(
+            """
+            SELECT profilename, address, alternateemail, phone, website
+            FROM cust_base
+            WHERE user_id=%s
+            """,
+            (invoice['user_id'],)
+        )
+        profile = cursor.fetchone()
+        if not profile:
+            return jsonify({"error": "Profile not found"}), 404
+
+   
+
+        invoice_date =invoice["invoice_date"]
+        due_date = invoice["due_date"]
+
+        days = (due_date - invoice_date).days
+
+        if days <= 0:
+            payment_term = "Due on Receipt"
+        elif days == 7:
+            payment_term = "Net 7"
+        elif days == 15:
+            payment_term = "Net 15"
+        elif days == 30:
+            payment_term = "Net 30"
+        elif days == 60:
+            payment_term = "Net 60"
+        elif days == 90:
+            payment_term = "Net 90"
+        else:
+            payment_term = f"Net {days}"
+
+        taxAmount = float(invoice['subtotal']) * float(invoice['tax']) / 100
+    return render_template(
+        "users/pay-invoice.html",
+         invoiceId=invoiceId,
+        invoiceNumber= invoice['invoice_number'],
+        invoiceDate= invoice['invoice_date'].strftime("%Y-%m-%d"),
+        dueDate= invoice['due_date'].strftime("%Y-%m-%d"),
+        totalAmount = float(invoice['amount']),
+        status= invoice['status'],
+        note= invoice['note'],
+        subtotal= float(invoice['subtotal']),
+        tax= float(invoice['tax']),
+        taxAmount= taxAmount,
+        amountPaid= float(invoice['amount_paid']),
+        balance= float(invoice['balance']),
+        clientId= invoice['client_id'],
+        clientName=client['client_name'],
+        clientEmail=client['client_email'],
+        clientAddress=client['client_address'],
+        currencySymbol=settings['currency_symbol'],
+        companyName = profile['profilename'],
+        companyAddress = profile['address'],
+        companyEmail = profile['alternateemail'],
+        companyWebsite = profile['website'],
+        companyPhone = profile['phone'],
+        paymentTerms = payment_term,
+        items=items_list,
+        theme = settings['theme'] if settings else 'light'
+    )
 
 @app.after_request
 def add_no_cache_headers(response):
