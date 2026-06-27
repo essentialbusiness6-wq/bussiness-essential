@@ -1230,7 +1230,17 @@ def profile_page(current_user_id,current_user_role):
     
         theme = settings["theme"] if settings and settings.get("theme") else "light"
 
-    return render_template("users/profile.html", profile_data=profile_data, theme=theme)
+        cursor.execute(
+            """
+            SELECT bank_name, account_number, account_name, bank_code
+            FROM payment_subaccounts 
+            WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+        bank_data = cursor.fetchone()
+
+    return render_template("users/profile.html", profile_data=profile_data, theme=theme, bank_data=bank_data)
 
 # ========================= DATA ROUTES =========================
 @cache.memoize(timeout=300)
