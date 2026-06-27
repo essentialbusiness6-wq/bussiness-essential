@@ -1108,6 +1108,226 @@ function applyTheme(theme) {
     }
     localStorage.setItem("theme", theme);
 }
+// ================= PERSISTENT ACCOUNT SETUP BANNER =================
+function checkAccountSetupBanner(data) {
+    const banner = document.getElementById('accountSetupBanner');
+    if (!banner) return;
+    
+    // Check if account is incomplete
+    let isAccountIncomplete = false;
+    
+    if (data.account) {
+        if (typeof data.account === 'object') {
+            isAccountIncomplete = !(
+                data.account.bank_name && 
+                data.account.account_number && 
+                data.account.account_name
+            );
+        } else if (typeof data.account === 'boolean') {
+            isAccountIncomplete = !data.account;
+        } else {
+            isAccountIncomplete = !Boolean(data.account);
+        }
+    } else {
+        isAccountIncomplete = true;
+    }
+    
+    // Check if user dismissed the banner
+    const dismissedAt = localStorage.getItem('setupBannerDismissedAt');
+    const now = Date.now();
+    const hoursSinceDismissed = dismissedAt ? (now - parseInt(dismissedAt)) / (1000 * 60 * 60) : Infinity;
+    const notRecentlyDismissed = hoursSinceDismissed > 24;
+    
+    if (isAccountIncomplete && notRecentlyDismissed) {
+        banner.classList.remove('hidden');
+    } else {
+        banner.classList.add('hidden');
+    }
+    
+    // Setup close button
+    const closeBtn = document.getElementById('closeSetupBanner');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            banner.classList.add('hidden');
+            localStorage.setItem('setupBannerDismissedAt', Date.now().toString());
+        });
+    }
+}
+
+// ================= ADVANCED ANALYTICS =================
+function renderAdvancedAnalytics(data) {
+    const analyticsSection = document.getElementById('analyticsSection');
+    if (!analyticsSection) return;
+    
+    // Check if user has Pro plan AND company data
+    const isProPlan = data.plan && (data.plan.toLowerCase() === 'pro' || data.plan.toLowerCase() === 'professional');
+    const hasCompanyData = data.company_data && Object.keys(data.company_data).length > 0;
+    
+    if (isProPlan && hasCompanyData) {
+        analyticsSection.classList.remove('hidden');
+        populateAnalytics(data);
+    } else {
+        analyticsSection.classList.add('hidden');
+    }
+}
+
+function populateAnalytics(data) {
+    const companyData = data.company_data;
+    const currency = data.currency_symbol || '$';
+    
+    // Revenue Growth
+    const revenueGrowth = companyData.revenue_growth || 0;
+    const growthEl = document.getElementById('revenueGrowth');
+    const growthTrendEl = document.getElementById('revenueGrowthTrend');
+    if (growthEl) {
+        growthEl.textContent = `${revenueGrowth >= 0 ? '+' : ''}${revenueGrowth}%`;
+        growthEl.parentElement.querySelector('.analytics-stat-card')?.classList.toggle('positive', revenueGrowth >= 0);
+    }
+    if (growthTrendEl) {
+        growthTrendEl.innerHTML = `<span>${revenueGrowth >= 0 ? '↑' : '↓'} vs last month</span>`;
+        growthTrendEl.classList.toggle('positive', revenueGrowth >= 0);
+        growthTrendEl.classList.toggle('negative', revenueGrowth < 0);
+    }
+    
+    // Payment Success Rate
+    const totalPayments = companyData.total_payments || 0;
+    const successfulPayments = companyData.successful_payments || 0;
+    const successRate = totalPayments > 0 ? Math.round((successfulPayments / totalPayments) * 100) : 0;
+    const successRateEl = document.getElementById('paymentSuccessRate');
+    const successCountEl = document.getElementById('paymentSuccessCount');
+    if (successRateEl) successRateEl.textContent = `${successRate}%`;
+    if (successCountEl) successCountEl.textContent = `${successfulPayments} of ${totalPayments} payments`;
+    
+    // Average Invoice Value
+    const totalRevenue = companyData.total_revenue || 0;
+    const totalInvoices = companyData.total_invoices || 0;
+    const avgValue = totalInvoices > 0 ? totalRevenue / totalInvoices : 0;
+    const avgValueEl = document.getElementById('avgInvoiceValue');
+    if (avgValueEl) avgValueEl.textContent = formatCurrency(avgValue, currency);
+    
+    // Cash Flow
+    const income = companyData.monthly_income || 0;
+    const expenses = companyData.monthly_expenses || 0;
+    const netCashFlow = income - expenses;
+    const cashFlowEl = document.getElementById('cashFlowValue');
+    const cashFlowTrendEl = document.getElementById('cashFlowTrend');
+    if (cashFlowEl) {
+        cashFlowEl.textContent = `${netCashFlow >= 0 ? '+' : ''}${formatCurrency(Math.abs(netCashFlow), currency)}`;
+        cashFlowEl.style.color = netCashFlow >= 0 ? 'var(--success)' : 'var(--danger)';
+    }
+    if (cashFlowTrendEl) {
+        cashFlowTrendEl.innerHTML = `<span>net this month</span>`;
+    }
+    
+    // Monthly Revenue Chart
+    renderMonthlyChart(companyData.monthly_revenue || [], currency);
+    
+    // Top Clients
+    renderTopClients(companyData.top_clients || []);
+    
+    // Cash Flow Breakdown
+    renderCashFlowBreakdown(income, expenses, netCashFlow, currency);
+}
+
+function renderMonthlyChart(monthlyData, currency) {
+    const chartContainer = document.getElementById('monthlyRevenueChart');
+    if (!chartContainer) return;
+    
+    if (monthlyData.length === 0) {
+        chartContainer.innerHTML = '<div class="analytics-empty"><p>No data available</p></div>';
+        return;
+    }
+    
+    const maxAmount = Math.max(...monthlyData.map(m => (m.paid || 0) + (m.pending || 0)));
+    
+    chartContainer.innerHTML = monthlyData.map(month => {
+        const paidHeight = maxAmount > 0 ? ((month.paid || 0) / maxAmount) * 100 : 0;
+        const pendingHeight = maxAmount > 0 ? ((month.pending || 0) / maxAmount) * 100 : 0;
+        
+        return `
+            <div class="bar-group">
+                <div class="bar-stack">
+                    <div class="bar paid" style="height: ${paidHeight}%" title="Paid: ${formatCurrency(month.paid || 0, currency)}"></div>
+                    <div class="bar pending" style="height: ${pendingHeight}%" title="Pending: ${formatCurrency(month.pending || 0, currency)}"></div>
+                </div>
+                <span class="bar-label">${month.month || ''}</span>
+            </div>
+        `;
+    }).join('');
+    
+    // Update chart total
+    const totalRevenue = monthlyData.reduce((sum, m) => sum + (m.paid || 0) + (m.pending || 0), 0);
+    const chartTotalEl = document.getElementById('chartTotal');
+    if (chartTotalEl) chartTotalEl.textContent = formatCurrency(totalRevenue, currency);
+}
+
+function renderTopClients(clients) {
+    const container = document.getElementById('topClientsList');
+    if (!container) return;
+    
+    if (clients.length === 0) {
+        container.innerHTML = '<div class="analytics-empty"><p>No client data available</p></div>';
+        return;
+    }
+    
+    const colors = ['#4361ee', '#3498db', '#2ecc71', '#9333ea', '#f39c12'];
+    
+    container.innerHTML = clients.slice(0, 5).map((client, index) => {
+        const initials = (client.name || 'NA').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        const color = colors[index % colors.length];
+        
+        return `
+            <div class="top-client-item">
+                <div class="client-rank">${index + 1}</div>
+                <div class="client-avatar-small" style="background: ${color}">${initials}</div>
+                <div class="client-info-small">
+                    <div class="client-name-small">${client.name || 'Unknown'}</div>
+                    <div class="client-invoices-small">${client.invoice_count || 0} invoices</div>
+                </div>
+                <div class="client-revenue-small">${formatCurrency(client.revenue || 0)}</div>
+            </div>
+        `;
+    }).join('');
+}
+
+function renderCashFlowBreakdown(income, expenses, net, currency) {
+    const total = income + expenses;
+    const incomePercent = total > 0 ? (income / total) * 100 : 0;
+    const expensePercent = total > 0 ? (expenses / total) * 100 : 0;
+    
+    const incomeBar = document.getElementById('cashFlowIncomeBar');
+    const expenseBar = document.getElementById('cashFlowExpenseBar');
+    const incomeEl = document.getElementById('cashFlowIncome');
+    const expenseEl = document.getElementById('cashFlowExpense');
+    const netEl = document.getElementById('cashFlowNet');
+    
+    if (incomeBar) {
+        setTimeout(() => {
+            incomeBar.style.width = `${incomePercent}%`;
+        }, 100);
+    }
+    if (expenseBar) {
+        setTimeout(() => {
+            expenseBar.style.width = `${expensePercent}%`;
+        }, 200);
+    }
+    
+    if (incomeEl) incomeEl.textContent = formatCurrency(income, currency);
+    if (expenseEl) expenseEl.textContent = formatCurrency(expenses, currency);
+    if (netEl) {
+        netEl.textContent = `${net >= 0 ? '+' : '-'}${formatCurrency(Math.abs(net), currency)}`;
+        netEl.style.color = net >= 0 ? 'var(--success)' : 'var(--danger)';
+    }
+}
+
+
+// You can modify your existing renderDashboard function to include:
+// const originalRenderDashboard = renderDashboard;
+// renderDashboard = function(data) {
+//     originalRenderDashboard(data);
+//     checkAccountSetupBanner(data);
+//     renderAdvancedAnalytics(data);
+// };
 
 // ================= ACCOUNT DETAILS COMPLETION CHECK =================
 function checkAccountCompletion(data) {
