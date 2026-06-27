@@ -331,7 +331,7 @@ def pay_invoice_page():
         """, (invoiceId,))
         items = cursor.fetchall()
         items_list = [{"desc": i['description'], "qty": i['quantity'], "price": i['price'], "total": i['quantity'] * i['price']} for i in items]
-             cursor.execute(
+        cursor.execute(
             """
             SELECT client_name, client_email, client_address
             FROM clients
