@@ -6354,6 +6354,15 @@ def initialize_payment(current_user_id, current_user_role):
                     )
                 }), 400
 
+            save_log_activity(
+                current_user_id,
+                "account",
+                "Payment Initialization",
+                "Initialized payment with paystack",
+                amount,
+                "pending"
+            )
+
 
             return jsonify({
                 "status": "success",
@@ -6523,6 +6532,14 @@ def payment_webhook():
                 expires
 
             ))
+            save_log_activity(
+                user_id,
+                "payment",
+                f"Account Subscribtion Successfull",
+                f"Updraged plan to {plan}",
+                amount,
+                "paid"
+            )
               
             cursor.execute(
                 """
