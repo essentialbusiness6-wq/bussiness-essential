@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Business Essential - Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="/static/media/app logo.png"/>
     <link rel="stylesheet" href="/static/css/dashboard.css">
 </head>
@@ -71,6 +71,34 @@
                     <div class="banner-text">Unlock advanced features like custom branding, priority support, and unlimited invoices.</div>
                 </div>
                 <button class="upgrade-btn" id="upgradeBtn">Upgrade Now</button>
+            </div>
+
+            <!-- Persistent Account Setup Banner -->
+            <div class="account-setup-banner hidden" id="accountSetupBanner">
+                <div class="setup-banner-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                        <line x1="12" y1="9" x2="12" y2="13"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                </div>
+                <div class="setup-banner-content">
+                    <div class="setup-banner-title">Complete Your Account Setup</div>
+                    <div class="setup-banner-text">Add your bank details to start receiving payments and sending invoices.</div>
+                </div>
+                <a href="/account" class="setup-banner-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 12h14"/>
+                        <path d="m12 5 7 7-7 7"/>
+                    </svg>
+                    Setup Now
+                </a>
+                <button class="setup-banner-close" id="closeSetupBanner" aria-label="Dismiss">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
             </div>
             
             <div class="greeting">
@@ -148,6 +176,167 @@
                     <div class="stat-card revenue">
                         <div class="stat-label">Revenue</div>
                         <div class="stat-value" id="total-revenue">$0.00</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Advanced Analytics Section (Pro Plan Only) -->
+            <div class="section analytics-section hidden" id="analyticsSection">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="20" x2="18" y2="10"/>
+                            <line x1="12" y1="20" x2="12" y2="4"/>
+                            <line x1="6" y1="20" x2="6" y2="14"/>
+                        </svg>
+                        Advanced Analytics
+                        <span class="pro-badge">PRO</span>
+                    </h2>
+                </div>
+
+                <!-- Analytics Stats Grid -->
+                <div class="analytics-stats">
+                    <div class="analytics-stat-card growth">
+                        <div class="analytics-stat-header">
+                            <span class="analytics-stat-label">Revenue Growth</span>
+                            <div class="analytics-stat-icon growth">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                                    <polyline points="17 6 23 6 23 12"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="analytics-stat-value" id="revenueGrowth">+0%</div>
+                        <div class="analytics-stat-trend" id="revenueGrowthTrend">
+                            <span>vs last month</span>
+                        </div>
+                    </div>
+
+                    <div class="analytics-stat-card success-rate">
+                        <div class="analytics-stat-header">
+                            <span class="analytics-stat-label">Payment Success</span>
+                            <div class="analytics-stat-icon success">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                                    <polyline points="22 4 12 14.01 9 11.01"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="analytics-stat-value" id="paymentSuccessRate">0%</div>
+                        <div class="analytics-stat-trend">
+                            <span id="paymentSuccessCount">0 of 0 payments</span>
+                        </div>
+                    </div>
+
+                    <div class="analytics-stat-card avg-value">
+                        <div class="analytics-stat-header">
+                            <span class="analytics-stat-label">Avg Invoice Value</span>
+                            <div class="analytics-stat-icon avg">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="12" y1="1" x2="12" y2="23"/>
+                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="analytics-stat-value" id="avgInvoiceValue">$0</div>
+                        <div class="analytics-stat-trend">
+                            <span id="avgInvoiceTrend">per invoice</span>
+                        </div>
+                    </div>
+
+                    <div class="analytics-stat-card cash-flow">
+                        <div class="analytics-stat-header">
+                            <span class="analytics-stat-label">Cash Flow</span>
+                            <div class="analytics-stat-icon cashflow">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="analytics-stat-value" id="cashFlowValue">$0</div>
+                        <div class="analytics-stat-trend" id="cashFlowTrend">
+                            <span>net this month</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="analytics-charts">
+                    <!-- Monthly Revenue Chart -->
+                    <div class="chart-card">
+                        <div class="chart-card-header">
+                            <div>
+                                <h3>Monthly Revenue</h3>
+                                <p>Last 6 months performance</p>
+                            </div>
+                            <div class="chart-total" id="chartTotal">$0</div>
+                        </div>
+                        <div class="bar-chart" id="monthlyRevenueChart">
+                            <!-- Bars will be generated by JS -->
+                        </div>
+                        <div class="chart-legend-bar">
+                            <div class="chart-legend-item">
+                                <span class="legend-bar paid"></span>
+                                <span>Paid</span>
+                            </div>
+                            <div class="chart-legend-item">
+                                <span class="legend-bar pending"></span>
+                                <span>Pending</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Top Clients -->
+                    <div class="chart-card top-clients-card">
+                        <div class="chart-card-header">
+                            <div>
+                                <h3>Top Clients</h3>
+                                <p>By revenue generated</p>
+                            </div>
+                            <a href="/dashboard/clients" class="view-all-link">View All</a>
+                        </div>
+                        <div class="top-clients-list" id="topClientsList">
+                            <!-- Will be populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cash Flow Breakdown -->
+                <div class="cash-flow-card">
+                    <div class="chart-card-header">
+                        <div>
+                            <h3>Cash Flow Breakdown</h3>
+                            <p>Income vs Expenses this month</p>
+                        </div>
+                    </div>
+                    <div class="cash-flow-visual">
+                        <div class="cash-flow-bar">
+                            <div class="cash-flow-income" id="cashFlowIncomeBar" style="width: 0%"></div>
+                            <div class="cash-flow-expense" id="cashFlowExpenseBar" style="width: 0%"></div>
+                        </div>
+                        <div class="cash-flow-details">
+                            <div class="cash-flow-item income">
+                                <div class="cash-flow-dot"></div>
+                                <div class="cash-flow-info">
+                                    <span class="cash-flow-label">Income</span>
+                                    <span class="cash-flow-amount" id="cashFlowIncome">$0</span>
+                                </div>
+                            </div>
+                            <div class="cash-flow-item expense">
+                                <div class="cash-flow-dot"></div>
+                                <div class="cash-flow-info">
+                                    <span class="cash-flow-label">Expenses</span>
+                                    <span class="cash-flow-amount" id="cashFlowExpense">$0</span>
+                                </div>
+                            </div>
+                            <div class="cash-flow-item net">
+                                <div class="cash-flow-dot"></div>
+                                <div class="cash-flow-info">
+                                    <span class="cash-flow-label">Net Profit</span>
+                                    <span class="cash-flow-amount" id="cashFlowNet">$0</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -275,76 +464,6 @@
             <h2 id="modalTitle">Notification</h2>
             <p id="modalMessage">This is a modal message.</p>
             <button class="modal-btn" id="modalActionBtn">OK</button>
-        </div>
-    </div>
-
-    <!-- Account Details Completion Modal -->
-    <div class="account-modal-overlay" id="accountModalOverlay">
-        <div class="account-modal-card">
-            <div class="account-modal-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/>
-                </svg>
-            </div>
-            <h2>Complete Your Account Setup</h2>
-            <p class="account-modal-text">To receive payments and start invoicing, please add your bank account details. This will only take a minute.</p>
-            
-            <div class="account-modal-steps">
-                <div class="account-step">
-                    <div class="account-step-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M3 21h18M3 10h18M5 6l7-3 7 3"/>
-                        </svg>
-                    </div>
-                    <div class="account-step-text">
-                        <strong>Add Bank Details</strong>
-                        <span>Bank name & account number</span>
-                    </div>
-                </div>
-                <div class="account-step">
-                    <div class="account-step-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                            <polyline points="22 4 12 14.01 9 11.01"/>
-                        </svg>
-                    </div>
-                    <div class="account-step-text">
-                        <strong>Verify Account</strong>
-                        <span>We'll verify your bank details</span>
-                    </div>
-                </div>
-                <div class="account-step">
-                    <div class="account-step-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
-                            <line x1="1" y1="10" x2="23" y2="10"/>
-                        </svg>
-                    </div>
-                    <div class="account-step-text">
-                        <strong>Start Receiving Payments</strong>
-                        <span>Get paid directly to your account</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="account-modal-actions">
-                <a href="/account" class="account-modal-btn primary">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M5 12h14"/>
-                        <path d="m12 5 7 7-7 7"/>
-                    </svg>
-                    Complete Setup Now
-                </a>
-                <button class="account-modal-btn secondary" id="remindLaterBtn">Remind Me Later</button>
-            </div>
-
-            <p class="account-modal-secure">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                </svg>
-                Your information is encrypted and secure
-            </p>
         </div>
     </div>
 
