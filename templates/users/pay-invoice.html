@@ -761,8 +761,29 @@
             parseFloat(amount) * 100
         );
 
-        const email = btn.dataset.email;
-        console.log(email);
+        const email = (btn.dataset.email || "").trim().toLowerCase();
+        
+console.log(
+"EMAIL:",
+JSON.stringify(email)
+);
+        if (
+!email ||
+!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+){
+
+showToast(
+"Invalid customer email",
+"error"
+);
+
+btn.disabled = false;
+
+btn.textContent = "Pay";
+
+return;
+
+}
         const invoiceId =
         btn.dataset.invoice;
 
@@ -892,7 +913,7 @@ async function verifyPayment(
 
         setTimeout(()=>{
 
-            location.reload();
+            window.location.href = '/';
 
         },1500);
 
