@@ -768,20 +768,16 @@
         btn.disabled = true;
         btn.textContent = "Processing...";
 
-        const amount =
-        Number(btn.dataset.amount);
+        const amount = Number(btn.dataset.amount);
 
-        const email =
-        btn.dataset.email;
-
+        const email = btn.dataset.email;
+        console.log(email);
         const invoiceId =
         btn.dataset.invoice;
 
-        const subaccount =
-        btn.dataset.subaccount;
+        const subaccount = btn.dataset.subaccount;
 
-        const handler =
-        PaystackPop.setup({
+        const handler = PaystackPop.setup({
 
             key: window.PAYSTACK_PUBLIC_KEY,
 
