@@ -748,7 +748,7 @@
             });
 
             // Pay button
-            payBtn.addEventListener('click', handlePayment);
+            payBtn.addEventListener('click', initializePayment);
 
             // Download buttons
             document.getElementById('downloadBtn').addEventListener('click', downloadPDF);
@@ -756,61 +756,184 @@
         }
 
         // ================= PAYMENT =================
-        function handlePayment() {
-            // Show loading state
-            payBtn.classList.add('loading');
-            payBtn.disabled = true;
+        async function initializePayment() {
 
-            // Initialize Paystack
-            const handler = PaystackPop.setup({
-                key: 'pk_test_82f461e2353df26a67897a5611c412129cc8d30f',
-                email: state.invoiceData.email,
-                amount: Math.round(state.invoiceData.amount * 100), // Convert to kobo/cents
-                currency: state.invoiceData.currency,
-                ref: `INV_${state.invoiceData.number}_${Date.now()}`,
-                metadata: {
-                    custom_fields: [
-                        { display_name: "Invoice Number", variable_name: "invoice_number", value: state.invoiceData.number },
-                        { display_name: "Client Name", variable_name: "client_name", value: state.invoiceData.clientName }
-                    ]
-                },
-                callback: function(response) {
-                    // Payment successful
-                    showToast('Payment successful! Redirecting...', 'success');
-                    
-                    // Verify payment on backend
-                    fetch('/api/verify-payment', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            reference: response.reference,
-                            invoice_number: state.invoiceData.number
-                        })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        // Redirect to success page
-                        setTimeout(() => {
-                            window.location.href = `/payment-success?ref=${response.reference}`;
-                        }, 1500);
-                    })
-                    .catch(error => {
-                        console.error('Verification failed:', error);
-                        payBtn.classList.remove('loading');
-                        payBtn.disabled = false;
-                        showToast('Payment successful but verification failed', 'error');
-                    });
-                },
-                onClose: function() {
-                    // User closed the payment modal
-                    payBtn.classList.remove('loading');
-                    payBtn.disabled = false;
-                    showToast('Payment cancelled', 'error');
+    const btn =
+    document.getElementById(
+        "payBtn"
+    );
+
+    try {
+
+        btn.disabled = true;
+
+        btn.textContent =
+        "Processing...";
+
+        const amount =
+        Number(
+            btn.dataset.amount
+        );
+
+        const email =
+        btn.dataset.email;
+
+        const invoiceId =
+        btn.dataset.invoice;
+
+        const subaccount =
+        btn.dataset.subaccount;
+
+        const handler =
+        PaystackPop.setup({
+
+            key:
+            window.PAYSTACK_PUBLIC_KEY,
+
+            email,
+
+            amount:
+            amount * 100,
+
+            currency:
+            "NGN",
+
+            subaccount,
+
+            metadata: {
+
+                invoice_id:
+                invoiceId
+
+            },
+
+            callback:
+            async function(
+                response
+            ){
+
+                try{
+
+                    showToast(
+                        "Verifying payment...",
+                        "info"
+                    );
+
+                    const verify =
+                    await fetch(
+
+                        "/api/payments/verify",
+
+                        {
+
+                            method:
+                            "POST",
+
+                            credentials:
+                            "include",
+
+                            headers:{
+                                "Content-Type":
+                                "application/json"
+                            },
+
+                            body:
+                            JSON.stringify({
+
+                                reference:
+                                response.reference,
+
+                                invoice_id:
+                                invoiceId
+
+                            })
+
+                        }
+
+                    );
+
+                    const result =
+                    await verify.json();
+
+                    if(
+                        !verify.ok ||
+                        !result.success
+                    ){
+
+                        throw new Error(
+                            result.message
+                        );
+
+                    }
+
+                    showToast(
+                        "Payment successful",
+                        "success"
+                    );
+
+                    setTimeout(()=>{
+
+                        location.reload();
+
+                    },1500);
+
                 }
-            });
 
-            handler.openIframe();
-        }
+                catch(err){
+
+                    console.error(
+                        err
+                    );
+
+                    showToast(
+                        err.message,
+                        "error"
+                    );
+
+                }
+
+            },
+
+            onClose:
+            function(){
+
+                showToast(
+                    "Payment cancelled",
+                    "warning"
+                );
+
+            }
+
+        });
+
+        handler.openIframe();
+
+    }
+
+    catch(err){
+
+        console.error(
+            err
+        );
+
+        showToast(
+            err.message,
+            "error"
+        );
+
+    }
+
+    finally{
+
+        btn.disabled =
+        false;
+
+        btn.textContent =
+        "Pay";
+
+    }
+
+}
 
         // ================= DOWNLOAD =================
         function downloadPDF() {
