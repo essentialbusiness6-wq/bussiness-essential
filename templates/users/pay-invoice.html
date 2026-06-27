@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pay Invoice #INV-2024-248 - Business Essential</title>
+    <title>Pay Invoice #{{ invoiceNumber}} - Business Essentials Prime</title>
     <script src="https://js.paystack.co/v1/inline.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="/static/media/app logo.png"/>
@@ -484,11 +484,11 @@
     <div class="top-bar-left">
         <a href="/" class="logo">
             <img src="/static/media/app logo.png" alt="Business Essential">
-            <span>Business Essential</span>
+            <span>Business Essentials Prime</span>
         </a>
         <span class="invoice-badge">
             <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-            INV-2024-248
+            {{ invoiceNumber }}
         </span>
     </div>
     <div class="top-bar-right">
@@ -515,15 +515,14 @@
                     </svg>
                 </div>
                 <div class="invoice-brand-info">
-                    <strong>Business Essential</strong>
-                    <span>123 Business Ave, Suite 100</span>
-                    <span>San Francisco, CA 94102</span>
-                    <span>hello@businesse.com</span>
+                    <strong>Business Essentials Prime</strong>
+                    <span>Ibadan, Nigeria.</span>
+                    <span>support@businessessentia.net</span>
                 </div>
             </div>
             <div class="invoice-title-block">
                 <div class="invoice-title">INVOICE</div>
-                <div class="invoice-number">#INV-2024-248</div>
+                <div class="invoice-number">#{{ invoiceNumber }}</div>
                 <div class="invoice-status">
                     <span class="status-dot"></span>
                     <span>Pending Payment</span>
@@ -535,22 +534,20 @@
         <div class="parties-grid">
             <div class="party-block">
                 <div class="party-label">Billed From</div>
-                <div class="party-name">Business Essential Inc.</div>
+                <div class="party-name">{{ companyName }}</div>
                 <div class="party-details">
-                    <span>123 Business Ave, Suite 100</span>
-                    <span>San Francisco, CA 94102</span>
-                    <span>United States</span>
-                    <a href="mailto:hello@businesse.com">hello@businesse.com</a>
+                    <span>{{ companyAddress }}</span>
+                    <span>Nigeria</span>
+                    <a href="mailto:{{ companyEmail }}">{{ companyEmail }}</a>
                 </div>
             </div>
             <div class="party-block">
                 <div class="party-label">Billed To</div>
-                <div class="party-name">Acme Corporation</div>
+                <div class="party-name">{{ clientName }}</div>
                 <div class="party-details">
-                    <span>Attn: John Smith</span>
-                    <span>456 Corporate Blvd</span>
-                    <span>New York, NY 10001</span>
-                    <a href="mailto:billing@acme.com">billing@acme.com</a>
+                    <span>{{ clientAddress }}</span>
+                    <span>Nigeria</span>
+                    <a href="mailto:{{ clientEmail }}">{{ clientEmail }}/a>
                 </div>
             </div>
         </div>
@@ -563,11 +560,11 @@
             </div>
             <div class="date-block">
                 <span class="date-label">Due Date</span>
-                <span class="date-value due">Dec 15, 2024</span>
+                <span class="date-value due"> {{currencySymbol}}{{ invoiceDate }}</span>
             </div>
             <div class="date-block">
                 <span class="date-label">Amount Due</span>
-                <span class="date-value due">$2,450.00</span>
+                <span class="date-value due"> {{currencySymbol}}{{ dueDate }}</span>
             </div>
         </div>
 
@@ -587,33 +584,16 @@
                     </tr>
                 </thead>
                 <tbody>
+                    {% for item in items %}
                     <tr>
                         <td class="desc">
-                            <strong>Website Design & Development</strong>
-                            <small>Custom responsive website with 5 pages</small>
+                            <strong>{{ item.desc }}</strong>
                         </td>
-                        <td class="right hide-mobile">1</td>
-                        <td class="right hide-mobile">$1,500.00</td>
-                        <td class="right">$1,500.00</td>
+                        <td class="right hide-mobile">{{ item.qty }}</td>
+                        <td class="right hide-mobile">{{currencySymbol}}{{ item.price }}</td>
+                        <td class="right">{{currencySymbol}}{{ item.total }}</td>
                     </tr>
-                    <tr>
-                        <td class="desc">
-                            <strong>SEO Optimization</strong>
-                            <small>On-page SEO for all pages</small>
-                        </td>
-                        <td class="right hide-mobile">1</td>
-                        <td class="right hide-mobile">$500.00</td>
-                        <td class="right">$500.00</td>
-                    </tr>
-                    <tr>
-                        <td class="desc">
-                            <strong>Monthly Hosting</strong>
-                            <small>Premium hosting plan - 12 months</small>
-                        </td>
-                        <td class="right hide-mobile">12</td>
-                        <td class="right hide-mobile">$37.50</td>
-                        <td class="right">$450.00</td>
-                    </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>
@@ -623,19 +603,19 @@
             <div class="totals-box">
                 <div class="total-row">
                     <span>Subtotal</span>
-                    <span>$2,450.00</span>
+                    <span>{{currencySymbol}}{{ subtotal }}</span>
                 </div>
                 <div class="total-row discount">
                     <span>Discount (0%)</span>
-                    <span>-$0.00</span>
+                    <span>-{{currencySymbol}}0.00</span>
                 </div>
                 <div class="total-row">
-                    <span>Tax (0%)</span>
-                    <span>$0.00</span>
+                    <span>Tax ({{ tax }}%)</span>
+                    <span>{{currencySymbol}}{{ taxAmount }}</span>
                 </div>
                 <div class="total-row grand">
                     <span>Total Due</span>
-                    <span>$2,450.00</span>
+                    <span>{{currencySymbol}}{{ balance }}</span>
                 </div>
             </div>
         </div>
@@ -643,7 +623,7 @@
         <!-- Notes -->
         <div class="notes-section">
             <h4>Notes</h4>
-            <p>Thank you for your business! We appreciate your trust in our services. Please don't hesitate to reach out if you have any questions.</p>
+            <p>{{ note }}. Please don't hesitate to reach out if you have any questions.</p>
             <h4 style="margin-top: 16px;">Terms & Conditions</h4>
             <p>Payment is due within 30 days of the invoice date. Late payments may be subject to a 1.5% monthly finance charge.</p>
         </div>
@@ -686,7 +666,7 @@
                                 <line x1="12" y1="18" x2="12.01" y2="18"></line>
                             </svg>
                         </div>
-                        <span>USSD</span>
+                        <span>NGN</span>
                     </div>
                 </div>
             </div>
@@ -696,7 +676,7 @@
                 <svg viewBox="0 0 24 24">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                 </svg>
-                <span class="btn-text">Pay Now - $2,450.00</span>
+                <span class="btn-text">Pay Now - {{ currencySymbol }}{{ balance }}</span>
                 <span class="btn-loader"><span class="spinner"></span> Processing</span>
             </button>
 
