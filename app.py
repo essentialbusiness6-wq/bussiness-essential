@@ -429,7 +429,7 @@ def pay_invoice_page(invoiceId):
         companyPhone = profile['phone'],
         paymentTerms = payment_term,
         items=items_list,
-        subaccount=subaccount,
+        subaccount=subaccount["subaccount_code"],
         PAYSTACK_PUBLIC_KEY=os.getenv(
             "PAYSTACK_PUBLIC_KEY"
         ),
