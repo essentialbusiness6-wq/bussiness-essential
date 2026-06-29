@@ -1337,7 +1337,37 @@ def get_dashboard_data(user_id, user_role):
             account = True
         else:
             account = False
-       
+        cursor.execute(
+           """
+            SELECT id
+            FROM organizations_data
+            WHERE owner_id=%s
+            """,(user_id,)
+        )
+        if cursor.fetchone():
+            company_data = True
+        else:
+            company_data = False
+        cursor.execute(
+            """
+            SELECT
+                clients.id,
+                clients.client_name,
+                COUNT(invoices.id) AS total_invoices
+
+            FROM clients
+
+            LEFT JOIN invoices ON invoices.client_id = clients.id
+
+            WHERE clients.user_id = %s
+
+            GROUP BY
+                clients.id,
+                clients.client_name
+            """,(user_id,)
+        )
+        clients = cursor.fetchall()
+   
 
     return {
         "status": "success",
@@ -1368,6 +1398,8 @@ def get_dashboard_data(user_id, user_role):
         "activities": activities,
 
         "account":account,
+        "company_data":company_data,
+        "clients":clients,
         "user": {
             "id": user_id,
             "role": user_role
