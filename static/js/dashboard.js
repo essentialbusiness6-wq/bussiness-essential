@@ -1074,6 +1074,8 @@ async function fetchDashboardData(forceRefresh = false) {
 
         renderDashboard(data);
         checkAccountCompletion(data);
+        checkAccoutSetupBanner(data);
+        renderAdvancedAnalytics(data);
 
     } catch (err) {
         if (err.name === "AbortError") {
@@ -1321,19 +1323,11 @@ function renderCashFlowBreakdown(income, expenses, net, currency) {
 }
 
 
-// You can modify your existing renderDashboard function to include:
-// const originalRenderDashboard = renderDashboard;
-// renderDashboard = function(data) {
-//     originalRenderDashboard(data);
-//     checkAccountSetupBanner(data);
-//     renderAdvancedAnalytics(data);
-// };
+
 
 // ================= ACCOUNT DETAILS COMPLETION CHECK =================
 function checkAccountCompletion(data) {
     console.log("=== CHECKING ACCOUNT COMPLETION ===");
-    console.log("Full data object:", data);
-    console.log("data.account:", data.account);
 
     const dismissedAt = localStorage.getItem("accountModalDismissedAt");
     const now = Date.now();
@@ -1351,26 +1345,16 @@ function checkAccountCompletion(data) {
         // If account is an object, check for required fields
         if (typeof data.account === 'object') {
             isAccountComplete = Boolean(
-                data.account.bank_name && 
-                data.account.account_number && 
-                data.account.account_name
+                 data.account
             );
-            console.log("Account is object, checking fields:", {
-                bank_name: data.account.bank_name,
-                account_number: data.account.account_number,
-                account_name: data.account.account_name,
-                isComplete: isAccountComplete
-            });
         } 
         // If account is a boolean
         else if (typeof data.account === 'boolean') {
             isAccountComplete = data.account;
-            console.log("Account is boolean:", isAccountComplete);
         }
         // If account is a string or number (truthy value)
         else {
-            isAccountComplete = Boolean(data.account);
-            console.log("Account is truthy value:", isAccountComplete);
+            isAccountComplete = Boolean(data.account););
         }
     } else {
         console.log("No account data found");
