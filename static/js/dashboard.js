@@ -1354,7 +1354,7 @@ function checkAccountCompletion(data) {
         }
         // If account is a string or number (truthy value)
         else {
-            isAccountComplete = Boolean(data.account););
+            isAccountComplete = Boolean(data.account);
         }
     } else {
         console.log("No account data found");
