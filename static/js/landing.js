@@ -7,9 +7,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const navLinks = document.querySelectorAll('.nav-links a');
     const yearSpan = document.getElementById('year');
     const contactForm = document.getElementById('contactForm');
-
+    
     // Set current year
     if(yearSpan) yearSpan.textContent = new Date().getFullYear();
+    // ================= PROBLEM/SOLUTION ANIMATION =================
+function setupProblemSolutionAnimation() {
+    const section = document.querySelector('.problem-solution');
+    if (!section) return;
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, {
+        threshold: 0.3
+    });
+    
+    observer.observe(section);
+}
+
+ setupProblemSolutionAnimation();
 
     function applyTheme(theme = "auto") {
 
