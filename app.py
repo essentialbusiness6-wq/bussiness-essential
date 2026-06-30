@@ -262,7 +262,7 @@ def about():
 
 @app.route("/pricing")
 def pricing():
-    return render_template("about.html")
+    return render_template("pricing.html")
 
 @app.route("/contact")
 def contact():
