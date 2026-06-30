@@ -571,3 +571,213 @@ rotate(
 );
 }
 }
+
+/* ================= PROBLEM/SOLUTION SECTION ================= */
+.problem-solution {
+    padding: 80px 0;
+    background: var(--bg-card);
+    position: relative;
+    overflow: hidden;
+}
+
+.dark .problem-solution {
+    background: rgba(30, 41, 59, 0.5);
+}
+
+.problem-solution::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+}
+
+.problem-solution::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+}
+
+.problem-solution-content {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+/* Problem Question */
+.problem-question {
+    text-align: center;
+    animation: fadeInUp 0.6s ease;
+}
+
+.question-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 24px;
+    background: linear-gradient(135deg, rgba(243, 156, 18, 0.1) 0%, rgba(231, 76, 60, 0.1) 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--warning);
+}
+
+.dark .question-icon {
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(248, 113, 113, 0.15) 100%);
+}
+
+.question-icon svg {
+    width: 32px;
+    height: 32px;
+}
+
+.problem-question h2 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--dark);
+    line-height: 1.3;
+    margin: 0;
+}
+
+/* Solution Arrow */
+.solution-arrow {
+    display: flex;
+    justify-content: center;
+    animation: bounceDown 2s ease-in-out infinite;
+}
+
+.solution-arrow svg {
+    width: 32px;
+    height: 32px;
+    color: var(--primary);
+}
+
+@keyframes bounceDown {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(8px);
+    }
+}
+
+/* Solution Answer */
+.solution-answer {
+    text-align: center;
+    padding: 32px;
+    background: linear-gradient(135deg, rgba(67, 97, 238, 0.05) 0%, rgba(46, 204, 113, 0.05) 100%);
+    border: 1px solid rgba(67, 97, 238, 0.15);
+    border-radius: var(--radius-lg);
+    animation: fadeInUp 0.6s ease 0.2s backwards;
+}
+
+.dark .solution-answer {
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.08) 0%, rgba(52, 211, 153, 0.08) 100%);
+    border-color: rgba(96, 165, 250, 0.2);
+}
+
+.answer-icon {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 20px;
+    background: linear-gradient(135deg, rgba(46, 204, 113, 0.15) 0%, rgba(52, 152, 219, 0.15) 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--success);
+}
+
+.dark .answer-icon {
+    background: linear-gradient(135deg, rgba(52, 211, 153, 0.2) 0%, rgba(56, 189, 248, 0.2) 100%);
+}
+
+.answer-icon svg {
+    width: 28px;
+    height: 28px;
+}
+
+.solution-answer p {
+    font-size: 1.25rem;
+    color: var(--dark);
+    line-height: 1.6;
+    margin: 0;
+}
+
+.solution-answer strong {
+    background: var(--gradient-bg);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-weight: 800;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .problem-solution {
+        padding: 60px 0;
+    }
+    
+    .problem-solution-content {
+        gap: 32px;
+    }
+    
+    .question-icon {
+        width: 56px;
+        height: 56px;
+    }
+    
+    .question-icon svg {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .problem-question h2 {
+        font-size: 1.6rem;
+    }
+    
+    .solution-arrow svg {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .answer-icon {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .answer-icon svg {
+        width: 24px;
+        height: 24px;
+    }
+    
+    .solution-answer {
+        padding: 24px 20px;
+    }
+    
+    .solution-answer p {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .problem-solution {
+        padding: 48px 0;
+    }
+    
+    .problem-question h2 {
+        font-size: 1.4rem;
+    }
+    
+    .solution-answer p {
+        font-size: 1rem;
+    }
+}
