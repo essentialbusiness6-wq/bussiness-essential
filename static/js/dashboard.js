@@ -1064,6 +1064,8 @@ async function fetchDashboardData(forceRefresh = false) {
 
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}`);
+            window.location.href = '/login';
+                
         }
 
         const data = await response.json();
