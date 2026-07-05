@@ -1,5 +1,6 @@
 import os 
 import json
+import re
 from datetime import datetime, time
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -638,6 +639,12 @@ def generate_invoice_pdf(invoice_id, client_name, client_email,
         current_app.root_path,
         "static",
         "invoices"
+    )
+    safe_client_name = re.sub(r"[^a-zA-Z0-9_-]", "_", client_name)
+
+    filename = (
+        f"invoice_{invoice_id}_{safe_client_name}_"
+        f"{datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"
     )
 
     os.makedirs(
