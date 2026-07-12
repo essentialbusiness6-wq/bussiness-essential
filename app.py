@@ -3511,9 +3511,8 @@ def verifylogin():
         session["session_token"] = session_token
         # IF 2FA ENABLED
         if user[8]:
-            from flask import current_app
 
-            print(current_app.config.get("SECRET_KEY"))
+            print(app.config.get("SECRET_KEY"))
 
             session['pending_user_id'] = user_id
 
