@@ -3638,7 +3638,7 @@ def verifylogin():
         # IF 2FA ENABLED
         if user[8]:
 
-            session['pending_user_id'] = user[6]
+            session['pending_user_id'] = user_id
 
             return jsonify({
                 "status": "success",
