@@ -66,6 +66,7 @@ print("STEP 1")
 app = Flask(__name__)
 app.register_blueprint(admin_bp)
 app.secret_key = os.getenv("SECRET_KEY")
+print("SECRET:", app.config.get("SECRET_KEY"))
 app.register_blueprint(paystack_bp, url_prefix="/api/paystack")
 
 print("STEP 2")
