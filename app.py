@@ -3505,9 +3505,9 @@ def verifylogin():
             latitude=latitude,
             longitude=longitude
         )
+        session['session_token'] = session_token
 
-
-        print(current_app.config.get("SECRET_KEY"))
+        print(app.config.get("SECRET_KEY"))
         session["session_token"] = session_token
         # IF 2FA ENABLED
         if user[8]:
