@@ -67,22 +67,25 @@ load_dotenv()
 
 print("STEP 1")
 app = Flask(__name__)
-app.register_blueprint(admin_bp)
 print("ENV SECRET:", os.getenv("SECRET_KEY"))
 
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
-
-print("APP SECRET:", app.config["SECRET_KEY"])
-app.register_blueprint(paystack_bp, url_prefix="/api/paystack")
-
-print("STEP 2")
-CORS(app, supports_credentials=True)
-
-print("STEP 3")    
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE="Lax"
 )
+CORS(app, supports_credentials=True)
+
+
+print("APP SECRET:", app.config["SECRET_KEY"])
+app.register_blueprint(admin_bp)
+
+app.register_blueprint(paystack_bp, url_prefix="/api/paystack")
+
+print("STEP 2")
+
+
+
 
 
 print("STEP 4")
@@ -238,7 +241,7 @@ def handle_connect():
 
 
 APP_LOGO_URL = "https://res.cloudinary.com/dkb987i8w/image/upload/v1772108684/app_logo_ky1yis.png"
-DASHBOARD_URL ='https:/businessessentia.net/dashboard'
+DASHBOARD_URL ='https:/businessessentia.net/login'
 SECURITY_URL= 'https:/businessessentia.net/dashboard'
 SECRET_KEY = os.getenv("SECRET_KEY")
 
