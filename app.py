@@ -59,14 +59,20 @@ from whitenoise import WhiteNoise
 
 
 
+
+
+
 load_dotenv()
 
 
 print("STEP 1")
 app = Flask(__name__)
 app.register_blueprint(admin_bp)
-app.secret_key = os.getenv("SECRET_KEY")
-print("SECRET:", app.config.get("SECRET_KEY"))
+print("ENV SECRET:", os.getenv("SECRET_KEY"))
+
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
+
+print("APP SECRET:", app.config["SECRET_KEY"])
 app.register_blueprint(paystack_bp, url_prefix="/api/paystack")
 
 print("STEP 2")
@@ -3638,6 +3644,9 @@ def verifylogin():
         
         # IF 2FA ENABLED
         if user[8]:
+            from flask import current_app
+
+            print(current_app.config.get("SECRET_KEY"))
 
             session['pending_user_id'] = user_id
 
