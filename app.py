@@ -127,6 +127,7 @@ app.config.update({
 
 try:
     cache.init_app(app)
+    print("Extensions:", app.extensions.keys())
     print("CACHE CONNECTED")
 
 except Exception as e:
