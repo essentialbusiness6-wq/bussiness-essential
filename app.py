@@ -241,7 +241,7 @@ def handle_connect():
 
 
 APP_LOGO_URL = "https://res.cloudinary.com/dkb987i8w/image/upload/v1772108684/app_logo_ky1yis.png"
-DASHBOARD_URL ='https:/businessessentia.net/login'
+DASHBOARD_URL = "https://www.businessessentia.net/login"
 SECURITY_URL= 'https:/businessessentia.net/dashboard'
 SECRET_KEY = os.getenv("SECRET_KEY")
 
@@ -2567,7 +2567,7 @@ def create_profile():
           <table width="100%" cellpadding="0" cellspacing="0" style="margin:32px 0;">
             <tr>
               <td align="center">
-                <a href="{DASHBOARD_URL}"
+                <a href="https://www.businessessentia.net/login"
                   style="background:#2563eb; color:#ffffff; text-decoration:none;
                          padding:14px 26px; border-radius:10px;
                          font-size:15px; font-weight:600; display:inline-block;">
