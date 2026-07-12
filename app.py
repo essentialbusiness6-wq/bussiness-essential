@@ -3630,10 +3630,10 @@ def verifylogin():
             severity="LOW",
             ip_address=login_ip
         )
-        cache.delete_memoized(
-            get_sessions_cached,
-            user_id
-        )
+        # cache.delete_memoized(
+        #     get_sessions_cached,
+        #     user_id
+        # )
         
         # IF 2FA ENABLED
         if user[8]:
