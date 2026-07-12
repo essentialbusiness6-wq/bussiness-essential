@@ -3494,7 +3494,7 @@ def verifylogin():
         if latitude and longitude:
             location = f"{latitude}, {longitude}"
 
-        log_session(
+        session_token = log_session(
             user_id=user_id,
             ip_address=ip_address,
             user_agent=user_agent,
@@ -3502,6 +3502,9 @@ def verifylogin():
             latitude=latitude,
             longitude=longitude
         )
+
+
+        session["session_token"] = session_token
 
 
         
