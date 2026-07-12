@@ -523,109 +523,109 @@ def get_location(lat, lng):
 
 
 
-def log_session(
-    user_id,
-    device_model,
-    client_type,
-    os_name,
-    os_version,
-    login_ip,
-    city,
-    country
-):
-    conn = None
-    cursor = None
+# def log_session(
+#     user_id,
+#     device_model,
+#     client_type,
+#     os_name,
+#     os_version,
+#     login_ip,
+#     city,
+#     country
+# ):
+#     conn = None
+#     cursor = None
 
-    try:
-        now = datetime.utcnow()
+#     try:
+#         now = datetime.utcnow()
 
-        conn = get_db()
-        cursor = conn.cursor(buffered=True)
+#         conn = get_db()
+#         cursor = conn.cursor(buffered=True)
 
-        cursor.execute("""
-            SELECT session_id
-            FROM user_sessions
-            WHERE user_id=%s
-            AND device_model=%s
-            AND client_type=%s
-            AND os_name=%s
-            AND ip_address=%s
-        """, (
-            user_id,
-            device_model,
-            client_type,
-            os_name,
-            login_ip
-        ))
+#         cursor.execute("""
+#             SELECT session_id
+#             FROM user_sessions
+#             WHERE user_id=%s
+#             AND device_model=%s
+#             AND client_type=%s
+#             AND os_name=%s
+#             AND ip_address=%s
+#         """, (
+#             user_id,
+#             device_model,
+#             client_type,
+#             os_name,
+#             login_ip
+#         ))
 
-        existing_session = cursor.fetchone()
+#         existing_session = cursor.fetchone()
 
-        if existing_session:
-            cursor.execute("""
-                UPDATE user_sessions
-                SET
-                    last_active_time=%s,
-                    os_version=%s,
-                    location_city=%s,
-                    location_country=%s,
-                    is_current=TRUE,
-                    active=TRUE
-                WHERE session_id=%s
-            """, (
-                now,
-                os_version,
-                city,
-                country,
-                existing_session[0]
-            ))
-        else:
-            cursor.execute("""
-                INSERT INTO user_sessions (
-                    user_id,
-                    device_model,
-                    client_type,
-                    os_name,
-                    os_version,
-                    ip_address,
-                    location_city,
-                    location_country,
-                    login_time,
-                    last_active_time,
-                    is_current,
-                    active
-                )
-                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-            """, (
-                user_id,
-                device_model,
-                client_type,
-                os_name,
-                os_version,
-                login_ip,
-                city,
-                country,
-                now,
-                now,
-                True,
-                True
-            ))
+#         if existing_session:
+#             cursor.execute("""
+#                 UPDATE user_sessions
+#                 SET
+#                     last_active_time=%s,
+#                     os_version=%s,
+#                     location_city=%s,
+#                     location_country=%s,
+#                     is_current=TRUE,
+#                     active=TRUE
+#                 WHERE session_id=%s
+#             """, (
+#                 now,
+#                 os_version,
+#                 city,
+#                 country,
+#                 existing_session[0]
+#             ))
+#         else:
+#             cursor.execute("""
+#                 INSERT INTO user_sessions (
+#                     user_id,
+#                     device_model,
+#                     client_type,
+#                     os_name,
+#                     os_version,
+#                     ip_address,
+#                     location_city,
+#                     location_country,
+#                     login_time,
+#                     last_active_time,
+#                     is_current,
+#                     active
+#                 )
+#                 VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+#             """, (
+#                 user_id,
+#                 device_model,
+#                 client_type,
+#                 os_name,
+#                 os_version,
+#                 login_ip,
+#                 city,
+#                 country,
+#                 now,
+#                 now,
+#                 True,
+#                 True
+#             ))
 
-        conn.commit()
+#         conn.commit()
 
-    except Exception as e:
-        print(f"log_session error: {e}")
+#     except Exception as e:
+#         print(f"log_session error: {e}")
 
-        if conn:
-            conn.rollback()
+#         if conn:
+#             conn.rollback()
 
-        raise
+#         raise
 
-    finally:
-        if cursor:
-            cursor.close()
+#     finally:
+#         if cursor:
+#             cursor.close()
 
-        if conn:
-            conn.close()
+#         if conn:
+#             conn.close()
 
 
 LOGO_PATH = "https://res.cloudinary.com/dkb987i8w/image/upload/v1772108684/app_logo_ky1yis.png" 
