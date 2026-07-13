@@ -172,11 +172,6 @@ def refresh_activity():
     if token:
         update_session_activity(token)
 
-
-from flask import Flask, request
-
-app = Flask(__name__)
-
 VERIFY_TOKEN = os.getenv("WHATSAPP_VERIFY_TOKEN")
 
 @app.route("/webhooks/whatsapp", methods=["GET", "POST"])
