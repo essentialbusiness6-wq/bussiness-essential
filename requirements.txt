@@ -26,3 +26,4 @@ gevent-websocket
 requests==2.32.3
 urllib3==2.5.0
 certifi>=2025.0.0
+supabase
