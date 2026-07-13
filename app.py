@@ -10,7 +10,7 @@ from flask_socketio import SocketIO, emit, join_room
 import time
 import flask_profiler
 from apscheduler.schedulers.background import BackgroundScheduler
-from backend.extentions import socketio, cache
+from backend.extentions import socketio
 from backend.routes import bp as paystack_bp
 from backend.socket_events import register_socket_events
 from werkzeug import Client
