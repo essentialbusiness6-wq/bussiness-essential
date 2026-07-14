@@ -1,44 +1,36 @@
-from flask import request
-
-from flask import jsonify
+from flask import request, jsonify
 
 from . import bp
-
 from .service import ask_ai
 
 
 @bp.post("/chat")
 def chat():
 
-    body = request.get_json()
+    body = request.get_json(silent=True) or {}
 
-    message = body.get(
-        "message",
-        ""
+    prompt = body.get("message", "").strip()
+    history = body.get("conversation", [])
+    context = body.get("context", {})
+    tools = body.get("tools", [])
+
+    if not prompt:
+        return jsonify({
+            "success": False,
+            "message": "Message is required."
+        }), 400
+
+    result = ask_ai(
+        prompt=prompt,
+        history=history,
+        context=context,
+        tools=tools
     )
 
-    conversation = body.get(
-        "conversation",
-        []
-    )
+    if not result["success"]:
+        return jsonify(result), 500
 
-    context = body.get(
-        "context",
-        {}
-    )
-
-    response = ask_ai(
-
-        message,
-
-        conversation,
-
-        context
-
-    )
-
-    return jsonify(
-
-        response.model_dump()
-
-    )
+    return jsonify({
+        "success": True,
+        "message": result["response"].choices[0].message.content
+    })
