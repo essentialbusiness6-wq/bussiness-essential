@@ -20,7 +20,6 @@ cloudinary
 openai
 python-dateutil
 reportlab
-eventlet
 gevent
 gevent-websocket
 requests==2.32.3
