@@ -1,6 +1,14 @@
 import os
 
-from openai import OpenAI
+from openai import (
+    OpenAI,
+    RateLimitError,
+    AuthenticationError,
+    APIConnectionError,
+    APITimeoutError,
+    BadRequestError,
+    OpenAIError
+)
 
 client = OpenAI(
     api_key=os.getenv("OPENAI_API_KEY")
@@ -17,43 +25,81 @@ from .prompts import SYSTEM_PROMPT
 from .tools import TOOLS
 
 
-def ask_ai(
-    message,
-    conversation,
-    context
-):
 
-    messages = [
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-        {
-            "role":"system",
-            "content":SYSTEM_PROMPT
-        }
 
-    ]
+def ask_ai(prompt, history=None, tools=None):
 
-    messages.extend(
-        conversation
-    )
+    messages = history or []
 
     messages.append({
-
-        "role":"user",
-
-        "content":message
-
+        "role": "user",
+        "content": prompt
     })
 
-    response = client.chat.completions.create(
+    try:
 
-        model=MODEL,
+        response = client.chat.completions.create(
+            model="gpt-5-mini",
+            messages=messages,
+            tools=tools if tools else None,
+            tool_choice="auto"
+        )
 
-        messages=messages,
+        return {
+            "success": True,
+            "response": response
+        }
 
-        tools=TOOLS,
+    except RateLimitError:
+        return {
+            "success": False,
+            "error": "quota_exceeded",
+            "message": (
+                "The AI service is temporarily unavailable because the "
+                "OpenAI API quota has been exceeded."
+            )
+        }
 
-        tool_choice="auto"
+    except AuthenticationError:
+        return {
+            "success": False,
+            "error": "authentication_failed",
+            "message": "The OpenAI API key is invalid."
+        }
 
-    )
+    except APIConnectionError:
+        return {
+            "success": False,
+            "error": "connection_error",
+            "message": "Unable to connect to the OpenAI servers."
+        }
 
-    return response
+    except APITimeoutError:
+        return {
+            "success": False,
+            "error": "timeout",
+            "message": "The AI request timed out."
+        }
+
+    except BadRequestError as e:
+        return {
+            "success": False,
+            "error": "bad_request",
+            "message": str(e)
+        }
+
+    except OpenAIError as e:
+        return {
+            "success": False,
+            "error": "openai_error",
+            "message": str(e)
+        }
+
+    except Exception as e:
+        return {
+            "success": False,
+            "error": "internal_error",
+            "message": str(e)
+        }
