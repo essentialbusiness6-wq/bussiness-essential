@@ -23,7 +23,6 @@ def chat():
     result = ask_ai(
         prompt=prompt,
         history=history,
-        context=context,
         tools=tools
     )
 
