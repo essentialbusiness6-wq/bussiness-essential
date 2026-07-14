@@ -1773,7 +1773,7 @@ function setupAIAssistant() {
             const response = await fetch('/api/ai/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt: text })
+                body: JSON.stringify({ message: text })
             });
 
             if (!response.ok) throw new Error('Failed to get AI response');
