@@ -12,6 +12,7 @@ import flask_profiler
 from apscheduler.schedulers.background import BackgroundScheduler
 from backend.extentions import socketio
 from backend.routes import bp as paystack_bp
+from backend.ai import bp as ai_bp
 from backend.socket_events import register_socket_events
 from werkzeug import Client
 from backend.utils import (
@@ -79,6 +80,10 @@ CORS(app, supports_credentials=True)
 
 print("APP SECRET:", app.config["SECRET_KEY"])
 app.register_blueprint(admin_bp)
+
+app.register_blueprint(
+    ai_bp
+)
 
 app.register_blueprint(paystack_bp, url_prefix="/api/paystack")
 
