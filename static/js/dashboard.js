@@ -1770,7 +1770,7 @@ function setupAIAssistant() {
         showLoading(true);
 
         try {
-            const response = await fetch('/api/ai/prompt', {
+            const response = await fetch('/api/ai/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ prompt: text })
