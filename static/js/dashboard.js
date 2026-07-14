@@ -911,6 +911,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Set up scroll indicator
     setupScrollIndicator();
+
+    setupAIAssistant();
 });
 
 let currencySymbol = "$";
@@ -1709,3 +1711,175 @@ function forceShowAccountModal() {
 
 // Make it available in console for testing
 window.forceShowAccountModal = forceShowAccountModal;
+
+
+
+
+// ================= AI ASSISTANT FUNCTIONALITY =================
+function setupAIAssistant() {
+    const promptInput = document.getElementById('aiPromptInput');
+    const sendBtn = document.getElementById('aiSendBtn');
+    const micBtn = document.getElementById('aiMicBtn');
+    const charCounter = document.getElementById('charCounter');
+    const responseArea = document.getElementById('aiResponseArea');
+    const loadingIndicator = document.getElementById('aiLoadingIndicator');
+    
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let isRecording = false;
+
+    // Auto-resize textarea and character counter
+    promptInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = Math.min(this.scrollHeight, 150) + 'px';
+        
+        const len = this.value.length;
+        charCounter.textContent = `${len}/500`;
+        
+        if (len > 450) {
+            charCounter.classList.add('warning');
+        } else {
+            charCounter.classList.remove('warning');
+        }
+        
+        sendBtn.disabled = len === 0 || len > 500;
+    });
+
+    // Keyboard shortcuts (Enter to send, Shift+Enter for new line)
+    promptInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            if (!sendBtn.disabled) {
+                handleTextSubmit();
+            }
+        }
+    });
+
+    sendBtn.addEventListener('click', handleTextSubmit);
+
+    async function handleTextSubmit() {
+        const text = promptInput.value.trim();
+        if (!text) return;
+
+        // UI Updates
+        promptInput.value = '';
+        promptInput.style.height = 'auto';
+        charCounter.textContent = '0/500';
+        sendBtn.disabled = true;
+        addMessage(text, 'user');
+        showLoading(true);
+
+        try {
+            const response = await fetch('/api/ai/prompt', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: text })
+            });
+
+            if (!response.ok) throw new Error('Failed to get AI response');
+            
+            const data = await response.json();
+            addMessage(data.response || 'Sorry, I could not process that.', 'ai');
+        } catch (error) {
+            console.error('AI Text Error:', error);
+            addMessage('An error occurred while processing your request. Please try again.', 'error');
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    // Microphone functionality
+    micBtn.addEventListener('click', async () => {
+        if (isRecording) {
+            stopRecording();
+        } else {
+            await startRecording();
+        }
+    });
+
+    async function startRecording() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    audioChunks.push(event.data);
+                }
+            };
+
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                await handleAudioSubmit(audioBlob);
+                // Stop all tracks to release microphone
+                stream.getTracks().forEach(track => track.stop());
+            };
+
+            mediaRecorder.start();
+            isRecording = true;
+            micBtn.classList.add('recording');
+            micBtn.title = "Stop recording";
+            promptInput.placeholder = "Listening... Speak now";
+            promptInput.disabled = true;
+            sendBtn.disabled = true;
+        } catch (err) {
+            console.error('Microphone access denied or error:', err);
+            addMessage('Microphone access denied. Please check your browser permissions and try again.', 'error');
+        }
+    }
+
+    function stopRecording() {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+        }
+        isRecording = false;
+        micBtn.classList.remove('recording');
+        micBtn.title = "Voice input";
+        promptInput.placeholder = "Ask me anything about your business...";
+        promptInput.disabled = false;
+        // Re-evaluate send button state based on textarea
+        sendBtn.disabled = promptInput.value.trim().length === 0;
+    }
+
+    async function handleAudioSubmit(audioBlob) {
+        showLoading(true);
+        addMessage('🎤 Processing voice input...', 'user');
+
+        try {
+            const formData = new FormData();
+            formData.append('audio', audioBlob, 'recording.webm');
+
+            const response = await fetch('/api/ai/voice', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) throw new Error('Failed to process audio');
+
+            const data = await response.json();
+            addMessage(data.response || 'Sorry, I could not understand the audio.', 'ai');
+        } catch (error) {
+            console.error('AI Voice Error:', error);
+            addMessage('An error occurred while processing your voice input. Please try typing your message instead.', 'error');
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    function addMessage(text, type) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `ai-message ${type}`;
+        msgDiv.textContent = text;
+        responseArea.appendChild(msgDiv);
+        responseArea.scrollTop = responseArea.scrollHeight;
+    }
+
+    function showLoading(show) {
+        loadingIndicator.style.display = show ? 'flex' : 'none';
+        if (show) {
+            responseArea.scrollTop = responseArea.scrollHeight;
+        }
+    }
+}
+
