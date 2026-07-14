@@ -125,6 +125,59 @@
             </div>
             <p class="subtitle">Here's an overview of your invoicing activity today</p>
 
+            <!-- AI Business Assistant Section -->
+            <div class="section ai-assistant-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"></path>
+                            <path d="M8.5 8.5v.01"></path>
+                            <path d="M16 15.5v.01"></path>
+                            <path d="M12 12v.01"></path>
+                        </svg>
+                        AI Business Assistant
+                        <span class="ai-badge">AI</span>
+                    </h2>
+                </div>
+                <div class="ai-assistant-card">
+                    <div class="ai-response-area" id="aiResponseArea">
+                        <div class="ai-welcome">
+                            <p>👋 Hi! I'm your AI Business Assistant. Ask me to draft an invoice, summarize client data, or analyze your cash flow.</p>
+                        </div>
+                    </div>
+                    <div class="ai-input-container">
+                        <div class="ai-input-wrapper">
+                            <textarea id="aiPromptInput" placeholder="Ask me anything about your business..." rows="1"></textarea>
+                            <div class="ai-input-actions">
+                                <span class="char-counter" id="charCounter">0/500</span>
+                                <div class="ai-action-btns">
+                                    <button class="ai-mic-btn" id="aiMicBtn" title="Voice input">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                                            <line x1="12" y1="19" x2="12" y2="23"></line>
+                                            <line x1="8" y1="23" x2="16" y2="23"></line>
+                                        </svg>
+                                    </button>
+                                    <button class="ai-send-btn" id="aiSendBtn" title="Send prompt" disabled>
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ai-loading-indicator" id="aiLoadingIndicator" style="display: none;">
+                            <div class="ai-typing-dots">
+                                <span></span><span></span><span></span>
+                            </div>
+                            <span>AI is thinking...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="account-balance">
                 <div class="balance-header">
                     <div class="balance-title">
@@ -555,7 +608,6 @@
             </p>
         </div>
     </div>
-
 
     <script src="/static/js/dashboard.js"></script>
 </body>
