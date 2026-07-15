@@ -3,35 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Business Essentials Prime - Professional invoicing, client management, and payment tracking for modern businesses, accept online payments and grow your business.">
-    <meta name="keywords" content="Inoice software, invoicing, Business Essentials, Business Essentials Prime, business management, payment tracking, online invoice generator, Nigeria invoice software">
+    <meta name="description" content="Business Essentials Prime - Professional invoicing, client management, and payment tracking for modern businesses.">
+    <meta name="keywords" content="Invoice software, invoicing, Business Essentials, Business Essentials Prime, business management, payment tracking, online invoice generator, Nigeria invoice software">
     <meta property="og:title" content="Business Essentials Prime">
     <meta property="og:description" content="Create invoices, manage clients and receive payments online.">
     <meta property="og:image" content="/static/media/app logo.png">
     <meta property="og:url" content="https://businessessentia.net">
     <meta property="og:type" content="website">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Business Essentials Prime">
-    <meta name="twitter:description"content="Business management made easy.">
-    <meta name="twitter:image" content="/static/media/app logo.png">
-    <title>Dashboard - Business Essentials Prime | Online Invoice & Business Management Software</title>
-    <link rel="canonical" href="https://www.businessessentia.net/dashboard">
+    <title>Register - Business Essentials Prime</title>
+    <link rel="canonical" href="https://www.businessessentia.net/register">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='media/app logo.png') }}"/>
-      <script async src="https://www.googletagmanager.com/gtag/js?id=G-C3FW04E7GT"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-C3FW04E7GT"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-
       gtag('config', 'G-C3FW04E7GT');
     </script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
             --primary: #4361ee;
@@ -51,6 +42,36 @@
             --transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
             --border-radius: 16px;
             --orbit-size: 120px;
+            
+            /* Form specific */
+            --input-bg: rgba(255, 255, 255, 0.85);
+            --input-border: rgba(0, 0, 0, 0.08);
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --container-bg: rgba(255, 255, 255, 0.92);
+        }
+
+        /* ================= DARK THEME ================= */
+        .dark {
+            --primary: #60a5fa;
+            --secondary: #818cf8;
+            --accent: #38bdf8;
+            --success: #34d399;
+            --dark: #f8fafc;
+            --light: #0f172a;
+            --gray: #94a3b8;
+            --danger: #f472b6;
+            --warning: #fbbf24;
+            --gradient-bg: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.5);
+            
+            --input-bg: rgba(30, 41, 59, 0.8);
+            --input-border: rgba(255, 255, 255, 0.1);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --container-bg: rgba(15, 23, 42, 0.95);
         }
 
         body.signup-page {
@@ -62,8 +83,10 @@
             align-items: center;
             padding: 20px;
             position: relative;
-            overflow: hidden;
-            color: var(--dark);
+            overflow-x: hidden;
+            overflow-y: auto;
+            color: var(--text-main);
+            transition: background 0.4s ease, color 0.4s ease;
         }
 
         body.signup-page::before {
@@ -78,6 +101,10 @@
             animation: rotate 25s linear infinite;
         }
 
+        .dark body.signup-page::before {
+            background: radial-gradient(circle, rgba(96, 165, 250, 0.08) 0%, rgba(255,255,255,0) 70%);
+        }
+
         @keyframes rotate {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
@@ -85,8 +112,8 @@
 
         .container {
             width: 100%;
-            max-width: 480px;
-            background: rgba(255, 255, 255, 0.92);
+            max-width: 520px;
+            background: var(--container-bg);
             backdrop-filter: blur(12px);
             border-radius: var(--border-radius);
             box-shadow: var(--shadow-lg);
@@ -94,6 +121,7 @@
             position: relative;
             z-index: 10;
             transition: var(--transition);
+            border: 1px solid var(--input-border);
         }
 
         .logo {
@@ -154,11 +182,7 @@
             100% { box-shadow: 0 0 0 0 rgba(67, 97, 238, 0); }
         }
 
-        .app-logo svg {
-            width: 32px;
-            height: 32px;
-            fill: white;
-        }
+        .app-logo svg { width: 32px; height: 32px; fill: white; }
 
         .logo h1 {
             font-size: 1.8rem;
@@ -199,7 +223,7 @@
             font-weight: 700;
             margin-bottom: 30px;
             text-align: center;
-            color: var(--dark);
+            color: var(--text-main);
             position: relative;
             display: inline-block;
             left: 50%;
@@ -216,14 +240,6 @@
             height: 4px;
             background: var(--gradient-btn);
             border-radius: 2px;
-        }
-
-        form h1 {
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-            text-align: center;
-            color: var(--dark);
         }
 
         form p {
@@ -246,12 +262,13 @@
             top: 50%;
             transform: translateY(-50%);
             font-size: 18px;
-            color: var(--gray);
+            color: var(--text-muted);
             z-index: 2;
             width: 20px;
             display: flex;
             justify-content: center;
             transition: var(--transition);
+            pointer-events: none;
         }
 
         .input-box .happy svg {
@@ -260,32 +277,54 @@
             fill: currentColor;
         }
 
-        .input-box .joy {
+        .input-box .joy,
+        .input-box select.joy {
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.85);
-            border: 1px solid rgba(0, 0, 0, 0.08);
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
             border-radius: 12px;
             padding: 0 55px 0 45px;
             font-family: 'Inter', sans-serif;
             font-size: 16px;
-            color: var(--dark);
+            color: var(--text-main);
             transition: var(--transition);
             box-shadow: var(--shadow-sm);
+            appearance: none;
+            -webkit-appearance: none;
         }
 
-        .input-box .joy:focus {
+        .input-box select.joy {
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+        }
+
+        .dark .input-box select.joy {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        }
+
+        .input-box .joy:focus,
+        .input-box select.joy:focus {
             outline: none;
-            border-color: rgba(67, 97, 238, 0.3);
+            border-color: rgba(67, 97, 238, 0.5);
             box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
         }
 
+        .dark .input-box .joy:focus,
+        .dark .input-box select.joy:focus {
+            border-color: rgba(96, 165, 250, 0.5);
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.15);
+        }
+
         .input-box .joy:focus + .happy,
-        .input-box .joy:not(:placeholder-shown) + .happy {
+        .input-box .joy:not(:placeholder-shown) + .happy,
+        .input-box select.joy:focus + .happy,
+        .input-box select.joy:valid + .happy {
             color: var(--primary);
         }
 
-        /* Eye toggle button */
         .toggle-password {
             position: absolute;
             right: 15px;
@@ -293,24 +332,16 @@
             transform: translateY(-50%);
             background: none;
             border: none;
-            color: var(--gray);
+            color: var(--text-muted);
             cursor: pointer;
             padding: 4px;
             z-index: 3;
             transition: var(--transition);
         }
 
-        .toggle-password:hover {
-            color: var(--primary);
-        }
+        .toggle-password:hover { color: var(--primary); }
+        .toggle-password svg { width: 18px; height: 18px; fill: currentColor; }
 
-        .toggle-password svg {
-            width: 18px;
-            height: 18px;
-            fill: currentColor;
-        }
-
-        /* Special styling for file input */
         #profile_picture_input {
             position: absolute;
             left: 45px;
@@ -324,17 +355,16 @@
 
         .input-box label[for="profile_picture_input"] {
             position: relative;
-            display: block;
+            display: flex;
             width: 100%;
             height: 100%;
-            background: rgba(255, 255, 255, 0.85);
-            border: 1px solid rgba(0, 0, 0, 0.08);
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
             border-radius: 12px;
             padding: 0 20px 0 45px;
             font-family: 'Inter', sans-serif;
             font-size: 16px;
-            color: var(--gray);
-            display: flex;
+            color: var(--text-muted);
             align-items: center;
             cursor: pointer;
             box-shadow: var(--shadow-sm);
@@ -344,6 +374,10 @@
         .input-box label[for="profile_picture_input"]:hover {
             background: rgba(255, 255, 255, 0.95);
             color: var(--primary);
+        }
+
+        .dark .input-box label[for="profile_picture_input"]:hover {
+            background: rgba(30, 41, 59, 0.95);
         }
 
         #profile-preview {
@@ -383,10 +417,6 @@
             box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
         }
 
-        .btn.secondary:hover {
-            box-shadow: 0 6px 20px rgba(108, 117, 125, 0.45);
-        }
-
         .btn::after {
             content: '';
             position: absolute;
@@ -398,24 +428,16 @@
             transition: left 0.7s;
         }
 
-        .btn:hover::after {
-            left: 100%;
-        }
-
+        .btn:hover::after { left: 100%; }
         .btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(67, 97, 238, 0.55);
         }
-
-        .btn:active {
-            transform: translateY(1px);
-        }
-
+        .btn:active { transform: translateY(1px); }
         .btn:disabled {
             opacity: 0.7;
             cursor: not-allowed;
             transform: none;
-            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.4);
         }
 
         .register-link {
@@ -424,7 +446,7 @@
         }
 
         .register-link p {
-            color: var(--gray);
+            color: var(--text-muted);
             font-size: 15px;
         }
 
@@ -448,19 +470,19 @@
             transition: var(--transition);
         }
 
-        .register-link a:hover::after {
-            width: 100%;
-        }
+        .register-link a:hover::after { width: 100%; }
 
         .progress-container {
             width: 100%;
             height: 6px;
             background: rgba(0, 0, 0, 0.05);
             border-radius: 3px;
-            margin: 25px 0 35px;
+            margin: 25px 0 15px;
             overflow: hidden;
             position: relative;
         }
+
+        .dark .progress-container { background: rgba(255, 255, 255, 0.1); }
 
         .progress-bar {
             height: 100%;
@@ -473,17 +495,17 @@
         .step-indicator {
             display: flex;
             justify-content: space-between;
-            margin-top: 10px;
-            font-size: 13px;
-            color: var(--gray);
+            margin-bottom: 20px;
+            padding: 0 10px;
         }
 
         .step-dot {
             width: 10px;
             height: 10px;
             border-radius: 50%;
-            background: var(--gray);
+            background: var(--text-muted);
             position: relative;
+            transition: var(--transition);
         }
 
         .step-dot.active {
@@ -508,59 +530,13 @@
             animation: float 15s infinite linear;
         }
 
+        .dark .particle { background: rgba(96, 165, 250, 0.3); }
+
         @keyframes float {
-            0% {
-                transform: translateY(0) translateX(0) rotate(0deg);
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(-100vh) translateX(100px) rotate(720deg);
-                opacity: 0;
-            }
+            0% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-100vh) translateX(100px) rotate(720deg); opacity: 0; }
         }
 
-        @media (max-width: 480px) {
-            .container {
-                margin: 15px;
-                border-radius: 20px;
-            }
-            
-            .logo {
-                padding: 25px 15px 20px;
-            }
-            
-            .logo h1 {
-                font-size: 1.6rem;
-            }
-            
-            .wrapper {
-                padding: 25px 20px;
-                min-height: 420px;
-            }
-            
-            form h2 {
-                font-size: 1.6rem;
-            }
-            
-            .input-box {
-                height: 48px;
-                margin-bottom: 20px;
-            }
-            
-            .btn {
-                padding: 13px;
-            }
-            
-            #profile-preview-img {
-                max-width: 100px;
-            }
-            
-            .progress-container {
-                margin: 20px 0 30px;
-            }
-        }
-
-        /* Spinner inside buttons */
         .spinner {
             display: inline-block;
             width: 16px;
@@ -578,138 +554,47 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* ================= MODAL OVERLAY ================= */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(2, 6, 23, 0.6);
-            backdrop-filter: blur(10px);
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-            z-index: 9999;
-        }
-
-        /* Show */
-        .modal-overlay.show {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-
-        /* ================= MODAL CARD ================= */
-        .modal-card {
-            background: #ffffff;
-            border-radius: 14px;
-             padding: 32px 28px;
-            width: 100%;
-            max-width: 420px;
-            text-align: center;
-
-            box-shadow:
-                0 -10px 40px rgba(0, 0, 0, 0.15);
-
-            transform: translateY(100%);
-            opacity: 1;
-            transition:
-                transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        /* Slide-up app motion */
-        .modal-overlay.show .modal-card {
-            transform: translateY(0);
-        }
-
-        /* ================= DRAG INDICATOR ================= */
-        .modal-card::before {
-            content: "";
-            width: 42px;
-            height: 4px;
-            background: #cbd5f5;
-            border-radius: 999px;
-            display: block;
-            margin: 0 auto 18px;
-        }
-
-        /* ================= ICON ================= */
-        .modal-icon {
-            width: 58px;
-            height: 58px;
-            margin: 4px auto 16px;
-            color: #16a34a;
-            animation: popIcon 0.4s ease-out;
-        }
-
-        .modal-icon svg {
-            width: 100%;
-            height: 100%;
-        }
-
-        /* ================= TEXT ================= */
-        .modal-card h2 {
-            font-size: 20px;
-            font-weight: 600;
-            color: #0f172a;
-            margin-bottom: 8px;
-        }
-
-        .modal-card p {
-            font-size: 14.5px;
-            line-height: 1.6;
-            color: #475569;
-            margin-bottom: 22px;
-        }
-
-        /* ================= BUTTON ================= */
-        .modal-btn {
-            width: 100%;
-            padding: 14px;
-            font-size: 15px;
-            font-weight: 600;
-            border-radius: 14px;
-            border: none;
-            background: linear-gradient(135deg, #1558B0, #2563eb);
-            color: #fff;
-            cursor: pointer;
-            transition:
-                transform 0.12s ease,
-                box-shadow 0.2s ease;
-        }
-
-        .modal-btn:active {
-            transform: scale(0.97);
-            box-shadow: 0 10px 25px rgba(21, 88, 176, 0.35);
-        }
-
-        /* ================= CLOSE BUTTON ================= */
-        .close {
+        /* Theme Toggle Button */
+        .theme-toggle {
             position: absolute;
-            top: 14px;
-            right: 18px;
-            font-size: 1.3rem;
-            color: #64748b;
+            top: 20px;
+            right: 20px;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
-            transition: color 0.2s ease;
+            color: var(--text-main);
+            transition: var(--transition);
+            z-index: 20;
         }
+        .theme-toggle:hover { background: var(--primary); color: white; }
+        .theme-toggle svg { width: 20px; height: 20px; fill: currentColor; }
 
-        .close:hover {
-            color: #0f172a;
+        @media (max-width: 480px) {
+            .container { margin: 15px; border-radius: 20px; }
+            .logo { padding: 25px 15px 20px; }
+            .logo h1 { font-size: 1.6rem; }
+            .wrapper { padding: 25px 20px; min-height: 420px; }
+            form h2 { font-size: 1.6rem; }
+            .input-box { height: 48px; margin-bottom: 20px; }
+            .btn { padding: 13px; }
+            #profile-preview-img { max-width: 100px; }
+            .progress-container { margin: 20px 0 15px; }
         }
-
-        /* ================= ERROR VARIANT ================= */
-        .modal-card.error .modal-icon {
-            color: #dc2626;
-        }
-
-        .modal-card.error .modal-btn {
-            background: linear-gradient(135deg, #dc2626, #b91c1c);
-        }
+    the modal styles from previous prompt would go here if needed, but keeping it clean for registration.
     </style>
 </head>
 <body class="signup-page">
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle Dark Mode">
+        <svg class="sun-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+        <svg class="moon-icon" viewBox="0 0 24 24" style="display:none;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+    </button>
+
     <div class="particles" id="particles"></div>
     
     <div class="container">
@@ -722,7 +607,7 @@
                     <path d="M2 12L12 17L22 12" stroke="white" stroke-width="2" stroke-linejoin="round" fill="none"/>
                 </svg>
             </div>
-            <h1>Business Essential</h1>
+            <h1>Business Essential</h>
         </div>
         
         <div class="progress-container">
@@ -735,220 +620,187 @@
             <div class="step-dot" id="step4"></div>
         </div>
         
+        <!-- STEP 1: User Base -->
         <div class="wrapper active" id="userbase">
             <form action="" id="userForm">
                 <h2>Secure Your Account</h2>
                 <div class="input-box">
                     <input class="joy" type="text" name="username" placeholder="Username" id="username_input" required>
                     <label for="username_input" class="happy">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
+                        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                     </label>
                 </div>
                 <div class="input-box">
                     <input class="joy" type="email" name="email" placeholder="Email" id="email_input" required>
                     <label for="email_input" class="happy">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                            <polyline points="22 6 12 13 2 6"></polyline>
-                        </svg>
+                        <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22 6 12 13 2 6"></polyline></svg>
                     </label>
                 </div>
                 <div class="input-box">
                     <input class="joy" type="password" name="password" placeholder="Password" id="password_input" required>
                     <label for="password_input" class="happy">
-                        <svg viewBox="0 0 24 24">
-                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                        </svg>
+                        <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                     </label>
-                    <button type="button" class="toggle-password" id="togglePassword">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
+                    <button type="button" class="toggle-password" data-target="password_input">
+                        <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/></svg>
                     </button>
                 </div>
                 <div class="input-box">
                     <input class="joy" type="password" name="confirm_password" placeholder="Confirm Password" id="confirm_password_input" required>
                     <label for="confirm_password_input" class="happy">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                            <polyline points="7 13 12 18 17 13"></polyline>
-                            <polyline points="7 9 12 14 17 9"></polyline>
-                        </svg>
+                        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="7 13 12 18 17 13"></polyline><polyline points="7 9 12 14 17 9"></polyline></svg>
                     </label>
-                    <button type="button" class="toggle-password" id="toggleConfirmPassword">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </button>
+                    <button type="button" class="toggle-password" data-target="confirm_password_input">
+                        <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/></svg>
                 </div>
+                
+                <!-- UPDATED: Security Question Dropdown -->
+                <div class="input-box" style="height: auto; min-height: 52px;">
+                    <select class="joy" name="security_question" id="security_question_input" required>
+                        <option value="" disabled selected>Select a Security Question</option>
+                        <option value="first_pet">What was the name of your first pet?</option>
+                        <option value="mother_maiden">What is your mother's maiden name?</option>
+                        <option value="first_school">What was the name of your first school?</option>
                 <div class="input-box">
-                    <input class="joy" type="text" name="security_question" placeholder="Security Question" id="security_question_input" required>
-                    <label for="security_question_input" class="happy">
-                        <svg viewBox="0 0 24 24">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                        </svg>
-                    </label>
-                </div>
-                <div class="input-box">
-                    <input class="joy" type="text" name="security_answer" placeholder="Security Answer" id="security_answer_input" required>
+                    <input class="joy" type="text" name="security_answer" placeholder="Your Answer" id="security_answer_input" required>
                     <label for="security_answer_input" class="happy">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                        </svg>
+                        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
                     </label>
                 </div>
                 <div class="input-box">
-                    <input class="joy" type="password" name="app_pin" placeholder="App Pin" id="app_pin_input" required>
-                    <label for="app_pin" class="happy">
-                         <svg viewBox="0 0 24 24">
-                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                            <polyline points="7 13 12 18 17 13"></polyline>
-                            <polyline points="7 9 12 14 17 9"></polyline>
-                        </svg>
+                    <input class="joy" type="password" name="app_pin" placeholder="4-Digit App Pin" id="app_pin_input" required maxlength="4">
+                    <label for="app_pin_input" class="happy">
+                         <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="7 13 12 18 17 13"></polyline><polyline points="7 9 12 14 17 9"></polyline></svg>
                     </label>
-                    <button type="button" class="toggle-password" id="toggleAppPin">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
+                    <button type="button" class="toggle-password" data-target="app_pin_input">
+                        <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/></svg>
                     </button>
                 </div>
     
-                <button type="submit" class="btn" id="userNextButton">Create Account</button>
-
+                <button type="submit" class="btn" id="userNextButton">Continue to Verification</button>
                 <div class="register-link">
-                    <p>Have an account already? <a href="/login" id="SigninButton">Sign in</a></p>
+                    <p>Have an account already? <a href="/login">Sign in</a></p>
                 </div>
             </form>
         </div>
 
+        <!-- STEP 2: Verify -->
         <div class="wrapper" id="verify">
             <form action="" id="verifyForm">
                 <h2>Verify Your Account</h2>
                 <p>We have sent a 6-digit verification code to your email.</p>
                 <div class="input-box">
-                    <input class="joy" type="text" name="verification_code" placeholder="Enter Verification Code" id="verification_code_input" required maxlength="6">
-                    <label for="verification_code_input" class="happy">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                            <polyline points="22 6 12 13 2 6"></polyline>
-                        </svg>
-                    </label>
+                    <input class="joy" type="text" name="verification_code" placeholder="Enter Verification Code" id="verification_code_input" required maxlength="6" style="text-align: center; letter-spacing: 8px; font-weight: 700;">
                 </div>
                 <button type="submit" class="btn" id="verifyButton">Verify Account</button>
                 <button type="button" class="btn secondary" id="resend_code_btn">Resend Code</button>
             </form>
         </div>
 
+        <!-- STEP 3: Customer Base (Profile) -->
         <div class="wrapper" id="custbase">
             <form action="" id="custForm">
                 <h2>Create Your Profile</h2>
                 <div class="input-box">
-                    <input class="joy" type="text" name="company_name" placeholder="Profile Name" id="profile_name_input" required>
+                    <input class="joy" type="text" name="company_name" placeholder="Company / Profile Name" id="profile_name_input" required>
                     <label for="profile_name_input" class="happy">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
+                        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                     </label>
                 </div>
                 <div class="input-box">
                     <input class="joy" type="text" name="full_name" placeholder="Full Name" id="full_name_input" required>
                     <label for="full_name_input" class="happy">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
+                        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                     </label>
                 </div>
                 <div class="input-box">
                     <input class="joy" type="text" name="address" placeholder="Address" id="address_input" required>
                     <label for="address_input" class="happy">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"></path>
-                            <circle cx="12" cy="10" r="3"></circle>
-                        </svg>
+                        <svg viewBox="0 0 24 24"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                     </label>
                 </div>
-                <div class="input-box">
-                    <input class="joy" type="text" name="country" placeholder="Country" id="country_input" required>
+                
+                <!-- UPDATED: Country Dropdown -->
+                <div class="input-box" style="height: auto; min-height: 52px;">
+                    <select class="joy" name="country" id="country_input" required>
+                        <option value="" disabled selected>Select Country</option>
+                        <option value="NG">Nigeria</option>
+                        <option value="US">United States</option>
+                        <option value="GB">United Kingdom</option>
+                        <option value="CA">Canada</option>
+                        <option value="AU">Australia</option>
+                        <option value="IN">India</option>
+                        <option value="ZA">South Africa</option>
+                        <option value="KE">Kenya</option>
+                        <option value="GH">Ghana</option>
+                        <option value="DE">Germany</option>
+                        <option value="FR">France</option>
+                        <option value="Other">Other</option>
+                    </select>
                     <label for="country_input" class="happy">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                            <circle cx="12" cy="10" r="3"></circle>
-                        </svg>
+                        <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                     </label>
                 </div>
-                <div class="input-box">
-                    <input class="joy" type="text" name="currency" placeholder="Preferred Currency" id="currency_input" required>
+
+                <!-- NEW: State Dropdown (Dynamic) -->
+                <div class="input-box" style="height: auto; min-height: 52px;">
+                    <select class="joy" name="state" id="state_input" required disabled>
+                        <option value="" disabled selected>Select Country First</option>
+                    </select>
+                    <label for="state_input" class="happy">
+                        <svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg>
+                    </label>
+                </div>
+
+                <!-- UPDATED: Currency Dropdown -->
+                <div class="input-box" style="height: auto; min-height: 52px;">
+                    <select class="joy" name="currency" id="currency_input" required>
+                        <option value="" disabled selected>Select Preferred Currency</option>
+                        <option value="NGN">₦ NGN - Nigerian Naira</option>
+                        <option value="USD">$ USD - US Dollar</option>
+                        <option value="EUR">€ EUR - Euro</option>
+                        <option value="GBP">£ GBP - British Pound</option>
+                        <option value="CAD">$ CAD - Canadian Dollar</option>
+                        <option value="AUD">$ AUD - Australian Dollar</option>
+                        <option value="ZAR">R ZAR - South African Rand</option>
+                        <option value="KES">KSh KES - Kenyan Shilling</option>
+                        <option value="GHS">₵ GHS - Ghanaian Cedi</option>
+                        <option value="INR">₹ INR - Indian Rupee</option>
+                    </select>
                     <label for="currency_input" class="happy">
-                        <svg viewBox="0 0 24 24">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <path d="M12 16v-4"></path>
-                            <path d="M12 8h.01"></path>
-                        </svg>
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
                     </label>
                 </div>
+
                 <div class="input-box">
                     <input class="joy" type="date" name="dob" id="dob_input" required>
                     <label for="dob_input" class="happy">
-                        <svg viewBox="0 0 24 24">
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                            <line x1="16" y1="2" x2="16" y2="6"></line>
-                            <line x1="8" y1="2" x2="8" y2="6"></line>
-                            <line x1="3" y1="10" x2="21" y2="10"></line>
-                        </svg>
+                        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                     </label>
                 </div>
                 <button type="submit" class="btn" id="custNextButton">Continue</button>
             </form>
         </div>
 
+        <!-- STEP 4: Complete Profile -->
         <div class="wrapper" id="completecust">
             <form action="" id="completecustform" enctype="multipart/form-data">
-                <h2>Complete Your Profile (Optional)</h2>
+                <h2>Complete Your Profile</h2>
                 <div class="input-box">
-                    <input class="joy" type="text" name="phone_number" placeholder="Phone Number" id="phone_number_input" required>
+                    <input class="joy" type="tel" name="phone_number" placeholder="Phone Number" id="phone_number_input">
                     <label for="phone_number_input" class="happy">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-                        </svg>
+                        <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
                     </label>
                 </div>
                 <div class="input-box">
-                    <input class="joy" type="email" name="alternate_email" placeholder="Alternate Email" id="alternate_email_input">
+                    <input class="joy" type="email" name="alternate_email" placeholder="Alternate Email (Optional)" id="alternate_email_input">
                     <label for="alternate_email_input" class="happy">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                            <polyline points="22 6 12 13 2 6"></polyline>
-                        </svg>
-                    </label>
-                </div>
-                <div class="input-box">
-                    <input class="joy" type="url" name="website" placeholder="Website URL" id="website_input">
-                    <label for="website_input" class="happy">
-                        <svg viewBox="0 0 24 24">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <line x1="2" y1="12" x2="22" y2="12"></line>
-                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-                        </svg>
+                        <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22 6 12 13 2 6"></polyline></svg>
                     </label>
                 </div>
                 <div class="input-box">
                     <label for="profile_picture_input" class="happy">
-                        <svg viewBox="0 0 24 24">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <circle cx="12" cy="10" r="3"></circle>
-                            <path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662"></path>
-                        </svg>
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="10" r="3"></circle><path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662"></path></svg>
                         Upload Profile Picture
                     </label>
                     <input type="file" id="profile_picture_input" name="profile_picture" accept="image/*">
@@ -959,21 +811,82 @@
                 <div class="input-box">
                     <input class="joy" type="text" name="bio" placeholder="Short Bio (Optional)" id="bio_input">
                     <label for="bio_input" class="happy">
-                        <svg viewBox="0 0 24 24">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <line x1="12" y1="16" x2="12" y2="12"></line>
-                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                        </svg>
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                     </label>
                 </div>
                 <button type="submit" class="btn" id="completeCustButton">Complete Registration</button>
             </form>
-            <button class="btn" id="skipBtn">Skip</button>
-            <button class="btn" id="enableFaceID">Enable Face ID</button>
+            <button class="btn secondary" id="skipBtn" style="margin-top: 10px;">Skip for Now</button>
         </div>
     </div>
 
-    <script src="{{ url_for('static', filename='js/auth/register.js') }}"></script>
+    <script>
+        // ================= DARK MODE TOGGLE =================
+        const themeToggle = document.getElementById('themeToggle');
+        const sunIcon = themeToggle.querySelector('.sun-icon');
+        const moonIcon = themeToggle.querySelector('.moon-icon');
+        
+        // Check local storage or system preference
+        if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.body.classList.add('dark');
+            sunIcon.style.display = 'none';
+            moonIcon.style.display = 'block';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark');
+            const isDark = document.body.classList.contains('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            sunIcon.style.display = isDark ? 'none' : 'block';
+            moonIcon.style.display = isDark ? 'block' : 'none';
+        });
+
+        // ================= DYNAMIC STATE DROPDOWN =================
+        const countryInput = document.getElementById('country_input');
+        const stateInput = document.getElementById('state_input');
+
+        const statesData = {
+            'NG': ['Abia', 'Adamawa', 'Akwa Ibom', 'Anambra', 'Bauchi', 'Bayelsa', 'Benue', 'Borno', 'Cross River', 'Delta', 'Ebonyi', 'Edo', 'Ekiti', 'Enugu', 'FCT (Abuja)', 'Gombe', 'Imo', 'Jigawa', 'Kaduna', 'Kano', 'Katsina', 'Kebbi', 'Kogi', 'Kwara', 'Lagos', 'Nasarawa', 'Niger', 'Ogun', 'Ondo', 'Osun', 'Oyo', 'Plateau', 'Rivers', 'Sokoto', 'Taraba', 'Yobe', 'Zamfara'],
+            'US': ['Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming'],
+            'GB': ['England', 'Scotland', 'Wales', 'Northern Ireland'],
+            'CA': ['Alberta', 'British Columbia', 'Manitoba', 'New Brunswick', 'Newfoundland and Labrador', 'Nova Scotia', 'Ontario', 'Prince Edward Island', 'Quebec', 'Saskatchewan'],
+            'AU': ['New South Wales', 'Victoria', 'Queensland', 'Western Australia', 'South Australia', 'Tasmania', 'Australian Capital Territory', 'Northern Territory'],
+            'IN': ['Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal'],
+            'ZA': ['Eastern Cape', 'Free State', 'Gauteng', 'KwaZulu-Natal', 'Limpopo', 'Mpumalanga', 'Northern Cape', 'North West', 'Western Cape'],
+            'KE': ['Baringo', 'Bomet', 'Bungoma', 'Busia', 'Elgeyo-Marakwet', 'Embu', 'Garissa', 'Homa Bay', 'Isiolo', 'Kajiado', 'Kakamega', 'Kericho', 'Kiambu', 'Kilifi', 'Kirinyaga', 'Kisii', 'Kisumu', 'Kitui', 'Kwale', 'Laikipia', 'Lamu', 'Machakos', 'Makueni', 'Mandera', 'Marsabit', 'Meru', 'Migori', 'Mombasa', 'Murang\'a', 'Nairobi', 'Nakuru', 'Nandi', 'Narok', 'Nyamira', 'Nyandarua', 'Nyeri', 'Samburu', 'Siaya', 'Taita-Taveta', 'Tana River', 'Tharaka-Nithi', 'Trans Nzoia', 'Turkana', 'Uasin Gishu', 'Vihiga', 'Wajir', 'West Pokot'],
+            'GH': ['Ahafo', 'Ashanti', 'Bono', 'Bono East', 'Central', 'Eastern', 'Greater Accra', 'North East', 'Northern', 'Oti', 'Savannah', 'Upper East', 'Upper West', 'Volta', 'Western', 'Western North'],
+            'DE': ['Baden-Württemberg', 'Bavaria', 'Berlin', 'Brandenburg', 'Bremen', 'Hamburg', 'Hesse', 'Lower Saxony', 'Mecklenburg-Vorpommern', 'North Rhine-Westphalia', 'Rhineland-Palatinate', 'Saarland', 'Saxony', 'Saxony-Anhalt', 'Schleswig-Holstein', 'Thuringia'],
+            'FR': ['Auvergne-Rhône-Alpes', 'Bourgogne-Franche-Comté', 'Brittany', 'Centre-Val de Loire', 'Corsica', 'Grand Est', 'Hauts-de-France', 'Île-de-France', 'Normandy', 'Nouvelle-Aquitaine', 'Occitanie', 'Pays de la Loire', 'Provence-Alpes-Côte d\'Azur']
+        };
+
+        countryInput.addEventListener('change', function() {
+            const countryCode = this.value;
+            stateInput.innerHTML = '<option value="" disabled selected>Select State / Province</option>';
+            
+            if (statesData[countryCode]) {
+                stateInput.disabled = false;
+                statesData[countryCode].forEach(state => {
+                    const option = document.createElement('option');
+                    option.value = state;
+                    option.textContent = state;
+                    stateInput.appendChild(option);
+                });
+            } else if (countryCode === 'Other') {
+                stateInput.disabled = false;
+                const option = document.createElement('option');
+                option.value = 'other_state';
+                option.textContent = 'State / Province (Please specify in address)';
+                stateInput.appendChild(option);
+            } else {
+                stateInput.disabled = true;
+                const option = document.createElement('option');
+                option.value = "";
+                option.textContent = "Select Country First";
+                stateInput.appendChild(option);
+            }
+        });
+
+
+    </script>
 </body>
 </html>
-
