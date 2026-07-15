@@ -757,7 +757,40 @@ async function faceidLogin() {
 
     window.location.href = "/dashboard";
 }
+ function applyTheme(theme = "auto") {
 
+    const prefersDark = window.matchMedia(
+        "(prefers-color-scheme: dark)"
+    ).matches;
+
+    const useDark =
+        theme === "dark" ||
+        (theme === "auto" && prefersDark);
+
+    document.body.classList.toggle(
+        "dark-theme",
+        useDark
+    );
+
+    document.documentElement.classList.toggle(
+        "dark-theme",
+        useDark
+    );
+}
+
+    const mediaQuery = window.matchMedia(
+    "(prefers-color-scheme: dark)"
+);
+
+mediaQuery.addEventListener("change", () => {
+
+    const savedTheme =
+        localStorage.getItem("theme") || "auto";
+
+    if (savedTheme === "auto") {
+        applyTheme("auto");
+    }
+});
 document.getElementById("faceid-login")
     .addEventListener("click", faceidLogin);
 });
