@@ -3216,6 +3216,11 @@ def complete_cust():
             "message": "Unable to upload file. Please try again."
         }), 500
 
+    if form.get("bio"):
+        bio = form.get("bio")
+    else:
+        bio = ""
+
 
     conn = get_db()
     cursor = conn.cursor()
@@ -3233,7 +3238,7 @@ def complete_cust():
             form.get("alternate_email"),
             form.get("website"),
             save_path,
-            form.get("bio"),
+            bio,
             form.get("profile_name"),
             user_id
         ))
