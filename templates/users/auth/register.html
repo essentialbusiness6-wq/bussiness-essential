@@ -586,7 +586,48 @@
             #profile-preview-img { max-width: 100px; }
             .progress-container { margin: 20px 0 15px; }
         }
-    the modal styles from previous prompt would go here if needed, but keeping it clean for registration.
+
+        /* ================= TOAST NOTIFICATIONS ================= */
+.toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--bg-card);
+    color: var(--dark);
+    padding: 12px 20px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+    z-index: 10000;
+    opacity: 0;
+    transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+.toast.success {
+    background: var(--success);
+    color: white;
+    border-color: transparent;
+}
+
+.toast.error {
+    background: var(--danger);
+    color: white;
+    border-color: transparent;
+}
+
+.toast.warning {
+    background: var(--warning);
+    color: white;
+    border-color: transparent;
+}
     </style>
 </head>
 <body class="signup-page">
