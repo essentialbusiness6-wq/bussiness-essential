@@ -923,3 +923,45 @@ body.dark {
         height: 24px;
     }
 }
+
+
+/* ================= INVOICE ITEMS RESPONSIVE FIX ================= */
+.item-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 40px;
+    gap: 12px;
+    margin-bottom: 16px;
+    align-items: center;
+    background: var(--glass-card);
+    padding: 12px;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-subtle);
+}
+
+.item-row input {
+    padding: 12px 14px;
+    font-size: 0.95rem;
+    width: 100%;
+    box-sizing: border-box;
+    min-width: 0; /* Prevents grid blowout and hides overflow */
+}
+
+/* Mobile Responsive Layout for Items */
+@media (max-width: 767px) {
+    .item-row {
+        grid-template-columns: 1fr 1fr 40px;
+        gap: 10px;
+        padding: 12px;
+    }
+    
+    /* Force description to take full width on its own row */
+    .item-row input[name="item_desc[]"],
+    .item-row input[type="text"] {
+        grid-column: 1 / -1;
+    }
+    
+    .item-row input {
+        padding: 10px 12px;
+        font-size: 0.9rem;
+    }
+}
