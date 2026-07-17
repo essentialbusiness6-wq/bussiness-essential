@@ -1097,6 +1097,7 @@ async function fetchDashboardData(forceRefresh = false) {
         }
 
         showModal("error", "Failed to load dashboard data.");
+        window.location.href = '/login';
     } finally {
         showStatsLoading(false);
         dashboardLoading = false;
