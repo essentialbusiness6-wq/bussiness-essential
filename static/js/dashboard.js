@@ -1077,6 +1077,7 @@ async function fetchDashboardData(forceRefresh = false) {
         sessionStorage.setItem(CACHE_TIME_KEY, Date.now());
 
         renderDashboard(data);
+       localStorage.setItem("theme", data.theme);
         checkAccountCompletion(data);
         checkAccoutSetupBanner(data);
         renderAdvancedAnalytics(data);
@@ -1453,7 +1454,7 @@ function setupAccountModal() {
 }
 
 function renderDashboard(data) {
-    applyTheme(data.theme || localStorage.getItem("theme") || "light");
+    applyTheme(data.theme || localStorage.getItem("theme"));
     currencySymbol = data.currency_symbol || "$";
 
     const username = `Hi, ${data.username || "User"}`;
