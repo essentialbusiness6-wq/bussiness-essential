@@ -28,12 +28,13 @@
             --primary: #4361ee;
             --secondary: #3f37c9;
             --accent: #4895ef;
-            --success: #4cc9f0;
+            --success: #34d399;
             --dark: #1e293b;
             --light: #f8fafc;
             --gray: #64748b;
-            --danger: #f72585;
-            --warning: #f8961e;
+            --light-gray: #cbd5e1;
+            --danger: #f87171;
+            --warning: #fbbf24;
             --gradient-bg: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
             --gradient-btn: linear-gradient(90deg, var(--primary), var(--accent));
             --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.05);
@@ -43,7 +44,6 @@
             --border-radius: 16px;
             --orbit-size: 120px;
             
-            /* Form specific */
             --input-bg: rgba(255, 255, 255, 0.85);
             --input-border: rgba(0, 0, 0, 0.08);
             --text-main: #1e293b;
@@ -60,7 +60,8 @@
             --dark: #f8fafc;
             --light: #0f172a;
             --gray: #94a3b8;
-            --danger: #f472b6;
+            --light-gray: #475569;
+            --danger: #f87171;
             --warning: #fbbf24;
             --gradient-bg: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
             --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.3);
@@ -174,6 +175,10 @@
             position: relative;
             z-index: 2;
             animation: pulse 2s infinite;
+        }
+
+        .dark .app-logo {
+            box-shadow: 0 5px 15px rgba(96, 165, 250, 0.3);
         }
 
         @keyframes pulse {
@@ -294,15 +299,32 @@
             -webkit-appearance: none;
         }
 
+        /* PERFECT DROPDOWN STYLING */
         .input-box select.joy {
             cursor: pointer;
+            padding-right: 45px;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
             background-repeat: no-repeat;
             background-position: right 15px center;
+            background-size: 16px;
+            line-height: 52px; /* Perfect vertical centering */
         }
 
         .dark .input-box select.joy {
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        }
+
+        /* Fix Firefox dropdown text color */
+        .input-box select.joy:-moz-focusring {
+            color: transparent;
+            text-shadow: 0 0 0 var(--text-main);
+        }
+
+        /* Ensure dropdown options are readable in dark mode */
+        .dark .input-box select.joy option {
+            background-color: #1e293b;
+            color: #f8fafc;
+            padding: 8px;
         }
 
         .input-box .joy:focus,
@@ -433,6 +455,9 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(67, 97, 238, 0.55);
         }
+        .dark .btn:hover {
+            box-shadow: 0 6px 20px rgba(96, 165, 250, 0.45);
+        }
         .btn:active { transform: translateY(1px); }
         .btn:disabled {
             opacity: 0.7;
@@ -554,7 +579,6 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Theme Toggle Button */
         .theme-toggle {
             position: absolute;
             top: 20px;
@@ -575,6 +599,156 @@
         .theme-toggle:hover { background: var(--primary); color: white; }
         .theme-toggle svg { width: 20px; height: 20px; fill: currentColor; }
 
+        /* ================= MODAL STYLES ================= */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 6, 23, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 9999;
+            padding: 20px;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            background: var(--container-bg);
+            border-radius: var(--border-radius);
+            padding: 32px 28px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+            transform: translateY(20px) scale(0.95);
+            opacity: 0;
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+            border: 1px solid var(--input-border);
+            position: relative;
+        }
+
+        .modal-overlay.show .modal-card {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+        }
+
+        .modal-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: popIcon 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .modal-icon svg {
+            width: 32px;
+            height: 32px;
+        }
+
+        .modal-icon.success {
+            background: rgba(52, 211, 153, 0.15);
+            color: #34d399;
+        }
+
+        .modal-icon.error {
+            background: rgba(248, 113, 113, 0.15);
+            color: #f87171;
+        }
+
+        .modal-card h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 12px;
+        }
+
+        .modal-card p {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        .modal-btn {
+            width: 100%;
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            border: none;
+            background: var(--gradient-btn);
+            color: white;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(67, 97, 238, 0.45);
+        }
+
+        .modal-btn:active {
+            transform: translateY(1px);
+        }
+
+        .modal-btn.secondary {
+            background: transparent;
+            color: var(--text-muted);
+            box-shadow: none;
+            border: 1px solid var(--input-border);
+            margin-top: 10px;
+        }
+
+        .modal-btn.secondary:hover {
+            background: var(--input-bg);
+            color: var(--text-main);
+            transform: none;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px;
+            transition: var(--transition);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-modal:hover {
+            background: var(--input-bg);
+            color: var(--text-main);
+        }
+
+        .close-modal svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        @keyframes popIcon {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
         @media (max-width: 480px) {
             .container { margin: 15px; border-radius: 20px; }
             .logo { padding: 25px 15px 20px; }
@@ -582,52 +756,11 @@
             .wrapper { padding: 25px 20px; min-height: 420px; }
             form h2 { font-size: 1.6rem; }
             .input-box { height: 48px; margin-bottom: 20px; }
+            .input-box select.joy { line-height: 48px; }
             .btn { padding: 13px; }
             #profile-preview-img { max-width: 100px; }
             .progress-container { margin: 20px 0 15px; }
         }
-
-        /* ================= TOAST NOTIFICATIONS ================= */
-.toast {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    background: var(--bg-card);
-    color: var(--dark);
-    padding: 12px 20px;
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-lg);
-    z-index: 10000;
-    opacity: 0;
-    transition: all 0.3s ease;
-    border: 1px solid var(--border-color);
-    font-size: 0.9rem;
-    font-weight: 500;
-}
-
-.toast.show {
-    transform: translateX(-50%) translateY(0);
-    opacity: 1;
-}
-
-.toast.success {
-    background: var(--success);
-    color: white;
-    border-color: transparent;
-}
-
-.toast.error {
-    background: var(--danger);
-    color: white;
-    border-color: transparent;
-}
-
-.toast.warning {
-    background: var(--warning);
-    color: white;
-    border-color: transparent;
-}
     </style>
 </head>
 <body class="signup-page">
@@ -648,7 +781,7 @@
                     <path d="M2 12L12 17L22 12" stroke="white" stroke-width="2" stroke-linejoin="round" fill="none"/>
                 </svg>
             </div>
-            <h1>Business Essential</h>
+            <h1>Business Essential</h1>
         </div>
         
         <div class="progress-container">
@@ -693,15 +826,27 @@
                     </label>
                     <button type="button" class="toggle-password" data-target="confirm_password_input">
                         <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                    </button>
                 </div>
                 
-                <!-- UPDATED: Security Question Dropdown -->
                 <div class="input-box" style="height: auto; min-height: 52px;">
                     <select class="joy" name="security_question" id="security_question_input" required>
                         <option value="" disabled selected>Select a Security Question</option>
                         <option value="first_pet">What was the name of your first pet?</option>
                         <option value="mother_maiden">What is your mother's maiden name?</option>
                         <option value="first_school">What was the name of your first school?</option>
+                        <option value="childhood_friend">Who was your childhood best friend?</option>
+                        <option value="first_car">What was the make of your first car?</option>
+                        <option value="favorite_book">What is your favorite book?</option>
+                        <option value="birth_city">In what city were you born?</option>
+                        <option value="high_school">What high school did you attend? </option>
+                        <option value="first_job">What was your first job?</option>
+                        <option value="favorite_movie">What is your favorite movie?</option>
+                    </select>
+                    <label for="security_question_input" class="happy">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    </label>
+                </div>
                 <div class="input-box">
                     <input class="joy" type="text" name="security_answer" placeholder="Your Answer" id="security_answer_input" required>
                     <label for="security_answer_input" class="happy">
@@ -761,7 +906,6 @@
                     </label>
                 </div>
                 
-                <!-- UPDATED: Country Dropdown -->
                 <div class="input-box" style="height: auto; min-height: 52px;">
                     <select class="joy" name="country" id="country_input" required>
                         <option value="" disabled selected>Select Country</option>
@@ -783,7 +927,6 @@
                     </label>
                 </div>
 
-                <!-- NEW: State Dropdown (Dynamic) -->
                 <div class="input-box" style="height: auto; min-height: 52px;">
                     <select class="joy" name="state" id="state_input" required disabled>
                         <option value="" disabled selected>Select Country First</option>
@@ -793,7 +936,6 @@
                     </label>
                 </div>
 
-                <!-- UPDATED: Currency Dropdown -->
                 <div class="input-box" style="height: auto; min-height: 52px;">
                     <select class="joy" name="currency" id="currency_input" required>
                         <option value="" disabled selected>Select Preferred Currency</option>
@@ -861,13 +1003,50 @@
         </div>
     </div>
 
+    <!-- SUCCESS MODAL -->
+    <div class="modal-overlay" id="successModal">
+        <div class="modal-card">
+            <button class="close-modal" onclick="document.getElementById('successModal').classList.remove('show')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <div class="modal-icon success">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+            </div>
+            <h2>Registration Successful!</h2>
+            <p>Your account has been created successfully. You can now log in and start managing your business.</p>
+            <a href="/login" class="modal-btn">Go to Login</a>
+        </div>
+    </div>
+
+    <!-- ERROR MODAL -->
+    <div class="modal-overlay" id="errorModal">
+        <div class="modal-card">
+            <button class="close-modal" onclick="document.getElementById('errorModal').classList.remove('show')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <div class="modal-icon error">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="15" y1="9" x2="9" y2="15"></line>
+                    <line x1="9" y1="9" x2="15" y2="15"></line>
+                </svg>
+            </div>
+            <h2>Something Went Wrong</h2>
+            <p id="errorMessage">We couldn't process your request. Please check your details and try again.</p>
+            <button class="modal-btn" onclick="document.getElementById('errorModal').classList.remove('show')">Try Again</button>
+            <button class="modal-btn secondary" onclick="document.getElementById('errorModal').classList.remove('show')">Close</button>
+        </div>
+    </div>
+
     <script>
         // ================= DARK MODE TOGGLE =================
         const themeToggle = document.getElementById('themeToggle');
         const sunIcon = themeToggle.querySelector('.sun-icon');
         const moonIcon = themeToggle.querySelector('.moon-icon');
         
-        // Check local storage or system preference
         if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.body.classList.add('dark');
             sunIcon.style.display = 'none';
@@ -927,7 +1106,7 @@
             }
         });
 
-
+      
     </script>
     <script src="{{ url_for('static', filename='js/auth/register.js') }}"></script>
 </body>
