@@ -15,18 +15,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const shareBtn = document.getElementById('shareBtn');
     const billingBtn = document.getElementById('billingBtn');
     
-    // Sample user data (in real app, this would come from API)
+ 
     let sampleUser = []
     let currencySymbol = "$";
     
     // Initialize
     createParticles();
     loadUserData();
-    const savedTheme = sessionStorage.getItem("theme");
 
-    if (savedTheme) {
-        applyTheme(savedTheme);
-    }
     
     // Event Listeners
     settingsBtn.addEventListener('click', () => {
