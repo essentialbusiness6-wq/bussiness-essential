@@ -123,7 +123,6 @@ function loadUserData(forceRefresh = false) {
         profilePic.src = user.profilePic;
     }
 
-    // APPLY THEME (IMPORTANT FIX)
     applyTheme(data.theme || "light");
 }
     
@@ -131,6 +130,7 @@ function loadUserData(forceRefresh = false) {
     const body = document.body;
 
     if (theme === "dark") {
+        console.log("Applied Dark");
         body.classList.add("dark");
         body.classList.remove("light");
     } else {
