@@ -59,28 +59,16 @@ import base64
 from flask_compress import Compress
 from whitenoise import WhiteNoise
 
-
-
-
-
-
-
 load_dotenv()
 
 
-print("STEP 1")
 app = Flask(__name__)
-print("ENV SECRET:", os.getenv("SECRET_KEY"))
-
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SESSION_COOKIE_SAMESITE="Lax"
 )
 CORS(app, supports_credentials=True)
-
-
-print("APP SECRET:", app.config["SECRET_KEY"])
 app.register_blueprint(admin_bp)
 
 app.register_blueprint(
@@ -89,13 +77,7 @@ app.register_blueprint(
 
 app.register_blueprint(paystack_bp, url_prefix="/api/paystack")
 
-print("STEP 2")
 
-
-
-
-
-print("STEP 4")
 app.config["flask_profiler"] = {
     "enabled": True,
 
@@ -119,12 +101,8 @@ app.config["flask_profiler"] = {
 
 flask_profiler.init_app(app)
 
-print("STEP 5")
 Compress(app)
 
-
-
-print("STEP 6")
 cache = Cache()
 
 app.config.update({
@@ -144,15 +122,12 @@ app.config.update({
 
 try:
     cache.init_app(app)
-    print("Extensions:", app.extensions.keys())
-    print("CACHE CONNECTED")
 
 except Exception as e:
     print("CACHE FAILED:", e)
     
 socketio.init_app(app)
 
-print("STEP 7")
 cloudinary.config(
     cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME"),
     api_key =  os.getenv("CLOUDINARY_API_KEY"),
@@ -160,7 +135,6 @@ cloudinary.config(
 )
 
 
-print("STEP 8")
 app.wsgi_app=WhiteNoise(
 app.wsgi_app,
 root="static/"
@@ -263,17 +237,17 @@ def robots():
 def sitemap():
     return send_from_directory('static','sitemap.xml')
 
-@app.route("/test-email")
-def test_email():
-    emails = ["budom7774@gmail.com","huntclara.56@gmail.com","Lawal22413@gmail.com","leanerbeamllc26@gmail.com","test-fi8xhgmul@srv1.mail-tester.com"]
-    for email in emails:
-        send_email(
-            email,
-            "Business Essential - Email Testing",
-            "Welcome. Testing yor email"
-        )
+# @app.route("/test-email")
+# def test_email():
+#     emails = ["budom7774@gmail.com","huntclara.56@gmail.com","Lawal22413@gmail.com","leanerbeamllc26@gmail.com","test-fi8xhgmul@srv1.mail-tester.com"]
+#     for email in emails:
+#         send_email(
+#             email,
+#             "Business Essential - Email Testing",
+#             "Welcome. Testing yor email"
+#         )
 
-    return "Email Sent"
+#     return "Email Sent"
 
 @app.route("/")
 def home():
