@@ -868,10 +868,10 @@ def verifylogin():
         session_token = log_session_phone(
             user_id=user_id,
             ip_address=ip_address,
+            device_info=deviceinfo,
             location=location,
             latitude=latitude,
-            longitude=longitude,
-            device_info=deviceinfo 
+            longitude=longitude
         )
         session["session_token"] = session_token
 
