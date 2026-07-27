@@ -1003,7 +1003,16 @@ def db_cursor(
                 e
             )
 
+def detect_location():
+     ip = request.headers.get("X-Forwarded-For", request.remote_addr)
+     response = requests.get(f"https://ipinfo.io/{ip}/json", timeout=5)
+     data = response.json()
 
+     country = data.get("country")
+     state = data.get("region")
+     city = data.get("city")
+
+     return country, state, city
 
 def save_log_activity(
     user_id,
