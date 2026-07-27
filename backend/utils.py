@@ -522,7 +522,42 @@ def get_location(lat, lng):
 
 
 
+def token_required_phone(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
 
+        if "Authorization" in request.headers:
+            auth_header = request.headers["Authorization"]
+            token = auth_header.split(" ")[1]
+
+        if not token:
+            return jsonify({
+                "status": "error",
+                "message": "Token is missing"
+            }), 401
+
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+            current_user_id = payload["user_id"]
+            current_user_role = payload["role"]
+
+        except jwt.ExpiredSignatureError:
+            return jsonify({
+                "status": "error",
+                "message": "Token expired"
+            }), 401
+
+        except Exception:
+            return jsonify({
+                "status": "error",
+                "message": "Invalid token"
+            }), 401
+
+        return f(current_user_id, current_user_role, *args, **kwargs)
+
+    return decorated
+    
 # def log_session(
 #     user_id,
 #     device_model,
