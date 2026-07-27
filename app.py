@@ -15,6 +15,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from backend.extentions import socketio
 from backend.routes import bp as paystack_bp
 from backend.ai import bp as ai_bp
+from backend.api import bp as api_bp
+import backend.api.auth
 from backend.socket_events import register_socket_events
 from werkzeug import Client
 from backend.utils import (
@@ -74,7 +76,9 @@ app.register_blueprint(admin_bp)
 app.register_blueprint(
     ai_bp
 )
-
+app.register_blueprint(
+    api_bp
+)
 app.register_blueprint(paystack_bp, url_prefix="/api/paystack")
 
 
