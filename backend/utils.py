@@ -1075,6 +1075,96 @@ from uuid import uuid4
 import secrets
 
 
+def log_session_phone(
+    user_id,
+    device_info,
+    ip_address,
+    user_agent=None,
+    location=None,
+    latitude=None,
+    longitude=None
+):
+
+    device_id = generate_device_id_phone(
+        ip_address
+    )
+
+    session_token = secrets.token_hex(32)
+
+    with db_cursor(dictionary=True) as (conn, cursor):
+
+        cursor.execute(
+            """
+            SELECT id
+            FROM user_sessions
+            WHERE user_id=%s
+            AND device_id=%s
+            """,
+            (user_id, device_id)
+        )
+
+        existing = cursor.fetchone()
+
+        if existing:
+
+            cursor.execute(
+                """
+                UPDATE user_sessions
+                SET
+                    session_token=%s,
+                    ip_address=%s,
+                    location=%s,
+                    latitude=%s,
+                    longitude=%s,
+                    last_active=NOW()
+                WHERE id=%s
+                """,
+                (
+                    session_token,
+                    ip_address,
+                    location,
+                    latitude,
+                    longitude,
+                    existing["id"]
+                )
+            )
+
+        else:
+
+            cursor.execute(
+                """
+                INSERT INTO user_sessions(
+                    user_id,
+                    session_token,
+                    device_id,
+                    device_type,
+                    browser,
+                    os,
+                    ip_address,
+                    location,
+                    latitude,
+                    longitude,
+                    user_agent
+                )
+                VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+                """,
+                (
+                    user_id,
+                    session_token,
+                    device_id,
+                    device_info.get("modelName"),
+                    device_info.get("brand"),
+                    device_info.get("osName"),
+                    ip_address,
+                    location,
+                    latitude,
+                    longitude,
+                    user_agent
+                )
+            )
+
+    return session_token
+    
 def log_session(
     user_id,
     ip_address,
@@ -1240,6 +1330,10 @@ def parse_user_agent(user_agent):
 
 def generate_device_id(user_agent, ip_address):
     raw = f"{user_agent}{ip_address}"
+    return hashlib.sha256(raw.encode()).hexdigest()
+
+def generate_device_id_phone(ip_address):
+    raw = f"{ip_address}"
     return hashlib.sha256(raw.encode()).hexdigest()
 
 
