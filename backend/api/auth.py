@@ -19,7 +19,7 @@ from backend.utils import (
     get_client_ip,
     get_location_from_ip,
     get_location,
-    log_session,
+    log_session_phone,
     update_session_activity
 )
 import jwt
@@ -865,7 +865,7 @@ def verifylogin():
         else:
             location = f"{city},{state},{country}."
 
-        session_token = log_session(
+        session_token = log_session_phone(
             user_id=user_id,
             ip_address=ip_address,
             location=location,
