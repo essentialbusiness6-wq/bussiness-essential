@@ -768,7 +768,7 @@ def verifylogin():
                 title="Login Failed",
                 description=f"Login failed. Incorrect Password, attempts({new_attempts})",
                 severity="MEDIUM",
-                ip_address=get_client_ip()
+                ip_address=get_client_ip(request)
             )
             return jsonify({
                 "status": "error",
