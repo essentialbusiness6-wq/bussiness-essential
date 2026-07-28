@@ -1053,7 +1053,7 @@ def verifylogin():
         cursor.close()
         conn.close()
 
-@api.route('/verify-2fa', methods=['POST'])
+@api_bp.route('/verify-2fa', methods=['POST'])
 def login_verify_2fa():
 
     try:
