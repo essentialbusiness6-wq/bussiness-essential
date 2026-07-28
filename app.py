@@ -385,9 +385,10 @@ def pay_invoice_page(invoiceId):
             """,
             (invoice['user_id'],)
         )
-        profile = cursor.fetchone()
-        if not profile:
-            return jsonify({"error": "Profile not found"}), 404
+        if cursor.fetchone():
+            profile = cursor.fetchone()
+        else:
+            profile = {}
 
         cursor.execute(
             """
@@ -401,8 +402,6 @@ def pay_invoice_page(invoiceId):
         if not subaccount:
             return jsonify({"error": "Subaccount not found. Update account details first"}), 404
         
-
-   
 
         invoice_date =invoice["invoice_date"]
         due_date = invoice["due_date"]
@@ -667,11 +666,11 @@ def view_invoices_page(current_user_id,current_user_role,invoiceId):
             """,
             (current_user_id,)
         )
-        profile = cursor.fetchone()
-        if not profile:
-            return jsonify({"error": "Profile not found"}), 404
+        if cursor.fetchone():
+            profile = cursor.fetchone()
+        else:
+            profile= {}
 
-   
 
         invoice_date =invoice["invoice_date"]
         due_date = invoice["due_date"]
