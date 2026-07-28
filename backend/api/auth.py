@@ -1151,7 +1151,8 @@ def login_verify_2fa():
             "success": True,
             "status": "success",
             "message": "2FA verification successful",
-            "role": user["role"]
+            "role": user["role"],
+            "token":token
         }))
 
         response.set_cookie(
