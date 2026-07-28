@@ -6,6 +6,7 @@ import hashlib
 from datetime import datetime,timedelta
 import secrets
 import requests
+import pyotp
 import os
 from backend.utils import ( 
     token_required,
@@ -1052,6 +1053,127 @@ def verifylogin():
         cursor.close()
         conn.close()
 
+@api.route('/verify-2fa', methods=['POST'])
+def login_verify_2fa():
+
+    try:
+
+        user_id = session.get('pending_user_id')
+
+        if not user_id:
+            return jsonify({
+                "success": False,
+                "message": "Session expired"
+            }), 401
+
+        data = request.get_json() or {}
+
+        code = data.get('otp', '').strip()
+
+        if not code:
+            return jsonify({
+                "success": False,
+                "message": "Verification code is required"
+            }), 400
+
+        with db_cursor(dictionary=True) as (conn, cursor):
+
+            cursor.execute(
+                """
+                SELECT *
+                FROM user_base
+                WHERE user_id=%s
+                LIMIT 1
+                """,
+                (user_id,)
+            )
+
+            user = cursor.fetchone()
+
+            if not user:
+                return jsonify({
+                    "success": False,
+                    "message": "User not found"
+                }), 404
+
+            if not user.get("two_factor_secret"):
+                return jsonify({
+                    "success": False,
+                    "message": "2FA is not configured"
+                }), 400
+
+            totp = pyotp.TOTP(
+                user['two_factor_secret']
+            )
+
+            if not totp.verify(code):
+
+                return jsonify({
+                    "success": False,
+                    "message": "Invalid code"
+                }), 401
+
+            payload = {
+                "user_id": user['user_id'],
+                "role": user['role'],
+                "exp": datetime.utcnow() + timedelta(hours=24)
+            }
+
+            token = jwt.encode(
+                payload,
+                SECRET_KEY,
+                algorithm="HS256"
+            )
+
+        session.pop('pending_user_id', None)
+
+        ip_address = request.remote_addr
+
+        try:
+
+            save_security_activity(
+                user_id=user['user_id'],
+                type_="account",
+                title="2FA Success",
+                description=(
+                    f"User '{user['user_id']}' "
+                    f"successfully completed 2FA "
+                    f"from {ip_address}"
+                ),
+                severity="LOW",
+                ip_address=ip_address
+            )
+
+        except Exception as log_error:
+            print("Activity log error:", log_error)
+
+        response = make_response(jsonify({
+            "success": True,
+            "status": "success",
+            "message": "2FA verification successful",
+            "role": user["role"]
+        }))
+
+        response.set_cookie(
+            "access_token",
+            token,
+            httponly=True,
+            secure=True,  
+            samesite="Lax",
+            max_age=60 * 60 * 24 * 7
+        )
+
+        return response, 200
+
+    except Exception as e:
+
+        print("2FA Verification Error:", e)
+
+        return jsonify({
+            "success": False,
+            "message": "An unexpected error occurred"
+        }), 500
+        
 @api_bp.route("/resetpass", methods=["POST"])
 def reset():
     data = request.get_json()
