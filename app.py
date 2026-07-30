@@ -669,7 +669,7 @@ def view_invoices_page(current_user_id,current_user_role,invoiceId):
         if cursor.fetchone():
             profile = cursor.fetchone()
         else:
-            profile= {
+             profile = {
                 "profilename":"",
                 "address":"",
                 "alternateemail":"",
@@ -677,7 +677,7 @@ def view_invoices_page(current_user_id,current_user_role,invoiceId):
                 "website":""
             }
 
-
+        print(profile)
         invoice_date =invoice["invoice_date"]
         due_date = invoice["due_date"]
 
