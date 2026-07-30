@@ -666,18 +666,14 @@ def view_invoices_page(current_user_id,current_user_role,invoiceId):
             """,
             (current_user_id,)
         )
-        if cursor.fetchone():
-            profile = cursor.fetchone()
-        else:
-             profile = {
-                "profilename":"",
-                "address":"",
-                "alternateemail":"",
-                "phone":"",
-                "website":""
-            }
 
-        print(profile)
+        profile = cursor.fetchone()
+        if not profile:
+            return jsonify({
+                "status":"error",
+                "message":"Failed to load profile. Go to your profile page and update profile."
+            }),400
+
         invoice_date =invoice["invoice_date"]
         due_date = invoice["due_date"]
 
