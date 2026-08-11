@@ -3,7 +3,6 @@ monkey.patch_all()
 import traceback
 import hmac
 import html
-from flask_caching import Cache
 from flask import (
     Flask, json, request, jsonify, make_response, render_template,session,redirect, Blueprint,send_from_directory
 )
@@ -12,7 +11,7 @@ from flask_socketio import SocketIO, emit, join_room
 import time
 import flask_profiler
 from apscheduler.schedulers.background import BackgroundScheduler
-from backend.extentions import socketio
+from backend.extentions import socketio,cache
 from backend.routes import bp as paystack_bp
 from backend.ai import bp as ai_bp
 from backend.api import api_bp
@@ -106,8 +105,6 @@ app.config["flask_profiler"] = {
 flask_profiler.init_app(app)
 
 Compress(app)
-
-cache = Cache()
 
 app.config.update({
 
