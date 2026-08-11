@@ -1,4 +1,5 @@
 from flask_socketio import SocketIO
+from flask_caching import Cache
 
 socketio = SocketIO(
     cors_allowed_origins="*",
@@ -6,4 +7,6 @@ socketio = SocketIO(
     manage_session=True,
     cors_credentials=True
 )
+
+cache = Cache()
 
