@@ -12,7 +12,6 @@ from backend.utils import (
     db_cursor
 )
 import requests
-import tracebackne
 
 # Palette cycled through for topClients — swap for your own brand colors
 CLIENT_COLORS = ["#4361ee", "#3498db", "#2ecc71", "#9333ea", "#f39c12"]
