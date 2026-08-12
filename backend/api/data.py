@@ -278,7 +278,7 @@ def dashboard_data(current_user_id, current_user_role):
 
     try:
 
-        start = time.time()
+ 
 
         data = get_dashboard_data(
             current_user_id,
@@ -290,11 +290,6 @@ def dashboard_data(current_user_id, current_user_role):
                 "status": "error",
                 "message": "User data not found"
             }), 404
-
-        print(
-            f"Dashboard response took "
-            f"{time.time() - start:.3f}s"
-        )
 
         return jsonify(data)
 
