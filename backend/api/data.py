@@ -272,7 +272,7 @@ def get_dashboard_data(user_id, user_role):
         "clients": clients,
     }
 
-@app.route("/dashboard/data")
+@api_bp.route("/dashboard/data")
 @token_required
 def dashboard_data(current_user_id, current_user_role):
 
