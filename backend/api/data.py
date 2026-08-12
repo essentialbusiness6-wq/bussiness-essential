@@ -6,7 +6,7 @@ from datetime import datetime,timedelta
 from backend.extentions import cache
 import os
 from backend.utils import ( 
-    token_required,
+    token_required_phone,
     get_user_id,
     get_db,
     db_cursor
@@ -273,12 +273,10 @@ def get_dashboard_data(user_id, user_role):
     }
 
 @api_bp.route("/dashboard/data")
-@token_required
+@token_required_phone
 def dashboard_data(current_user_id, current_user_role):
 
     try:
-
- 
 
         data = get_dashboard_data(
             current_user_id,
