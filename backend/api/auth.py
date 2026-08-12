@@ -82,19 +82,19 @@ def create_user():
                 "message": "Username already exists"
             }), 400
 
-        referral_code = generate_referral_code()
+        # referral_code = generate_referral_code()
 
-        ref_code_used = data["ReferralCode"]
-        cursor.execute("""
-            SELECT user_id FROM referrals WHERE referral_code=%s
-        """, (ref_code_used,))
+        # ref_code_used = data["ReferralCode"]
+        # cursor.execute("""
+        #     SELECT user_id FROM referrals WHERE referral_code=%s
+        # """, (ref_code_used,))
 
-        referrer = cursor.fetchone()
+        # referrer = cursor.fetchone()
 
-        if referrer:
-            referred_by = ref_code_used
-        else:
-            referred_by = None
+        # if referrer:
+        #     referred_by = ref_code_used
+        # else:
+        #     referred_by = None
 
         apppin = hashlib.sha256(data["app_pin"].encode()).hexdigest()
         # Insert user
@@ -102,8 +102,8 @@ def create_user():
             INSERT INTO user_base
             (username, email, password_hash, sequrity_question, sequrity_answer_hash,
              failed_attempts, last_login, last_failed_login, trial_ends_at,
-             locked, lock_reason, active,referral_code,referred_by,app_pin)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s,%s)
+             locked, lock_reason, app_pin)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, (
             data["username"],
             data["email"],
@@ -116,9 +116,6 @@ def create_user():
             (datetime.now() + timedelta(days=30)).strftime("%Y-%m-%d %H:%M:%S"),
             False,
             "",
-            True,
-            referral_code,
-            referred_by,
             apppin
         ))
         user_id = cursor.lastrowid
