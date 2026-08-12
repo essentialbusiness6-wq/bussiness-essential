@@ -163,18 +163,43 @@ def get_dashboard_data(user_id, user_role):
 
         # --- Monthly revenue, last 6 months (for analytics.monthlyRevenue) ---
         cursor.execute("""
-            SELECT
-                DATE_FORMAT(created_at, '%%b') AS month,
-                DATE_FORMAT(created_at, '%%Y-%%m') AS month_key,
-                COALESCE(SUM(CASE WHEN status='paid' THEN total ELSE 0 END), 0) AS paid,
-                COALESCE(SUM(CASE WHEN status='pending' THEN total ELSE 0 END), 0) AS pending
-            FROM invoices
-            WHERE user_id=%s
-              AND created_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
-            GROUP BY month_key
-            ORDER BY month_key ASC
-        """, (user_id,))
-        monthly_rows = cursor.fetchall()
+    SELECT
+        DATE_FORMAT(created_at, '%%Y-%%m') AS month_key,
+        DATE_FORMAT(MIN(created_at), '%%b') AS month,
+
+        COALESCE(
+            SUM(
+                CASE
+                    WHEN status = 'paid' THEN total
+                    ELSE 0
+                END
+            ),
+            0
+        ) AS paid,
+
+        COALESCE(
+            SUM(
+                CASE
+                    WHEN status = 'pending' THEN total
+                    ELSE 0
+                END
+            ),
+            0
+        ) AS pending
+
+    FROM invoices
+
+    WHERE user_id = %s
+      AND created_at >= DATE_FORMAT(
+            DATE_SUB(CURDATE(), INTERVAL 5 MONTH),
+            '%%Y-%%m-01'
+          )
+
+    GROUP BY DATE_FORMAT(created_at, '%%Y-%%m')
+    ORDER BY month_key ASC
+""", (user_id,))
+
+    monthly_rows = cursor.fetchall()
 
     # ---------- Shape: user ----------
     user_block = {
@@ -202,6 +227,7 @@ def get_dashboard_data(user_id, user_role):
     monthly_revenue = [
         {
             "month": row["month"],
+            "monthKey": row["month_key"],
             "paid": float(row["paid"] or 0),
             "pending": float(row["pending"] or 0),
         }
