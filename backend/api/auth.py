@@ -56,7 +56,8 @@ def create_user():
         "email",
         "password",
         "security_question",
-        "security_answer"
+        "security_answer",
+        "app_pin"
     ]
 
     # Validate required fields FIRST
@@ -94,13 +95,15 @@ def create_user():
             referred_by = ref_code_used
         else:
             referred_by = None
+
+        apppin = hashlib.sha256(data["app_pin"].encode()).hexdigest()
         # Insert user
         cursor.execute("""
             INSERT INTO user_base
             (username, email, password_hash, sequrity_question, sequrity_answer_hash,
              failed_attempts, last_login, last_failed_login, trial_ends_at,
-             locked, lock_reason, active,referral_code,referred_by)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s)
+             locked, lock_reason, active,referral_code,referred_by,app_pin)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,%s,%s,%s)
         """, (
             data["username"],
             data["email"],
@@ -115,7 +118,8 @@ def create_user():
             "",
             True,
             referral_code,
-            referred_by
+            referred_by,
+            apppin
         ))
         user_id = cursor.lastrowid
         cursor.execute(
@@ -578,11 +582,7 @@ def complete_cust():
     required_fields = [
         "username",
         "email",
-        "profile_name",
-        "phone_number",
-        "alternate_email",
-        "website",
-        "bio"
+        "profile_name"
     ]
 
     # Validate required fields
