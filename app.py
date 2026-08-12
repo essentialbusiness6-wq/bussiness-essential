@@ -16,6 +16,7 @@ from backend.routes import bp as paystack_bp
 from backend.ai import bp as ai_bp
 from backend.api import api_bp
 import backend.api.auth
+import backend.api.data
 from backend.socket_events import register_socket_events
 from werkzeug import Client
 from backend.utils import (
