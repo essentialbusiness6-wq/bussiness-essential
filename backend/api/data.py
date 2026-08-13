@@ -55,7 +55,7 @@ def _humanize(dt):
 @cache.memoize(timeout=300)
 def get_dashboard_data(user_id, user_role):
     with db_cursor(dictionary=True) as (_, cursor):
-
+        Print("Hit Data Fetch")
         # --- User ---
         cursor.execute("""
             SELECT
@@ -71,7 +71,11 @@ def get_dashboard_data(user_id, user_role):
         """, (user_id,))
         user_data = cursor.fetchone()
         if not user_data:
-            return None
+            return jsonify({
+                "status":"error",
+                "message":'user not found"
+            }), 400
+        print("Hit User Data")
 
         # --- Invoice stats ---
         cursor.execute("""
@@ -86,6 +90,7 @@ def get_dashboard_data(user_id, user_role):
             WHERE user_id=%s
         """, (user_id,))
         invoice_stats = cursor.fetchone()
+        print('Hit invoice Stats")
 
         # --- Settings / wallet ---
         cursor.execute("""
@@ -101,8 +106,10 @@ def get_dashboard_data(user_id, user_role):
             LIMIT 1
         """, (user_id,))
         account_data = cursor.fetchone()
+        print("Hit Account Data")
         if not account_data:
             return None
+        
 
         # --- Notifications ---
         cursor.execute("""
