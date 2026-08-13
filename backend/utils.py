@@ -103,6 +103,12 @@ def get_user_id(username):
         if conn:
             conn.close()
             
+from functools import wraps
+from flask import request, jsonify
+import jwt
+from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
+
+
 def token_required(f):
 
     @wraps(f)
@@ -116,43 +122,39 @@ def token_required(f):
 
         if not token:
 
-            auth_header = request.headers.get(
-                "Authorization"
-            )
+            auth_header = request.headers.get("Authorization")
 
             print("TOKEN 3")
 
             if auth_header:
 
-                try:
+                parts = auth_header.split(" ", 1)
 
-                    scheme, token = (
-                        auth_header.split(" ")
-                    )
+                if len(parts) != 2:
+                    return jsonify({
+                        "message": "Invalid Authorization header"
+                    }), 401
 
-                    print("TOKEN 4")
+                scheme, token = parts
 
-                except Exception as e:
+                print("TOKEN 4")
 
-                    print("AUTH SPLIT ERROR", e)
-
-                    raise
-
+                if scheme.lower() != "bearer":
+                    return jsonify({
+                        "message": "Authorization scheme must be Bearer"
+                    }), 401
 
         if not token:
 
             print("TOKEN 5")
 
             return jsonify({
-                "message":
-                "Authentication required"
+                "message": "Authentication required"
             }), 401
-
 
         try:
 
             print("TOKEN 6")
-
             print(type(token))
 
             payload = jwt.decode(
@@ -168,14 +170,25 @@ def token_required(f):
 
             print("TOKEN 8")
 
-        except Exception as e:
+        except ExpiredSignatureError:
 
-            print("JWT ERROR")
-            print(type(e))
-            print(e)
+            print("JWT EXPIRED")
 
-            raise
+            return jsonify({
+                "status": "error",
+                "message": "Session expired. Please log in again.",
+                "code": "TOKEN_EXPIRED"
+            }), 401
 
+        except InvalidTokenError as e:
+
+            print("JWT INVALID:", type(e), e)
+
+            return jsonify({
+                "status": "error",
+                "message": "Invalid authentication token.",
+                "code": "INVALID_TOKEN"
+            }), 401
 
         print("TOKEN 9")
 
