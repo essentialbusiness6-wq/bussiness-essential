@@ -56,6 +56,8 @@ def _humanize(dt):
 def get_dashboard_data(user_id, user_role):
     with db_cursor(dictionary=True) as (_, cursor):
         Print("Hit Data Fetch")
+        print("DASHBOARD: USER QUERY")
+
         # --- User ---
         cursor.execute("""
             SELECT
@@ -73,7 +75,7 @@ def get_dashboard_data(user_id, user_role):
         if not user_data:
             return jsonify({
                 "status":"error",
-                "message":'user not found"
+                "message":"user not found"
             }), 400
         print("Hit User Data")
 
@@ -118,6 +120,7 @@ def get_dashboard_data(user_id, user_role):
             WHERE user_id=%s AND is_read=FALSE
         """, (user_id,))
         unread_count = cursor.fetchone()["unread_count"]
+        print("Hit Unread Count Data")
 
         # --- Activities (now pulling id too) ---
         cursor.execute("""
@@ -129,6 +132,7 @@ def get_dashboard_data(user_id, user_role):
             LIMIT 10
         """, (user_id,))
         raw_activities = cursor.fetchall()
+        print("Hit Raw Activities")
 
         # --- Payment subaccount / org flags ---
         cursor.execute("SELECT id FROM payment_subaccounts WHERE user_id=%s", (user_id,))
@@ -167,7 +171,7 @@ def get_dashboard_data(user_id, user_role):
             LIMIT 5
         """, (user_id,))
         top_clients_raw = cursor.fetchall()
-
+        print("Monthly Hit Row")
         # --- Monthly revenue, last 6 months (for analytics.monthlyRevenue) ---
         cursor.execute("""
     SELECT
@@ -207,6 +211,7 @@ def get_dashboard_data(user_id, user_role):
 """, (user_id,))
 
     monthly_rows = cursor.fetchall()
+    print("Fetched Monthly data")
 
     # ---------- Shape: user ----------
     user_block = {
