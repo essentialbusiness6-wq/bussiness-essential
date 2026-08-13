@@ -92,7 +92,7 @@ def get_dashboard_data(user_id, user_role):
             WHERE user_id=%s
         """, (user_id,))
         invoice_stats = cursor.fetchone()
-        print('Hit invoice Stats")
+        print("Hit invoice Stats")
 
         # --- Settings / wallet ---
         cursor.execute("""
