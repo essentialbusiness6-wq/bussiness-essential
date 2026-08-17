@@ -1722,6 +1722,189 @@ function forceShowAccountModal() {
 // Make it available in console for testing
 window.forceShowAccountModal = forceShowAccountModal;
 
+// ==============================
+// INTERACTIVE ONBOARDING TOUR
+// ==============================
+const tourSteps = [
+    {
+        target: '.user-info',
+        title: 'Your Profile & Plan',
+        description: 'This is your profile area. Click here to view and edit your account details, and check your current subscription plan.',
+        placement: 'bottom'
+    },
+    {
+        target: '.header-actions',
+        title: 'Help & Notifications',
+        description: 'Need assistance? Click the help icon for support. The bell icon shows your latest notifications and alerts.',
+        placement: 'bottom'
+    },
+    {
+        target: '.account-balance',
+        title: 'Available Balance',
+        description: 'Track your funds here. Tap the eye icon to hide your balance for privacy, or use "Add Money" to top up your account.',
+        placement: 'bottom'
+    },
+    {
+        target: '.actions-row',
+        title: 'Quick Actions',
+        description: 'Create a new professional invoice or view your existing invoice history instantly with a single tap.',
+        placement: 'top'
+    },
+    {
+        target: '.ai-card',
+        title: 'AI Business Assistant',
+        description: 'Tap to expand! Your AI assistant can help draft invoices, summarize client data, or analyze your cash flow.',
+        placement: 'top'
+    },
+    {
+        target: '.bottom-nav',
+        title: 'Quick Navigation',
+        description: 'Use this bottom bar to quickly jump between Home, Invoices, Drafts, Clients, Payments, and your Profile.',
+        placement: 'top'
+    }
+];
+
+let currentTourStep = 0;
+let tourOverlay, tourTooltip;
+
+function initTour() {
+    // Check if tour was already completed
+    if (localStorage.getItem('dashboardTourCompleted') === 'true') return;
+    
+    // Create overlay and tooltip if they don't exist
+    if (!document.getElementById('tourOverlay')) {
+        const overlay = document.createElement('div');
+        overlay.id = 'tourOverlay';
+        overlay.className = 'tour-overlay';
+        document.body.appendChild(overlay);
+        
+        const tooltip = document.createElement('div');
+        tooltip.id = 'tourTooltip';
+        tooltip.className = 'tour-tooltip';
+        document.body.appendChild(tooltip);
+        
+        tourOverlay = overlay;
+        tourTooltip = tooltip;
+    } else {
+        tourOverlay = document.getElementById('tourOverlay');
+        tourTooltip = document.getElementById('tourTooltip');
+    }
+    
+    currentTourStep = 0;
+    showTourStep();
+}
+
+function showTourStep() {
+    if (currentTourStep >= tourSteps.length) {
+        endTour();
+        return;
+    }
+    
+    const step = tourSteps[currentTourStep];
+    const targetEl = document.querySelector(step.target);
+    
+    if (!targetEl) {
+        currentTourStep++;
+        showTourStep();
+        return;
+    }
+    
+    // Highlight target
+    document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
+    targetEl.classList.add('tour-highlight');
+    
+    // Scroll target into view smoothly
+    targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    
+    // Build tooltip content
+    tourTooltip.innerHTML = `
+        <div class="tour-tooltip-header">
+            <span class="tour-step-indicator">Step ${currentTourStep + 1} of ${tourSteps.length}</span>
+            <button class="tour-skip-btn" onclick="skipTour()">Skip Tour</button>
+        </div>
+        <h3 class="tour-tooltip-title">${step.title}</h3>
+        <p class="tour-tooltip-desc">${step.description}</p>
+        <div class="tour-tooltip-footer">
+            <button class="tour-next-btn" onclick="nextTourStep()">
+                ${currentTourStep === tourSteps.length - 1 ? 'Got it!' : 'Next'}
+            </button>
+        </div>
+    `;
+    
+    // Position tooltip
+    setTimeout(() => positionTooltip(targetEl, step.placement), 100);
+    
+    tourOverlay.style.display = 'block';
+    tourTooltip.style.display = 'block';
+}
+
+function positionTooltip(target, placement) {
+    const rect = target.getBoundingClientRect();
+    const tooltipRect = tourTooltip.getBoundingClientRect();
+    const scrollY = window.scrollY || window.pageYOffset;
+    const scrollX = window.scrollX || window.pageXOffset;
+    
+    let top, left;
+    const gap = 16;
+    
+    switch(placement) {
+        case 'top':
+            top = rect.top + scrollY - tooltipRect.height - gap;
+            left = rect.left + scrollX + (rect.width / 2) - (tooltipRect.width / 2);
+            break;
+        case 'bottom':
+            top = rect.bottom + scrollY + gap;
+            left = rect.left + scrollX + (rect.width / 2) - (tooltipRect.width / 2);
+            break;
+        case 'left':
+            top = rect.top + scrollY + (rect.height / 2) - (tooltipRect.height / 2);
+            left = rect.left + scrollX - tooltipRect.width - gap;
+            break;
+        case 'right':
+            top = rect.top + scrollY + (rect.height / 2) - (tooltipRect.height / 2);
+            left = rect.right + scrollX + gap;
+            break;
+        default:
+            top = rect.bottom + scrollY + gap;
+            left = rect.left + scrollX;
+    }
+    
+    // Boundary checks to keep tooltip on screen
+    if (left < 10) left = 10;
+    if (left + tooltipRect.width > window.innerWidth - 10) {
+        left = window.innerWidth - tooltipRect.width - 10;
+    }
+    if (top < 10) top = 10;
+    
+    tourTooltip.style.top = `${top}px`;
+    tourTooltip.style.left = `${left}px`;
+}
+
+function nextTourStep() {
+    currentTourStep++;
+    showTourStep();
+}
+
+function skipTour() {
+    endTour();
+}
+
+function endTour() {
+    document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
+    if (tourOverlay) tourOverlay.style.display = 'none';
+    if (tourTooltip) tourTooltip.style.display = 'none';
+    
+    // Save to localStorage so it doesn't show again
+    localStorage.setItem('dashboardTourCompleted', 'true');
+}
+
+// Expose to window for onclick handlers in HTML string
+window.nextTourStep = nextTourStep;
+window.skipTour = skipTour;
+
+// Initialize tour after a short delay to ensure DOM is fully rendered
+setTimeout(initTour, 800);
+
 
 
 
