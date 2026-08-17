@@ -1705,7 +1705,7 @@ function getStatusColors(status) {
 
 function formatMoney(symbol, value) {
     const n = Number(value || 0);
-    return `${symbol || ''}${n.toFixed(2)}`;
+    return `₦${n.toFixed(2)}`;
 }
 
 function sanitizeFilename(name) {
