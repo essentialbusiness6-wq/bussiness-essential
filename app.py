@@ -2593,7 +2593,7 @@ def create_profile():
 """
         send_email(
             recipient=data["email"],
-            subject="Welcome to Business Essential 🎉",
+            subject="Welcome to Business Essentials prime 🎉",
             body=welcome_html,
             html=True
         )
@@ -3548,7 +3548,7 @@ def verifylogin():
           <h2 style="margin-top:0; font-size:22px;">New Sign-In Detected</h2>
 
           <p style="font-size:15px; line-height:1.6;">
-            We noticed a new sign-in to your Invoice App account.  
+            We noticed a new sign-in to your Business Essentials Prime account.  
             For your security, we’re letting you know whenever your account is accessed from a new device or location.
           </p>
 
@@ -3598,7 +3598,7 @@ def verifylogin():
 
           <p style="font-size:14px; color:#6b7280; margin-top:32px;">
             Thank you for helping us keep your account secure,<br />
-            <strong>The Business Essential Security Team</strong>
+            <strong>The Business Essentials Prime Security Team</strong>
           </p>
         </td>
       </tr>
@@ -3607,7 +3607,7 @@ def verifylogin():
       <tr>
         <td style="background:#f9fafb; padding:16px; text-align:center; font-size:12px; color:#6b7280;">
           This is an automated security message. Please do not reply.<br />
-          © {year} Business Essential. All rights reserved.
+          © {year} Business Essentials Prime. All rights reserved.
         </td>
       </tr>
 
@@ -3627,7 +3627,7 @@ def verifylogin():
 
         send_email(
             recipient=email,
-            subject="New Sign-In Detected — Business Essential",
+            subject="New Sign-In Detected — Business Essentials Prime",
             body=login_html,
             html=True
         )
@@ -5748,7 +5748,7 @@ def update_profile(current_user_id,current_user_role):
             cursor.execute(
                 """
                 INSERT INTO cust_base
-                (user_id,fullname,profilename,address,alternateemail,phone,website,bio,country,currency)
+                (user_id,fullname,profilename,address,alternateemail,phone,website,bio,country)
                 VALUES(%s ,%s ,%s ,%s ,%s ,%s ,%s ,%s ,%s ,%s)
                 """,
                 (   
@@ -5760,8 +5760,7 @@ def update_profile(current_user_id,current_user_role):
                     data['phone'],
                     data['website'],
                     data['bio'],
-                    data['country'],
-                    "NGN"
+                    data['country']                
                 )
             )
 
@@ -5795,7 +5794,7 @@ def update_profile(current_user_id,current_user_role):
         print("Update profile error:", e)
         return jsonify({
             "status": "error",
-            "message": "Server error. Please try again later."
+            "message": str(e)
         }), 500
     finally:
         cursor.close()
