@@ -343,11 +343,18 @@ def pay_invoice_page(invoiceId):
         
         invoice = cursor.fetchone()
         if not invoice:
-            return jsonify({
-                "status": "error",
-                "message": "Invoice not found"
-            }), 404
-    
+            return render_template(
+                "users/data-not-found.html",
+                title="Invoice not Found",
+                message="The invoice you are looking for does not exist or has been archived.",.
+                link="/dashboard/invoices/list",
+                link_text="View All Invoices"
+                support_link="/support",
+                support_text="Contact Support"
+            )
+
+
+
         cursor.execute("""
             SELECT description, quantity, price
             FROM invoice_items
@@ -539,10 +546,15 @@ def edit_invoice_page(current_user_id,current_user_role,invoiceId):
         )
         invoice = cursor.fetchone()
         if not invoice:
-            return jsonify({
-                "status": "error",
-                "message": "Invoice not found"
-            }), 404
+            return render_template(
+                "users/data-not-found.html",
+                title="Invoice not Found",
+                message="The invoice you are looking for does not exist or has been archived.",.
+                link="/dashboard/invoices/list",
+                link_text="View All Invoices"
+                support_link="/support",
+                support_text="Contact Support"
+            )
     
         cursor.execute("""
             SELECT description, quantity, price
@@ -623,11 +635,15 @@ def view_invoices_page(current_user_id,current_user_role,invoiceId):
 
         invoice = cursor.fetchone()
         if not invoice:
-            return jsonify({
-                "status": "error",
-                "message": "Invoice not found"
-            }), 404
-    
+            return render_template(
+                "users/data-not-found.html",
+                title="Invoice not Found",
+                message="The invoice you are looking for does not exist or has been archived.",.
+                link="/dashboard/invoices/list",
+                link_text="View All Invoices"
+                support_link="/support",
+                support_text="Contact Support"
+            )
         cursor.execute("""
             SELECT description, quantity, price
             FROM invoice_items
@@ -671,6 +687,15 @@ def view_invoices_page(current_user_id,current_user_role,invoiceId):
 
         profile = cursor.fetchone()
         if not profile:
+            return render_template(
+                "users/data-not-found.html",
+                title="Profile Not Found",
+                message="Failed To Load Profile, Profile Not Completed yet.",.
+                link="/profile",
+                link_text="Update Profile"
+                support_link="/support",
+                support_text="Contact Support"
+            )
             return jsonify({
                 "status":"error",
                 "message":"Failed to load profile. Go to your profile page and update profile."
