@@ -1168,8 +1168,18 @@ def logout(current_user_id,current_user_role):
         )
         return response 
     else:
-        return jsonify({"message": "No active session found"}), 400
+        response = jsonify({
+            "status": "success",
+            "message": "Logged out successfully"
+        }), 201
 
+        # REMOVE AUTH COOKIE
+        response.delete_cookie("access_token")
+        cache.delete_memoized(
+            get_sessions_cached,
+            current_user_id
+        )
+        return response 
 
 @cache.memoize(timeout=30)  # short cache for notifications (real-time-ish)
 def get_user_notifications(user_id):
