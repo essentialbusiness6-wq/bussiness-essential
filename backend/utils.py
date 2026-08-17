@@ -12,10 +12,16 @@ from flask import current_app
 from typing import Optional
 from functools import wraps
 from flask import session, redirect, request, jsonify
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
 from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import inch, cm
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import (
+    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle,
+    Image, HRFlowable, KeepTogether
+)
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 import mysql.connector
 from user_agents import parse
 import jwt
@@ -28,6 +34,7 @@ import hashlib
 from requests.adapters import HTTPAdapter
 from urllib3.poolmanager import PoolManager
 import ssl
+import os
 
 
 load_dotenv()
@@ -678,148 +685,436 @@ def token_required_phone(f):
 
 LOGO_PATH = "https://res.cloudinary.com/dkb987i8w/image/upload/v1772108684/app_logo_ky1yis.png" 
 
+# Try to register custom fonts if available, fallback to Helvetica
+try:
+    font_path = os.path.join(current_app.root_path, "static", "fonts", "Inter-Regular.ttf")
+    font_bold_path = os.path.join(current_app.root_path, "static", "fonts", "Inter-Bold.ttf")
+    if os.path.exists(font_path) and os.path.exists(font_bold_path):
+        pdfmetrics.registerFont(TTFont('Inter', font_path))
+        pdfmetrics.registerFont(TTFont('Inter-Bold', font_bold_path))
+        FONT_FAMILY = 'Inter'
+        FONT_BOLD = 'Inter-Bold'
+    else:
+        FONT_FAMILY = 'Helvetica'
+        FONT_BOLD = 'Helvetica-Bold'
+except:
+    FONT_FAMILY = 'Helvetica'
+    FONT_BOLD = 'Helvetica-Bold'
+
+
 def generate_invoice_pdf(invoice_id, client_name, client_email,
                          invoice_date, due_date, status,
                          items, subtotal, tax, total,
-                         amount_paid, balance, notes):
+                         amount_paid, balance, notes,
+                         company_name="Business Essentials Prime",
+                         company_address="123 Business Avenue, Lagos, Nigeria",
+                         company_email="hello@businessessentia.net",
+                         company_phone="+234 800 000 0000",
+                         company_website="www.businessessentia.net"):
 
-    invoice_dir = os.path.join(
-        current_app.root_path,
-        "static",
-        "invoices"
-    )
+    invoice_dir = os.path.join(current_app.root_path, "static", "invoices")
     safe_client_name = re.sub(r"[^a-zA-Z0-9_-]", "_", client_name)
+    filename = f"invoice_{invoice_id}_{safe_client_name}_{datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"
+    
+    os.makedirs(invoice_dir, exist_ok=True)
+    file_path = os.path.join(invoice_dir, filename)
 
-    filename = (
-        f"invoice_{invoice_id}_{safe_client_name}_"
-        f"{datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"
+    doc = SimpleDocTemplate(
+        file_path, pagesize=A4,
+        rightMargin=45, leftMargin=45,
+        topMargin=30, bottomMargin=40
     )
 
-    os.makedirs(
-        invoice_dir,
-        exist_ok=True
-    )
+    # ---------- COLOR PALETTE ----------
+    BRAND_PRIMARY = colors.HexColor("#1558B0")
+    BRAND_SECONDARY = colors.HexColor("#4361ee")
+    BRAND_LIGHT = colors.HexColor("#f0f4ff")
+    BRAND_ACCENT = colors.HexColor("#4895ef")
+    TEXT_DARK = colors.HexColor("#1e293b")
+    TEXT_MEDIUM = colors.HexColor("#475569")
+    TEXT_LIGHT = colors.HexColor("#64748b")
+    BORDER_LIGHT = colors.HexColor("#e2e8f0")
+    BG_LIGHT = colors.HexColor("#f8fafc")
+    SUCCESS = colors.HexColor("#10b981")
+    SUCCESS_BG = colors.HexColor("#d1fae5")
+    DANGER = colors.HexColor("#ef4444")
+    DANGER_BG = colors.HexColor("#fee2e2")
+    WARNING = colors.HexColor("#f59e0b")
+    WARNING_BG = colors.HexColor("#fef3c7")
 
-    file_path = os.path.join(
-        invoice_dir,
-        filename
-    )
+    # Status color mapping
+    status_colors = {
+        "paid": (SUCCESS, SUCCESS_BG),
+        "pending": (WARNING, WARNING_BG),
+        "overdue": (DANGER, DANGER_BG),
+        "draft": (TEXT_LIGHT, BG_LIGHT),
+    }
+    status_color, status_bg = status_colors.get(status.lower(), (TEXT_LIGHT, BG_LIGHT))
 
-
-    doc = SimpleDocTemplate(file_path, pagesize=A4,
-                            rightMargin=40, leftMargin=40,
-                            topMargin=40, bottomMargin=40)
-
+    # ---------- STYLES ----------
     styles = getSampleStyleSheet()
+    
+    style_title = ParagraphStyle(
+        'CustomTitle', parent=styles['Normal'],
+        fontName=FONT_BOLD, fontSize=28, textColor=BRAND_PRIMARY,
+        spaceAfter=4, leading=32
+    )
+    style_subtitle = ParagraphStyle(
+        'CustomSubtitle', parent=styles['Normal'],
+        fontName=FONT_FAMILY, fontSize=10, textColor=TEXT_LIGHT,
+        spaceAfter=0, leading=14
+    )
+    style_section_header = ParagraphStyle(
+        'SectionHeader', parent=styles['Normal'],
+        fontName=FONT_BOLD, fontSize=10, textColor=BRAND_PRIMARY,
+        spaceAfter=8, leading=14, spaceBefore=12
+    )
+    style_label = ParagraphStyle(
+        'Label', parent=styles['Normal'],
+        fontName=FONT_FAMILY, fontSize=8, textColor=TEXT_LIGHT,
+        leading=11, spaceAfter=2
+    )
+    style_value = ParagraphStyle(
+        'Value', parent=styles['Normal'],
+        fontName=FONT_BOLD, fontSize=10, textColor=TEXT_DARK,
+        leading=14, spaceAfter=6
+    )
+    style_body = ParagraphStyle(
+        'Body', parent=styles['Normal'],
+        fontName=FONT_FAMILY, fontSize=9, textColor=TEXT_MEDIUM,
+        leading=13
+    )
+    style_small = ParagraphStyle(
+        'Small', parent=styles['Normal'],
+        fontName=FONT_FAMILY, fontSize=8, textColor=TEXT_LIGHT,
+        leading=11
+    )
+    style_footer = ParagraphStyle(
+        'Footer', parent=styles['Normal'],
+        fontName=FONT_FAMILY, fontSize=7.5, textColor=TEXT_LIGHT,
+        leading=10, alignment=1  # center
+    )
+    style_thank_you = ParagraphStyle(
+        'ThankYou', parent=styles['Normal'],
+        fontName=FONT_BOLD, fontSize=11, textColor=BRAND_PRIMARY,
+        alignment=1, spaceAfter=6, leading=14
+    )
+
     elements = []
 
-    brand_color = colors.HexColor("#1558B0")  # Brand primary color
-
-    # ---------- App Logo ----------
-    logo_path = LOGO_PATH
-    if os.path.exists(logo_path):
-        logo = Image(logo_path, width=120, height=40)
-        logo.hAlign = 'CENTER'
-        elements.append(logo)
-        elements.append(Spacer(1, 12))
-
-    # ---------- Invoice Header ----------
-    status_color = colors.green if status.lower() == "paid" else colors.red
-    elements.append(Paragraph(
-        f"<b>Invoice #{invoice_id}</b>",
-        ParagraphStyle(
-            name="InvoiceTitle",
-            fontSize=20,
-            textColor=brand_color,
-            alignment=0,  # left
-            spaceAfter=8
-        )
-    ))
-    elements.append(Paragraph(
-        f"<b>Status:</b> <font color='#{status_color.hexval()}'>{status.upper()}</font>",
-        ParagraphStyle(
-            name="InvoiceStatus",
-            fontSize=12,
-            spaceAfter=15
-        )
-    ))
-
-    # ---------- Client & Invoice Info ----------
-    info_table = Table([
-        ["Bill To:", client_name, "Invoice Date:", invoice_date],
-        ["Email:", client_email, "Due Date:", due_date],
-    ], colWidths=[70, 180, 90, 140])
-
-    info_table.setStyle(TableStyle([
-        ("BACKGROUND", (0,0), (-1,0), colors.HexColor("#f2f2f2")),
-        ("GRID", (0,0), (-1,-1), 0.5, colors.grey),
-        ("FONT", (0,0), (-1,-1), "Helvetica"),
-        ("VALIGN", (0,0), (-1,-1), "MIDDLE"),
-        ("BOTTOMPADDING", (0,0), (-1,-1), 6),
-        ("TOPPADDING", (0,0), (-1,-1), 6),
+    # ========== TOP ACCENT BAR ==========
+    accent_bar = Table([['']], colWidths=[480], rowHeights=[6])
+    accent_bar.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), BRAND_PRIMARY),
+        ('LEFTPADDING', (0, 0), (-1, -1), 0),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+        ('TOPPADDING', (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
     ]))
-    elements.append(info_table)
+    elements.append(accent_bar)
     elements.append(Spacer(1, 20))
 
-    # ---------- Items Table ----------
-    item_data = [["Description", "Qty", "Price", "Total"]]
+    # ========== HEADER: COMPANY INFO + INVOICE TITLE ==========
+    # Left side: Company info
+    logo_path = os.path.join(current_app.root_path, "static", "media", "app logo.png")
+    if os.path.exists(logo_path):
+        logo = Image(logo_path, width=100, height=33)
+        logo.hAlign = 'LEFT'
+        elements.append(logo)
+    else:
+        elements.append(Paragraph(
+            f"<b>{company_name}</b>",
+            ParagraphStyle('CompanyName', parent=styles['Normal'],
+                          fontName=FONT_BOLD, fontSize=14, textColor=BRAND_PRIMARY)
+        ))
+    
+    elements.append(Spacer(1, 6))
+    elements.append(Paragraph(company_address, style_small))
+    elements.append(Paragraph(company_email, style_small))
+    elements.append(Paragraph(company_phone, style_small))
+    elements.append(Paragraph(company_website, style_small))
+
+    # Right side: Invoice title and details (using a table for alignment)
+    invoice_title_data = [[
+        '',
+        Paragraph("INVOICE", style_title)
+    ], [
+        '',
+        Paragraph(f"#{invoice_id}", ParagraphStyle(
+            'InvoiceNum', parent=styles['Normal'],
+            fontName=FONT_BOLD, fontSize=11, textColor=TEXT_MEDIUM,
+            leading=14
+        ))
+    ], [
+        '',
+        # Status badge
+        Table([[Paragraph(
+            f"<b>{status.upper()}</b>",
+            ParagraphStyle('StatusText', parent=styles['Normal'],
+                          fontName=FONT_BOLD, fontSize=8, textColor=status_color,
+                          alignment=1, leading=11)
+        )]], colWidths=[80], rowHeights=[20])
+    ]]
+    
+    invoice_title_table = Table(invoice_title_data, colWidths=[280, 200])
+    invoice_title_table.setStyle(TableStyle([
+        ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 0),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+        ('TOPPADDING', (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
+        # Style the status badge cell
+        ('BACKGROUND', (1, 2), (1, 2), status_bg),
+        ('ROUNDEDCORNERS', [4, 4, 4, 4]),
+    ]))
+    
+    # Combine header into a single table for proper alignment
+    header_left = [
+        [logo if os.path.exists(logo_path) else Paragraph(f"<b>{company_name}</b>", 
+            ParagraphStyle('CN', parent=styles['Normal'], fontName=FONT_BOLD, fontSize=14, textColor=BRAND_PRIMARY))],
+        [Paragraph(company_address, style_small)],
+        [Paragraph(company_email, style_small)],
+        [Paragraph(company_phone, style_small)],
+    ]
+    header_left_table = Table(header_left, colWidths=[280])
+    header_left_table.setStyle(TableStyle([
+        ('LEFTPADDING', (0, 0), (-1, -1), 0),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+        ('TOPPADDING', (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
+    ]))
+
+    header_right = [
+        [Paragraph("INVOICE", style_title)],
+        [Paragraph(f"#{invoice_id}", ParagraphStyle(
+            'InvNum', parent=styles['Normal'],
+            fontName=FONT_BOLD, fontSize=11, textColor=TEXT_MEDIUM, leading=14))],
+        [Table([[Paragraph(f"<b>{status.upper()}</b>", ParagraphStyle(
+            'StatusBadge', parent=styles['Normal'],
+            fontName=FONT_BOLD, fontSize=8, textColor=status_color,
+            alignment=1, leading=11))]], colWidths=[80], rowHeights=[20])]
+    ]
+    header_right_table = Table(header_right, colWidths=[200])
+    header_right_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 0),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+        ('TOPPADDING', (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
+        ('BACKGROUND', (0, 2), (0, 2), status_bg),
+    ]))
+
+    main_header = Table([[header_left_table, header_right_table]], colWidths=[280, 200])
+    main_header.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 0),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+    ]))
+    elements.append(main_header)
+    elements.append(Spacer(1, 20))
+
+    # ========== DIVIDER ==========
+    elements.append(HRFlowable(width="100%", thickness=1, color=BORDER_LIGHT, spaceAfter=16))
+
+    # ========== BILL TO + DATES SECTION ==========
+    bill_to_content = [
+        [Paragraph("BILL TO", style_section_header), '', 
+         Paragraph("INVOICE DETAILS", style_section_header), ''],
+        [Paragraph(client_name, style_value), '',
+         Paragraph("Invoice Date", style_label), ''],
+        [Paragraph(client_email, style_body), '',
+         Paragraph(invoice_date, style_value), ''],
+        [Spacer(1, 4), '',
+         Paragraph("Due Date", style_label), ''],
+        ['', '',
+         Paragraph(due_date, style_value), ''],
+    ]
+    
+    bill_to_table = Table(bill_to_content, colWidths=[200, 40, 120, 120])
+    bill_to_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('LEFTPADDING', (0, 0), (-1, -1), 0),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+        ('TOPPADDING', (0, 0), (-1, -1), 0),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
+    ]))
+    elements.append(bill_to_table)
+    elements.append(Spacer(1, 24))
+
+    # ========== ITEMS TABLE ==========
+    # Table header
+    item_header_style = ParagraphStyle(
+        'ItemHeader', parent=styles['Normal'],
+        fontName=FONT_BOLD, fontSize=9, textColor=colors.white,
+        leading=12
+    )
+    item_cell_style = ParagraphStyle(
+        'ItemCell', parent=styles['Normal'],
+        fontName=FONT_FAMILY, fontSize=9, textColor=TEXT_DARK,
+        leading=13
+    )
+    item_cell_right = ParagraphStyle(
+        'ItemCellRight', parent=styles['Normal'],
+        fontName=FONT_FAMILY, fontSize=9, textColor=TEXT_DARK,
+        leading=13, alignment=2  # right
+    )
+    item_cell_bold = ParagraphStyle(
+        'ItemCellBold', parent=styles['Normal'],
+        fontName=FONT_BOLD, fontSize=9, textColor=TEXT_DARK,
+        leading=13, alignment=2
+    )
+
+    item_data = [[
+        Paragraph("DESCRIPTION", item_header_style),
+        Paragraph("QTY", ParagraphStyle('QtyH', parent=item_header_style, alignment=1)),
+        Paragraph("RATE", ParagraphStyle('RateH', parent=item_header_style, alignment=2)),
+        Paragraph("AMOUNT", ParagraphStyle('AmtH', parent=item_header_style, alignment=2))
+    ]]
+    
     for idx, item in enumerate(items):
         line_total = item["quantity"] * item["price"]
         item_data.append([
-            item["description"],
-            item["quantity"],
-            f"₦{item['price']:,.2f}",
-            f"₦{line_total:,.2f}"
+            Paragraph(item["description"], item_cell_style),
+            Paragraph(str(item["quantity"]), ParagraphStyle('Qty', parent=item_cell_style, alignment=1)),
+            Paragraph(f"₦{item['price']:,.2f}", item_cell_right),
+            Paragraph(f"₦{line_total:,.2f}", item_cell_bold)
         ])
 
-    items_table = Table(item_data, colWidths=[250, 60, 90, 90])
-    # Alternating row colors for readability
-    row_colors = [colors.HexColor("#f9f9f9") if i % 2 == 0 else colors.white for i in range(len(item_data))]
-    items_table.setStyle(TableStyle([
-        ("BACKGROUND", (0,0), (-1,0), brand_color),
-        ("TEXTCOLOR", (0,0), (-1,0), colors.white),
-        ("ALIGN", (1,1), (-1,-1), "CENTER"),
-        ("GRID", (0,0), (-1,-1), 0.5, colors.grey),
-        ("BOTTOMPADDING", (0,0), (-1,0), 10),
-        ("TOPPADDING", (0,0), (-1,0), 10),
-        ("VALIGN", (0,0), (-1,-1), "MIDDLE"),
-    ]))
-    for i, color in enumerate(row_colors):
-        if i == 0:  # skip header
-            continue
-        items_table.setStyle(TableStyle([("BACKGROUND", (0,i), (-1,i), color)]))
-
+    items_table = Table(item_data, colWidths=[240, 60, 90, 90])
+    
+    # Build table style
+    table_style = [
+        # Header row
+        ('BACKGROUND', (0, 0), (-1, 0), BRAND_PRIMARY),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('TOPPADDING', (0, 0), (-1, 0), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
+        # Data rows
+        ('TOPPADDING', (0, 1), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 1), (-1, -1), 10),
+        ('LEFTPADDING', (0, 0), (-1, -1), 12),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 12),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        # Grid
+        ('LINEBELOW', (0, 0), (-1, 0), 0, colors.white),
+        ('LINEBELOW', (0, 1), (-1, -1), 0.5, BORDER_LIGHT),
+        ('LINEBEFORE', (0, 0), (-1, -1), 0, colors.white),
+        ('LINEAFTER', (0, 0), (-1, -1), 0, colors.white),
+        # Outer border
+        ('BOX', (0, 0), (-1, -1), 0.5, BORDER_LIGHT),
+        ('ROUNDEDCORNERS', [6, 6, 6, 6]),
+    ]
+    
+    # Alternating row colors
+    for i in range(1, len(item_data)):
+        if i % 2 == 0:
+            table_style.append(('BACKGROUND', (0, i), (-1, i), BG_LIGHT))
+        else:
+            table_style.append(('BACKGROUND', (0, i), (-1, i), colors.white))
+    
+    items_table.setStyle(TableStyle(table_style))
     elements.append(items_table)
     elements.append(Spacer(1, 20))
 
-    # ---------- Totals Table ----------
+    # ========== TOTALS SECTION ==========
+    totals_label_style = ParagraphStyle(
+        'TotalsLabel', parent=styles['Normal'],
+        fontName=FONT_FAMILY, fontSize=10, textColor=TEXT_MEDIUM,
+        leading=14, alignment=2
+    )
+    totals_value_style = ParagraphStyle(
+        'TotalsValue', parent=styles['Normal'],
+        fontName=FONT_BOLD, fontSize=10, textColor=TEXT_DARK,
+        leading=14, alignment=2
+    )
+    totals_total_label = ParagraphStyle(
+        'TotalsTotalLabel', parent=styles['Normal'],
+        fontName=FONT_BOLD, fontSize=12, textColor=TEXT_DARK,
+        leading=16, alignment=2
+    )
+    totals_total_value = ParagraphStyle(
+        'TotalsTotalValue', parent=styles['Normal'],
+        fontName=FONT_BOLD, fontSize=12, textColor=BRAND_PRIMARY,
+        leading=16, alignment=2
+    )
+    balance_style = ParagraphStyle(
+        'BalanceValue', parent=styles['Normal'],
+        fontName=FONT_BOLD, fontSize=11, 
+        textColor=SUCCESS if balance == 0 else DANGER,
+        leading=14, alignment=2
+    )
+
     totals_data = [
-        ["Subtotal:", f"₦{subtotal:,.2f}"],
-        ["Tax:", f"₦{tax:,.2f}"],
-        ["Total:", f"₦{total:,.2f}"],
-        ["Amount Paid:", f"₦{amount_paid:,.2f}"],
-        ["Balance:", f"₦{balance:,.2f}"]
+        [Paragraph("Subtotal", totals_label_style), Paragraph(f"₦{subtotal:,.2f}", totals_value_style)],
+        [Paragraph(f"Tax", totals_label_style), Paragraph(f"₦{tax:,.2f}", totals_value_style)],
+        [Paragraph("<b>Total</b>", totals_total_label), Paragraph(f"<b>₦{total:,.2f}</b>", totals_total_value)],
+        [Paragraph("Amount Paid", totals_label_style), Paragraph(f"₦{amount_paid:,.2f}", totals_value_style)],
+        [Paragraph("<b>Balance Due</b>", totals_total_label), Paragraph(f"<b>₦{balance:,.2f}</b>", balance_style)],
     ]
-    totals_table = Table(totals_data, colWidths=[350, 140], hAlign="RIGHT")
+    
+    totals_table = Table(totals_data, colWidths=[340, 140])
     totals_table.setStyle(TableStyle([
-        ("ALIGN", (1,0), (-1,-1), "RIGHT"),
-        ("FONT", (0,0), (-1,-1), "Helvetica-Bold"),
-        ("LINEBEFORE", (1,0), (1,-1), 0.5, colors.grey),
-        ("LINEABOVE", (0,-1), (-1,-1), 1, colors.black),
-        ("TOPPADDING", (0,0), (-1,-1), 5),
-        ("BOTTOMPADDING", (0,0), (-1,-1), 5),
-        ("TEXTCOLOR", (1,4), (1,4), colors.red if balance > 0 else colors.green)  # Balance
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('LEFTPADDING', (0, 0), (-1, -1), 12),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 12),
+        # Divider above total
+        ('LINEABOVE', (0, 2), (-1, 2), 1, BORDER_LIGHT),
+        # Highlight total row
+        ('BACKGROUND', (0, 2), (-1, 2), BRAND_LIGHT),
+        # Divider above balance
+        ('LINEABOVE', (0, 4), (-1, 4), 0.5, BORDER_LIGHT),
+        # Outer box
+        ('BOX', (0, 0), (-1, -1), 0.5, BORDER_LIGHT),
+        ('ROUNDEDCORNERS', [6, 6, 6, 6]),
     ]))
     elements.append(totals_table)
-    elements.append(Spacer(1, 20))
+    elements.append(Spacer(1, 24))
 
-    # ---------- Notes ----------
+    # ========== NOTES / TERMS ==========
     if notes:
-        elements.append(Paragraph(f"<b>Notes:</b><br/>{notes}", styles["Normal"]))
+        notes_box = Table([[
+            Paragraph("<b>Notes & Terms</b>", ParagraphStyle(
+                'NotesHeader', parent=styles['Normal'],
+                fontName=FONT_BOLD, fontSize=9, textColor=BRAND_PRIMARY,
+                leading=12, spaceAfter=6)),
+        ], [
+            Paragraph(notes, ParagraphStyle(
+                'NotesBody', parent=styles['Normal'],
+                fontName=FONT_FAMILY, fontSize=9, textColor=TEXT_MEDIUM,
+                leading=13)),
+        ]], colWidths=[480])
+        notes_box.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), BG_LIGHT),
+            ('TOPPADDING', (0, 0), (-1, -1), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+            ('LEFTPADDING', (0, 0), (-1, -1), 16),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 16),
+            ('BOX', (0, 0), (-1, -1), 0.5, BORDER_LIGHT),
+            ('ROUNDEDCORNERS', [6, 6, 6, 6]),
+        ]))
+        elements.append(notes_box)
+        elements.append(Spacer(1, 30))
 
-    # ---------- Build PDF ----------
+    # ========== FOOTER ==========
+    elements.append(HRFlowable(width="100%", thickness=0.5, color=BORDER_LIGHT, spaceAfter=12))
+    
+    elements.append(Paragraph("Thank you for your business!", style_thank_you))
+    elements.append(Paragraph(
+        f"{company_name} • {company_email} • {company_phone}",
+        style_footer
+    ))
+    elements.append(Paragraph(
+        f"If you have any questions about this invoice, please contact {company_email}",
+        ParagraphStyle('FooterNote', parent=style_footer, fontSize=7, textColor=TEXT_LIGHT)
+    ))
+
+    # ========== BUILD PDF ==========
     doc.build(elements)
     return file_path
+
 
 def send_basic_plan_invoice_email(
     client_email, client_name, invoice_id,
