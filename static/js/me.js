@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const rateBtn = document.getElementById('rateBtn');
     const shareBtn = document.getElementById('shareBtn');
     const billingBtn = document.getElementById('billingBtn');
+    const prfoileNavBtn = document.getElementById('profileNav');
     
  
     let sampleUser = []
@@ -68,6 +69,15 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('Opening billing settings...');
         window.location.href = '/billing';
     });
+
+    profileNavBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        showToast('Opening Profile...');
+        window.location.href = '/profile';
+    });
+
+        
+        
     
     // Functions
 function loadUserData(forceRefresh = false) {
