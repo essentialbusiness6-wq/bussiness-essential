@@ -346,7 +346,7 @@ def pay_invoice_page(invoiceId):
             return render_template(
                 "users/data-not-found.html",
                 title="Invoice not Found",
-                message="The invoice you are looking for does not exist or has been archived.",.
+                message="The invoice you are looking for does not exist or has been archived.",
                 link="/dashboard/invoices/list",
                 link_text="View All Invoices"
                 support_link="/support",
@@ -549,7 +549,7 @@ def edit_invoice_page(current_user_id,current_user_role,invoiceId):
             return render_template(
                 "users/data-not-found.html",
                 title="Invoice not Found",
-                message="The invoice you are looking for does not exist or has been archived.",.
+                message="The invoice you are looking for does not exist or has been archived.",
                 link="/dashboard/invoices/list",
                 link_text="View All Invoices"
                 support_link="/support",
@@ -638,7 +638,7 @@ def view_invoices_page(current_user_id,current_user_role,invoiceId):
             return render_template(
                 "users/data-not-found.html",
                 title="Invoice not Found",
-                message="The invoice you are looking for does not exist or has been archived.",.
+                message="The invoice you are looking for does not exist or has been archived.",
                 link="/dashboard/invoices/list",
                 link_text="View All Invoices"
                 support_link="/support",
@@ -690,7 +690,7 @@ def view_invoices_page(current_user_id,current_user_role,invoiceId):
             return render_template(
                 "users/data-not-found.html",
                 title="Profile Not Found",
-                message="Failed To Load Profile, Profile Not Completed yet.",.
+                message="Failed To Load Profile, Profile Not Completed yet.",
                 link="/profile",
                 link_text="Update Profile"
                 support_link="/support",
