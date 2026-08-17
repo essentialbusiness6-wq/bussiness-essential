@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const rateBtn = document.getElementById('rateBtn');
     const shareBtn = document.getElementById('shareBtn');
     const billingBtn = document.getElementById('billingBtn');
-    const prfoileNavBtn = document.getElementById('profileNav');
+    const profileNavBtn = document.getElementById('profileNav');
     
  
     let sampleUser = []
