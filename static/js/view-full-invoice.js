@@ -1900,8 +1900,8 @@ function buildInvoicePDFDocument(invoiceData) {
             body: (invoiceData.items || []).map(item => [
                 item.desc || '',
                 item.qty,
-                formatMoney(currency, item.price),
-                formatMoney(currency, item.total)
+                formatMoney(invoiceData.currency, item.price),
+                formatMoney(invoiceData.currency, item.total)
             ]),
             theme: "grid",
             headStyles: {
@@ -1941,10 +1941,10 @@ function buildInvoicePDFDocument(invoiceData) {
         pdf.setTextColor(...darkColor);
 
         pdf.text("Subtotal", totalsLabelX, finalY);
-        pdf.text(formatMoney(currency, invoiceData.subtotal), pageWidth - marginX, finalY, { align: "right" });
+        pdf.text(formatMoney(invoiceData.currency, invoiceData.subtotal), pageWidth - marginX, finalY, { align: "right" });
 
         pdf.text(`Tax (${invoiceData.tax || 0}%)`, totalsLabelX, finalY + 7);
-        pdf.text(formatMoney(currency, invoiceData.taxAmount), pageWidth - marginX, finalY + 7, { align: "right" });
+        pdf.text(formatMoney(invoiceData.currency, invoiceData.taxAmount), pageWidth - marginX, finalY + 7, { align: "right" });
 
         pdf.setDrawColor(...primaryColor);
         pdf.line(totalsLabelX, finalY + 12, pageWidth - marginX, finalY + 12);
@@ -1953,7 +1953,7 @@ function buildInvoicePDFDocument(invoiceData) {
         pdf.setFont("helvetica", "bold");
         pdf.setTextColor(...primaryColor);
         pdf.text("TOTAL PAID", totalsLabelX, finalY + 22);
-        pdf.text(formatMoney(currency, invoiceData.totalAmount), pageWidth - marginX, finalY + 22, { align: "right" });
+        pdf.text(formatMoney(invoiceData.currency, invoiceData.totalAmount), pageWidth - marginX, finalY + 22, { align: "right" });
 
         // =========================
         // PAYMENT INFO / SUPPORT
