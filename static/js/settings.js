@@ -48,8 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showHapticFeedback(backButton);
             setTimeout(() => {
                 backButton.classList.remove('haptic-feedback');
-                showToast('← Navigation would take you back to profile');
-                window.history.back();
+                window.location.href = '/dashboard/me';
             }, 200);
         });
         
