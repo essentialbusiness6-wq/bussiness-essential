@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title | default('Not Found') }} - Business Essentials Prime</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/static/media/app logo.png"/>
+    <link rel="stylesheet" href="/static/css/data-not-found.css">
+</head>
+<body>
+    <div class="particles" id="particles"></div>
+
+    <!-- Theme Toggle -->
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle Dark Mode">
+        <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"></circle>
+            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"></path>
+        </svg>
+        <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+    </button>
+
+    <main class="empty-state-container">
+        <!-- Animated Illustration -->
+        <div class="empty-illustration">
+            <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Folder Base -->
+                <path d="M40 60H80L95 45H160C168.837 45 176 52.1634 176 61V145C176 153.837 168.837 161 160 161H40C31.1634 161 24 153.837 24 145V76C24 67.1634 31.1634 60 40 60Z" 
+                      stroke="url(#paint0_linear)" stroke-width="3" stroke-linejoin="round" class="folder-bg"/>
+                <!-- Magnifying Glass -->
+                <circle cx="130" cy="110" r="35" stroke="url(#paint1_linear)" stroke-width="4" class="magnifier"/>
+                <path d="M155 135L175 155" stroke="url(#paint1_linear)" stroke-width="4" stroke-linecap="round" class="magnifier-handle"/>
+                <!-- Question Mark inside -->
+                <path d="M122 105C122 105 125 95 135 95C142 95 145 100 145 105C145 115 130 115 130 125" 
+                      stroke="white" stroke-width="3" stroke-linecap="round" class="question-mark"/>
+                <circle cx="130" cy="135" r="2" fill="white" class="question-dot"/>
+                
+                <defs>
+                    <linearGradient id="paint0_linear" x1="24" y1="45" x2="176" y2="161" gradientUnits="userSpaceOnUse">
+                        <stop stop-color="#4361ee"/>
+                        <stop offset="1" stop-color="#4895ef"/>
+                    </linearGradient>
+                    <linearGradient id="paint1_linear" x1="95" y1="75" x2="175" y2="155" gradientUnits="userSpaceOnUse">
+                        <stop stop-color="#4361ee"/>
+                        <stop offset="1" stop-color="#4895ef"/>
+                    </linearGradient>
+                </defs>
+            </svg>
+        </div>
+
+        <div class="empty-content">
+            <!-- Dynamic Title (Defaults to "Data Not Found" if not provided) -->
+            <h1 class="empty-title">{{ title | default('Data Not Found') }}</h1>
+            
+            <!-- Dynamic Message -->
+            <p class="empty-message">
+                {{ message | default('The information you are looking for does not exist, has been removed, or you do not have permission to view it.') }}
+            </p>
+            
+            <!-- Dynamic Action Link -->
+            <a href="{{ link | default('/dashboard') }}" class="btn primary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+                {{ link_text | default('Back to Dashboard') }}
+            </a>
+            
+            <!-- Optional Secondary Link (e.g., Contact Support) -->
+            {% if support_link %}
+            <a href="{{ support_link }}" class="btn secondary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+                {{ support_text | default('Contact Support') }}
+            </a>
+            {% endif %}
+        </div>
+    </main>
+
+    <script src="/static/js/data-not-found.js"></script>
+</body>
+</html>
