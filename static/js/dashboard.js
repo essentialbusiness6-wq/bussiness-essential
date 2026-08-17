@@ -984,6 +984,14 @@ function setupEventListeners() {
         });
     }
 
+    const profileNavBtn = document.getElementById("profileNav");
+    if (profileNavBtn) {
+        profileNavBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.href = '/profile';
+        });
+    }
+
     const balanceAmount = document.getElementById('balance-amount');
     if (balanceAmount) {
         balanceAmount.addEventListener('click', toggleBalanceVisibility);
