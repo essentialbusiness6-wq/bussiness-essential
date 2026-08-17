@@ -4,7 +4,7 @@ import traceback
 import hmac
 import html
 from flask import (
-    Flask, json, request, jsonify, make_response, render_template,session,redirect, Blueprint,send_from_directory
+    Flask, json, request, jsonify, make_response, render_template,session,redirect, Blueprint,send_from_directory, current_app
 )
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit, join_room
@@ -182,6 +182,29 @@ def whatsapp_webhook():
 @app.errorhandler(404)
 def page_not_found(error):
     return render_template("404.html"), 404
+    
+@app.errorhandler(500)
+def internal_error(error):
+    import traceback
+    import uuid
+    
+    # Generate unique error reference ID
+    error_id = f"ERR-{uuid.uuid4().hex[:12].upper()}"
+    
+    # Log the actual error with reference ID
+    current_app.logger.error(f"Error {error_id}: {str(error)}")
+    current_app.logger.error(traceback.format_exc())
+    
+    return render_template(
+        '500.html',
+        title="Server Error",
+        message="We're experiencing some technical difficulties on our end. Our team has been notified and is working to fix the issue. Please try again in a few moments.",
+        error_id=error_id,
+        link="/dashboard",
+        link_text="Go Home",
+        support_link="/support",
+        support_text="Contact Support"
+    ), 500
         
 @app.route("/test-notification")
 def test_notification():
@@ -348,7 +371,7 @@ def pay_invoice_page(invoiceId):
                 title="Invoice not Found",
                 message="The invoice you are looking for does not exist or has been archived.",
                 link="/dashboard/invoices/list",
-                link_text="View All Invoices"
+                link_text="View All Invoices",
                 support_link="/support",
                 support_text="Contact Support"
             )
@@ -551,7 +574,7 @@ def edit_invoice_page(current_user_id,current_user_role,invoiceId):
                 title="Invoice not Found",
                 message="The invoice you are looking for does not exist or has been archived.",
                 link="/dashboard/invoices/list",
-                link_text="View All Invoices"
+                link_text="View All Invoices",
                 support_link="/support",
                 support_text="Contact Support"
             )
@@ -640,7 +663,7 @@ def view_invoices_page(current_user_id,current_user_role,invoiceId):
                 title="Invoice not Found",
                 message="The invoice you are looking for does not exist or has been archived.",
                 link="/dashboard/invoices/list",
-                link_text="View All Invoices"
+                link_text="View All Invoices",
                 support_link="/support",
                 support_text="Contact Support"
             )
@@ -692,14 +715,11 @@ def view_invoices_page(current_user_id,current_user_role,invoiceId):
                 title="Profile Not Found",
                 message="Failed To Load Profile, Profile Not Completed yet.",
                 link="/profile",
-                link_text="Update Profile"
+                link_text="Update Profile",
                 support_link="/support",
                 support_text="Contact Support"
             )
-            return jsonify({
-                "status":"error",
-                "message":"Failed to load profile. Go to your profile page and update profile."
-            }),404
+
 
         invoice_date =invoice["invoice_date"]
         due_date = invoice["due_date"]
