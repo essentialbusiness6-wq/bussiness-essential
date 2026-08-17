@@ -178,6 +178,10 @@ def whatsapp_webhook():
         print(data)
 
         return "EVENT_RECEIVED", 200
+
+@app.errorhandler(404)
+def page_not_found(error):
+    return render_template("404.html"), 404
         
 @app.route("/test-notification")
 def test_notification():
@@ -670,7 +674,7 @@ def view_invoices_page(current_user_id,current_user_role,invoiceId):
             return jsonify({
                 "status":"error",
                 "message":"Failed to load profile. Go to your profile page and update profile."
-            }),400
+            }),404
 
         invoice_date =invoice["invoice_date"]
         due_date = invoice["due_date"]
