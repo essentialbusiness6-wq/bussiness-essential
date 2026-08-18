@@ -2045,7 +2045,7 @@ def auto_check_overdue_invoices():
                     c.client_email, 
                     c.client_name, 
                     i.due_date, 
-                    i.total_amount
+                    i.total AS total_amount
                     
                 FROM invoices i
 
