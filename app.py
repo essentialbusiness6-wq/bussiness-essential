@@ -156,7 +156,7 @@ def refresh_activity():
         update_session_activity(token)
 
 VERIFY_TOKEN = os.getenv("WHATSAPP_VERIFY_TOKEN")
-@app.route("/test-scheduler", methods=["POST"])
+@app.route("/test-scheduler", methods=["GET"])
 def test_scheduler():
     scheduled_job()
     return {"message":"Scheduler Job Executed"}
