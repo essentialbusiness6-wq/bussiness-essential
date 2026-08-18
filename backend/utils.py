@@ -707,7 +707,7 @@ def generate_invoice_pdf(invoice_id, client_name, client_email,
                          items, subtotal, tax, total,
                          amount_paid, balance, notes,
                          company_name="Business Essentials Prime",
-                         company_address="123 Business Avenue, Lagos, Nigeria",
+                         company_address="Ibadan, Nigeria",
                          company_email="hello@businessessentia.net",
                          company_phone="+234 800 000 0000",
                          company_website="www.businessessentia.net"):
@@ -2323,7 +2323,7 @@ def process_expired_subscriptions():
 
 def process_invoice_due_notifications():
 
-    now = datetime.utcnow()
+    now = datetime.utcnow().date()
 
     with db_cursor(
         dictionary=True
