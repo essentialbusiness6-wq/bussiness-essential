@@ -1,7 +1,7 @@
 import os 
 import json
 import re
-from datetime import datetime, time
+from datetime import datetime, time, timezone,timedelta
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
@@ -2618,3 +2618,598 @@ Please take action to avoid payment delays.
 
 </html>
 """
+
+
+
+
+def send_subscription_expiry_email(
+    email,
+    username,
+    expires_at,
+    days_remaining
+):
+    """
+    Sends a professional Business Essential Prime
+    subscription-expiry reminder.
+    """
+
+    try:
+
+        expiry_date = expires_at.strftime("%B %d, %Y")
+        expiry_time = expires_at.strftime("%I:%M %p UTC")
+
+        if days_remaining == 3:
+            headline = "Your subscription expires in 3 days"
+            message = (
+                "Your Business Essential Prime subscription "
+                "is approaching its expiration date."
+            )
+
+        elif days_remaining == 1:
+            headline = "Your subscription expires tomorrow"
+            message = (
+                "Your Business Essential Prime subscription "
+                "expires tomorrow. Renew now to avoid interruption."
+            )
+
+        elif days_remaining == 0:
+            headline = "Your subscription expires today"
+            message = (
+                "Your Business Essential Prime subscription "
+                "expires today. Renew now to keep your account active."
+            )
+
+        else:
+            headline = "Your subscription has expired"
+            message = (
+                "Your Business Essential Prime subscription "
+                "has expired."
+            )
+
+        html = f"""
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title>Subscription Reminder</title>
+
+</head>
+
+
+<body style="
+    margin:0;
+    padding:0;
+    background:#F4F7FC;
+    font-family:Arial,Helvetica,sans-serif;
+">
+
+
+<table width="100%"
+       cellpadding="0"
+       cellspacing="0"
+       border="0"
+       style="background:#F4F7FC;padding:40px 15px;">
+
+<tr>
+
+<td align="center">
+
+
+<table width="100%"
+       cellpadding="0"
+       cellspacing="0"
+       border="0"
+       style="
+           max-width:620px;
+           background:#FFFFFF;
+           border-radius:20px;
+           overflow:hidden;
+           box-shadow:0 10px 35px rgba(0,0,0,0.08);
+       ">
+
+
+<!-- HEADER -->
+
+<tr>
+
+<td style="
+    padding:30px 35px;
+    background:linear-gradient(
+        135deg,
+        #4361EE,
+        #2575FC
+    );
+">
+
+<table width="100%">
+
+<tr>
+
+<td>
+
+<div style="
+    font-size:24px;
+    font-weight:700;
+    color:#FFFFFF;
+">
+
+Business Essential
+
+</div>
+
+<div style="
+    margin-top:5px;
+    font-size:13px;
+    color:rgba(255,255,255,0.85);
+">
+
+PRIME BUSINESS MANAGEMENT
+
+</div>
+
+</td>
+
+<td align="right">
+
+<div style="
+    width:48px;
+    height:48px;
+    line-height:48px;
+    text-align:center;
+    background:rgba(255,255,255,0.15);
+    border-radius:14px;
+    font-size:24px;
+">
+
+⏳
+
+</div>
+
+</td>
+
+</tr>
+
+</table>
+
+</td>
+
+</tr>
+
+
+<!-- CONTENT -->
+
+<tr>
+
+<td style="
+    padding:40px 35px;
+">
+
+<div style="
+    font-size:14px;
+    color:#64748B;
+">
+
+Hello {username},
+
+</div>
+
+
+<h1 style="
+    margin:12px 0 15px;
+    font-size:28px;
+    line-height:1.3;
+    color:#1E293B;
+">
+
+{headline}
+
+</h1>
+
+
+<p style="
+    margin:0 0 25px;
+    font-size:16px;
+    line-height:1.7;
+    color:#64748B;
+">
+
+{message}
+
+</p>
+
+
+<!-- EXPIRY CARD -->
+
+<table width="100%"
+       cellpadding="0"
+       cellspacing="0"
+       style="
+           background:#F8FAFC;
+           border:1px solid #E2E8F0;
+           border-radius:16px;
+       ">
+
+<tr>
+
+<td style="padding:22px;">
+
+<div style="
+    font-size:12px;
+    color:#64748B;
+    text-transform:uppercase;
+    letter-spacing:0.8px;
+">
+
+Subscription Expiration
+
+</div>
+
+<div style="
+    margin-top:8px;
+    font-size:20px;
+    font-weight:700;
+    color:#1E293B;
+">
+
+{expiry_date}
+
+</div>
+
+<div style="
+    margin-top:5px;
+    font-size:13px;
+    color:#64748B;
+">
+
+{expiry_time}
+
+</div>
+
+</td>
+
+<td align="right"
+    style="padding:22px;">
+
+<div style="
+    display:inline-block;
+    padding:8px 13px;
+    border-radius:20px;
+    background:#FFF4E5;
+    color:#D97706;
+    font-size:13px;
+    font-weight:700;
+">
+
+{days_remaining} day{"s" if days_remaining != 1 else ""} remaining
+
+</div>
+
+</td>
+
+</tr>
+
+</table>
+
+
+<!-- CTA -->
+
+<table width="100%"
+       cellpadding="0"
+       cellspacing="0"
+       style="margin-top:30px;">
+
+<tr>
+
+<td align="center">
+
+<a href="https://www.businessessentia.net/subscription"
+   style="
+       display:inline-block;
+       padding:15px 30px;
+       background:linear-gradient(
+           135deg,
+           #4361EE,
+           #2575FC
+       );
+       color:#FFFFFF;
+       text-decoration:none;
+       border-radius:12px;
+       font-size:15px;
+       font-weight:700;
+   ">
+
+Renew Subscription
+
+</a>
+
+</td>
+
+</tr>
+
+</table>
+
+
+<p style="
+    margin-top:30px;
+    font-size:13px;
+    line-height:1.7;
+    color:#94A3B8;
+    text-align:center;
+">
+
+Renew before your expiration date to maintain
+uninterrupted access to your Business Essential
+features.
+
+</p>
+
+</td>
+
+</tr>
+
+
+<!-- FOOTER -->
+
+<tr>
+
+<td style="
+    padding:25px 35px;
+    background:#F8FAFC;
+    border-top:1px solid #E2E8F0;
+    text-align:center;
+">
+
+<div style="
+    font-size:13px;
+    color:#64748B;
+">
+
+Business Essential Prime
+
+</div>
+
+<div style="
+    margin-top:6px;
+    font-size:12px;
+    color:#94A3B8;
+">
+
+Smart business management made simple.
+
+</div>
+
+<div style="
+    margin-top:15px;
+    font-size:11px;
+    color:#CBD5E1;
+">
+
+© {datetime.now().year} Business Essential.
+All rights reserved.
+
+</div>
+
+</td>
+
+</tr>
+
+
+</table>
+
+</td>
+
+</tr>
+
+</table>
+
+</body>
+
+</html>
+"""
+
+        # Use your existing email function here.
+        send_email(
+            to=email,
+            subject=f"Business Essential — {headline}",
+            html=html
+        )
+
+        return True
+
+    except Exception as e:
+
+        print(
+            "SUBSCRIPTION EMAIL ERROR:",
+            e
+        )
+
+        return False
+
+
+def process_subscription_notifications():
+
+    print("Checking subscription notifications...")
+
+    try:
+
+        with db_cursor(dictionary=True) as (conn, cursor):
+
+            # -----------------------------------------
+            # 3 DAYS BEFORE EXPIRATION
+            # -----------------------------------------
+
+            cursor.execute("""
+                SELECT
+                    us.id AS subscription_id,
+                    us.user_id,
+                    us.expires_at,
+                    ub.username,
+                    ub.email
+
+                FROM user_subscriptions us
+
+                INNER JOIN user_base ub
+                    ON ub.user_id = us.user_id
+
+                WHERE us.status = 'active'
+
+                  AND DATE(us.expires_at)
+                      = DATE(
+                          UTC_TIMESTAMP()
+                          + INTERVAL 3 DAY
+                      )
+            """)
+
+            reminders = cursor.fetchall()
+
+            print(
+                f"Found {len(reminders)} subscriptions "
+                f"requiring 3-day reminders"
+            )
+
+
+            for sub in reminders:
+
+                subscription_id = sub["subscription_id"]
+
+                user_id = sub["user_id"]
+
+
+                # Check if reminder already sent
+
+                cursor.execute("""
+                    SELECT id
+
+                    FROM subscription_notifications
+
+                    WHERE subscription_id = %s
+
+                      AND notification_type =
+                          '3_day_reminder'
+
+                    LIMIT 1
+                """, (
+                    subscription_id,
+                ))
+
+                already_sent = cursor.fetchone()
+
+
+                if already_sent:
+
+                    continue
+
+
+                # Send email
+
+                sent = send_subscription_expiry_email(
+                    email=sub["email"],
+                    username=sub["username"],
+                    expires_at=sub["expires_at"],
+                    days_remaining=3
+                )
+
+
+                if sent:
+
+                    cursor.execute("""
+                        INSERT INTO
+                        subscription_notifications
+                        (
+                            subscription_id,
+                            user_id,
+                            notification_type
+                        )
+
+                        VALUES (
+                            %s,
+                            %s,
+                            '3_day_reminder'
+                        )
+                    """, (
+                        subscription_id,
+                        user_id
+                    ))
+
+                    print(
+                        f"3-day reminder sent to {user_id}"
+                    )
+
+
+            # -----------------------------------------
+            # EXPIRE SUBSCRIPTIONS
+            # -----------------------------------------
+
+            cursor.execute("""
+                SELECT
+                    id,
+                    user_id
+
+                FROM user_subscriptions
+
+                WHERE status = 'active'
+
+                  AND expires_at <= UTC_TIMESTAMP()
+            """)
+
+            expired = cursor.fetchall()
+
+
+            print(
+                f"Found {len(expired)} expired subscriptions"
+            )
+
+
+            for sub in expired:
+
+                user_id = sub["user_id"]
+
+                subscription_id = sub["id"]
+
+
+                cursor.execute("""
+                    UPDATE user_subscriptions
+
+                    SET status = 'expired'
+
+                    WHERE id = %s
+                """, (
+                    subscription_id,
+                ))
+
+
+                cursor.execute("""
+                    UPDATE user_base
+
+                    SET
+                        plan = 'Trial',
+                        plan_expiration = NULL
+
+                    WHERE user_id = %s
+                """, (
+                    user_id,
+                ))
+
+
+                print(
+                    f"Expired subscription {subscription_id} "
+                    f"for user {user_id}"
+                )
+
+
+            conn.commit()
+
+
+    except Exception as e:
+
+        print(
+            "SUBSCRIPTION PROCESSOR ERROR:",
+            e
+        )
