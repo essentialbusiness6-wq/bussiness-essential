@@ -2038,7 +2038,7 @@ def auto_check_overdue_invoices():
 
         with db_cursor(dictionary=True) as (conn, cursor):
             cursor.execute("""
-                SELECT invoice_id, user_id, client_email, client_name, due_date, total_amount
+                SELECT id, user_id, client_email, client_name, due_date, total_amount
                 FROM invoices
                 WHERE status = 'unpaid'
             """)
@@ -2049,7 +2049,7 @@ def auto_check_overdue_invoices():
 
         for invoice in invoices:
 
-            invoice_id = invoice["invoice_id"]
+            invoice_id = invoice["id"]
             user_id = invoice["user_id"]
             client_email = invoice["client_email"]
             client_name = invoice["client_name"]
@@ -2072,6 +2072,7 @@ def auto_check_overdue_invoices():
                     SET status = 'overdue'
                     WHERE invoice_id = %s
                 """, (invoice_id,))
+                conn.commit()
 
                 cursor.execute("""
                     SELECT email, username, plan
@@ -2080,7 +2081,6 @@ def auto_check_overdue_invoices():
                 """, (user_id,))
 
                 user_info = cursor.fetchone()
-                conn.commit()
 
      
             if user_info:
@@ -2257,7 +2257,7 @@ def process_expired_subscriptions():
 
     try:
 
-        with db_cursor(commit=True) as cursor:
+        with db_cursor(dictionary=True) as (conn,cursor):
 
             cursor.execute("""
             SELECT
@@ -2307,7 +2307,7 @@ def process_expired_subscriptions():
                     user_id,
                 )
                 )
-
+                conn.commit()
 
                 print(
                     f"Expired {user_id}"
