@@ -60,7 +60,7 @@ import io
 import base64
 from flask_compress import Compress
 from whitenoise import WhiteNoise
-from backend.scheduler import scheduled_job
+from backend.scheduler import scheduled_job,start_scheduler
 load_dotenv()
 
 
@@ -154,6 +154,8 @@ def refresh_activity():
 
     if token:
         update_session_activity(token)
+        
+start_scheduler()
 
 VERIFY_TOKEN = os.getenv("WHATSAPP_VERIFY_TOKEN")
 @app.route("/test-scheduler", methods=["GET"])
