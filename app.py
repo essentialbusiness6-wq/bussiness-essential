@@ -1003,10 +1003,10 @@ def billing_share(current_user_id,current_user_role):
         cursor.execute("""
             SELECT *
             FROM user_subscriptions
-            WHERE user_id = %s
+            WHERE user_id = %s AND status in ('active','Active')
             ORDER BY id DESC
             LIMIT 1
-        """, (current_user_id,))
+        """, (current_user_id,"))
 
         subscription = cursor.fetchone()
 
