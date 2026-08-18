@@ -2083,7 +2083,7 @@ def auto_check_overdue_invoices():
                 cursor.execute("""
                     UPDATE invoices
                     SET status = 'overdue'
-                    WHERE invoice_id = %s
+                    WHERE id = %s
                 """, (invoice_id,))
                 conn.commit()
 
