@@ -324,7 +324,18 @@ async function loadSampleInvoices(forceRefresh = false) {
         invoiceLoading = false;
     }
 }
+function setLoading(button, text = "Processing...") {
+    button.disabled = true;
+    button.originalText = button.innerHTML;
+    button.innerHTML = `
+        <span class="spinner"></span> ${text}
+    `;
+}
 
+function clearLoading(button) {
+    button.disabled = false;
+    button.innerHTML = button.originalText;
+}
 /* ====================================
    RENDER FUNCTION
 ==================================== */
