@@ -1135,7 +1135,7 @@ def send_basic_plan_invoice_email(
 
     brand_color = "#1558B0"
     
-    # Safely format items to avoid f-string errors with quotes
+    # 1. Safely format items OUTSIDE the f-string to prevent Python syntax errors
     items_rows = "".join([
         f"<tr style='border-bottom: 1px solid #e2e8f0;'>"
         f"<td style='padding: 12px 8px; color: #334155; font-size: 14px;'>{item.get('description', 'Item')}</td>"
@@ -1146,137 +1146,121 @@ def send_basic_plan_invoice_email(
         for item in items
     ])
 
-    html_body = f"""
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Invoice #{invoice_id}</title>
-    </head>
-    <body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #334155;">
-        <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f1f5f9; padding: 30px 0;">
-            <tr>
-                <td align="center">
-                    <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; border: 1px solid #e2e8f0; overflow: hidden;">
-                        <!-- Header -->
-                        <tr>
-                            <td style="padding: 30px 40px 20px; text-align: center; border-bottom: 1px solid #e2e8f0;">
-                                <img src="{LOGO_PATH}" alt="Business Essentials" style="height: 45px; margin-bottom: 15px; max-width: 100%;">
-                                <h1 style="margin: 0; font-size: 20px; color: #0f172a; font-weight: 700;">Invoice #{invoice_id}</h1>
-                            </td>
-                        </tr>
-                        
-                        <!-- Content -->
-                        <tr>
-                            <td style="padding: 30px 40px;">
-                                <p style="margin: 0 0 15px 0; font-size: 15px;">Hello <strong>{client_name}</strong>,</p>
-                                <p style="margin: 0 0 25px 0; font-size: 15px; color: #475569;">Thank you for your business. Please find your invoice summary and details below.</p>
+    # 2. Pre-calculate conditional HTML OUTSIDE the f-string
+    notes_html = f'<p style="margin: 0; font-size: 14px; color: #475569; background: #f8fafc; padding: 15px; border-radius: 6px; border-left: 3px solid {brand_color};"><strong>Notes:</strong> {notes}</p>' if notes else ''
 
-                                <!-- Summary Box -->
-                                <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom: 25px;">
-                                    <tr>
-                                        <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; width: 50%;"><span style="color: #64748b; font-size: 13px;">Invoice Date</span><br><strong style="color: #0f172a; font-size: 14px;">{invoice_date}</strong></td>
-                                        <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; width: 50%;"><span style="color: #64748b; font-size: 13px;">Due Date</span><br><strong style="color: #0f172a; font-size: 14px;">{due_date}</strong></td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding: 12px 16px; width: 50%;"><span style="color: #64748b; font-size: 13px;">Status</span><br><strong style="color: {brand_color}; font-size: 14px;">{status.upper()}</strong></td>
-                                        <td style="padding: 12px 16px; width: 50%;"><span style="color: #64748b; font-size: 13px;">Total Amount</span><br><strong style="color: #0f172a; font-size: 14px;">₦{total:,.2f}</strong></td>
-                                    </tr>
-                                </table>
+    # 3. Clean f-string with ONLY simple {variable} interpolations
+    html_body = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice #{invoice_id}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #334155;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f1f5f9; padding: 30px 0;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; border: 1px solid #e2e8f0; overflow: hidden;">
+                    <!-- Header -->
+                    <tr>
+                        <td style="padding: 30px 40px 20px; text-align: center; border-bottom: 1px solid #e2e8f0;">
+                            <img src="{LOGO_PATH}" alt="Business Essentials" style="height: 45px; margin-bottom: 15px; max-width: 100%;">
+                            <h1 style="margin: 0; font-size: 20px; color: #0f172a; font-weight: 700;">Invoice #{invoice_id}</h1>
+                        </td>
+                    </tr>
+                    
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 30px 40px;">
+                            <p style="margin: 0 0 15px 0; font-size: 15px;">Hello <strong>{client_name}</strong>,</p>
+                            <p style="margin: 0 0 25px 0; font-size: 15px; color: #475569;">Thank you for your business. Please find your invoice summary and details below.</p>
 
-                                <!-- Items Table -->
-                                <p style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #0f172a;">Invoice Items</p>
-                                <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; margin-bottom: 25px; font-size: 14px;">
-                                    <tr style="background-color: #f1f5f9;">
-                                        <th style="padding: 10px 8px; text-align: left; color: #475569; font-weight: 600; border-bottom: 2px solid #e2e8f0;">Description</th>
-                                        <th style="padding: 10px 8px; text-align: center; color: #475569; font-weight: 600; border-bottom: 2px solid #e2e8f0;">Qty</th>
-                                        <th style="padding: 10px 8px; text-align: right; color: #475569; font-weight: 600; border-bottom: 2px solid #e2e8f0;">Price</th>
-                                        <th style="padding: 10px 8px; text-align: right; color: #475569; font-weight: 600; border-bottom: 2px solid #e2e8f0;">Total</th>
-                                    </tr>
-                                    {items_rows}
-                                </table>
+                            <!-- Summary Box -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom: 25px;">
+                                <tr>
+                                    <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; width: 50%;"><span style="color: #64748b; font-size: 13px;">Invoice Date</span><br><strong style="color: #0f172a; font-size: 14px;">{invoice_date}</strong></td>
+                                    <td style="padding: 12px 16px; border-bottom: 1px solid #e2e8f0; width: 50%;"><span style="color: #64748b; font-size: 13px;">Due Date</span><br><strong style="color: #0f172a; font-size: 14px;">{due_date}</strong></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 12px 16px; width: 50%;"><span style="color: #64748b; font-size: 13px;">Status</span><br><strong style="color: {brand_color}; font-size: 14px;">{str(status).upper()}</strong></td>
+                                    <td style="padding: 12px 16px; width: 50%;"><span style="color: #64748b; font-size: 13px;">Total Amount</span><br><strong style="color: #0f172a; font-size: 14px;">₦{total:,.2f}</strong></td>
+                                </tr>
+                            </table>
 
-                                <!-- Totals -->
-                                <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 25px;">
-                                    <tr>
-                                        <td width="60%"></td>
-                                        <td width="40%" style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
-                                            <span style="color: #64748b; font-size: 14px;">Subtotal:</span>
-                                            <span style="float: right; color: #0f172a; font-size: 14px;">₦{subtotal:,.2f}</span>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td width="60%"></td>
-                                        <td width="40%" style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
-                                            <span style="color: #64748b; font-size: 14px;">Tax:</span>
-                                            <span style="float: right; color: #0f172a; font-size: 14px;">₦{tax:,.2f}</span>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td width="60%"></td>
-                                        <td width="40%" style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
-                                            <span style="color: #64748b; font-size: 14px;">Amount Paid:</span>
-                                            <span style="float: right; color: #0f172a; font-size: 14px;">₦{amount_paid:,.2f}</span>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td width="60%"></td>
-                                        <td width="40%" style="padding: 12px 0;">
-                                            <span style="color: #0f172a; font-size: 15px; font-weight: 700;">Balance Due:</span>
-                                            <span style="float: right; color: #dc2626; font-size: 15px; font-weight: 700;">₦{balance:,.2f}</span>
-                                        </td>
-                                    </tr>
-                                </table>
+                            <!-- Items Table -->
+                            <p style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: #0f172a;">Invoice Items</p>
+                            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; margin-bottom: 25px; font-size: 14px;">
+                                <tr style="background-color: #f1f5f9;">
+                                    <th style="padding: 10px 8px; text-align: left; color: #475569; font-weight: 600; border-bottom: 2px solid #e2e8f0;">Description</th>
+                                    <th style="padding: 10px 8px; text-align: center; color: #475569; font-weight: 600; border-bottom: 2px solid #e2e8f0;">Qty</th>
+                                    <th style="padding: 10px 8px; text-align: right; color: #475569; font-weight: 600; border-bottom: 2px solid #e2e8f0;">Price</th>
+                                    <th style="padding: 10px 8px; text-align: right; color: #475569; font-weight: 600; border-bottom: 2px solid #e2e8f0;">Total</th>
+                                </tr>
+                                {items_rows}
+                            </table>
 
-                                {f'<p style="margin: 0; font-size: 14px; color: #475569; background: #f8fafc; padding: 15px; border-radius: 6px; border-left: 3px solid {brand_color};"><strong>Notes:</strong> {notes}</p>' if notes else ''}
-                                
-                                <p style="margin: 30px 0 0 0; font-size: 15px; color: #475569;">
-                                    Thank you for doing business with us.<br>
-                                    <strong style="color: #0f172a;">Business Essentials Team</strong>
-                                </\np>
-                            </td>
-                        </tr>
-                        
-                        <!-- Footer -->
-                        <tr>
-                            <td style="background-color: #f8fafc; padding: 20px 40px; text-align: center; border-top: 1px solid #e2e8f0;">
-                                <p style="margin: 0; font-size: 12px; color: #94a3b8;">This is an automated message. A PDF copy of this invoice is attached.</p>
-                            </td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-        </table>
-    </body>
-    </html>
-    """
+                            <!-- Totals -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 25px;">
+                                <tr>
+                                    <td width="60%"></td>
+                                    <td width="40%" style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
+                                        <span style="color: #64748b; font-size: 14px;">Subtotal:</span>
+                                        <span style="float: right; color: #0f172a; font-size: 14px;">₦{subtotal:,.2f}</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td width="60%"></td>
+                                    <td width="40%" style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
+                                        <span style="color: #64748b; font-size: 14px;">Tax:</span>
+                                        <span style="float: right; color: #0f172a; font-size: 14px;">₦{tax:,.2f}</span>
+                                    </tr>
+                                <tr>
+                                    <td width="60%"></td>
+                                    <td width="40%" style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
+                                        <span style="color: #64748b; font-size: 14px;">Amount Paid:</span>
+                                        <span style="float: right; color: #0f172a; font-size: 14px;">₦{amount_paid:,.2f}</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td width="60%"></td>
+                                    <td width="40%" style="padding: 12px 0;">
+                                        <span style="color: #0f172a; font-size: 15px; font-weight: 700;">Balance Due:</span>
+                                        <span style="float: right; color: #dc2626; font-size: 15px; font-weight: 700;">₦{balance:,.2f}</span>
+                                    </td>
+                                </tr>
+                            </table>
 
-    send_email(
-        recipient=client_email,
-        subject=f"Invoice #{invoice_id} from Business Essentials",
-        body=html_body,
-        html=True,
-        attachments=[pdf_path]
- this is an automated message. A PDF copy of this invoice is attached.</p>
-                            </td>
-                        </tr>
-                    </table>
-                </td>
-            </tr>
-        </table>
-    </body>
-    </html>
-    """
+                            {notes_html}
+                            
+                            <p style="margin: 30px 0 0 0; font-size: 15px; color: #475569;">
+                                Thank you for doing business with us.<br>
+                                <strong style="color: #0f172a;">Business Essentials Team</strong>
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f8fafc; padding: 20px 40px; text-align: center; border-top: 1px solid #e2e8f0;">
+                            <p style="margin: 0; font-size: 12px; color: #94a3b8;">This is an automated message. A PDF copy of this invoice is attached.</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+"""
 
     send_email(
         recipient=client_email,
-        subject=f"Invoice #{invoice_id} from Business Essentials",
+        subject=f"Invoice #{invoice_id} from Business Essentials Prime",
         body=html_body,
         html=True,
         attachments=[pdf_path]
     )
-
 
 def send_pro_plan_invoice_email(
     client_email, client_name, invoice_id,
@@ -1287,8 +1271,6 @@ def send_pro_plan_invoice_email(
     """
     Sends a premium, advanced, and highly polished invoice email for Pro plan users.
     """
-    from pathlib import Path
-
     pay_link = f"https://www.businessessentia.net/pay/invoice/{invoice_id}"
     
     # Generate PDF
@@ -1301,10 +1283,9 @@ def send_pro_plan_invoice_email(
 
     brand_primary = "#1558B0"
     brand_accent = "#4361ee"
-    success_green = "#10b981"
     
     # Determine status badge color
-    status_lower = status.lower()
+    status_lower = str(status).lower()
     if status_lower == 'paid':
         badge_bg = "#d1fae5"; badge_text = "#065f46"
     elif status_lower == 'overdue':
@@ -1323,6 +1304,29 @@ def send_pro_plan_invoice_email(
         for item in items
     ])
 
+    # Pre-calculate dynamic colors and conditional blocks OUTSIDE the f-string 
+    # to prevent Python SyntaxErrors
+    balance_float = float(balance or 0)
+    balance_color = "#10b981" if balance_float <= 0.01 else "#dc2626"
+
+    notes_html = f'''
+    <p style="margin: 0 0 30px 0; font-size: 14px; color: #475569; background: #f8fafc; padding: 16px; border-radius: 8px; border-left: 4px solid {brand_primary}; line-height: 1.5;">
+        <strong style="color: #0f172a;">Notes:</strong><br>{notes}
+    </p>
+    ''' if notes else ''
+
+    cta_button_html = f'''
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 30px;">
+        <tr>
+            <td align="center">
+                <a href="{pay_link}" style="display: inline-block; background: linear-gradient(90deg, {brand_primary}, {brand_accent}); color: #ffffff !important; padding: 16px 40px; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 16px; box-shadow: 0 4px 12px rgba(21, 88, 176, 0.25);">
+                    Pay Securely Online
+                </a>
+            </td>
+        </tr>
+    </table>
+    ''' if balance_float > 0.01 else ''
+
     html_body = f"""
     <!DOCTYPE html>
     <html lang="en">
@@ -1330,19 +1334,12 @@ def send_pro_plan_invoice_email(
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Invoice #{invoice_id}</title>
-        <style>
-            @media only screen and (max-width: 600px) {{
-                .container {{ width: 100% !important; }}
-                .content-padding {{ padding: 20px !important; }}
-                .stack-column {{ display: block !important; width: 100% !important; }}
-            }}
-        </style>
     </head>
     <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #334155; -webkit-font-smoothing: antialiased;">
         <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; padding: 40px 0;">
             <tr>
                 <td align="center">
-                    <table class="container" width="650" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);">
+                    <table width="650" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);">
                         
                         <!-- Premium Top Accent Bar -->
                         <tr>
@@ -1351,7 +1348,7 @@ def send_pro_plan_invoice_email(
 
                         <!-- Header -->
                         <tr>
-                            <td class="content-padding" style="padding: 40px 40px 20px; text-align: center;">
+                            <td style="padding: 40px 40px 20px; text-align: center;">
                                 <img src="{LOGO_PATH}" alt="Business Essentials Prime" style="height: 50px; margin-bottom: 20px; max-width: 100%;">
                                 <h1 style="margin: 0; font-size: 24px; color: #0f172a; font-weight: 800; letter-spacing: -0.5px;">Invoice #{invoice_id}</h1>
                                 <span style="display: inline-block; margin-top: 12px; background-color: {badge_bg}; color: {badge_text}; padding: 6px 16px; border-radius: 99px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">{status.upper()}</span>
@@ -1360,30 +1357,30 @@ def send_pro_plan_invoice_email(
                         
                         <!-- Content -->
                         <tr>
-                            <td class="content-padding" style="padding: 10px 40px 40px;">
+                            <td style="padding: 10px 40px 40px;">
                                 <p style="margin: 0 0 10px 0; font-size: 16px; color: #0f172a;">Hello <strong>{client_name}</strong>,</p>
                                 <p style="margin: 0 0 30px 0; font-size: 15px; color: #475569; line-height: 1.6;">Thank you for choosing Business Essentials Prime. Please find your invoice details below. A PDF copy is also attached for your records.</p>
 
                                 <!-- Premium Summary Grid -->
                                 <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 30px; overflow: hidden;">
                                     <tr>
-                                        <td class="stack-column" width="50%" style="padding: 16px 20px; border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0;">
+                                        <td width="50%" style="padding: 16px 20px; border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0;">
                                             <span style="display: block; color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Invoice Date</span>
                                             <span style="color: #0f172a; font-size: 15px; font-weight: 600;">{invoice_date}</span>
                                         </td>
-                                        <td class="stack-column" width="50%" style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0;">
+                                        <td width="50%" style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0;">
                                             <span style="display: block; color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Due Date</span>
                                             <span style="color: #0f172a; font-size: 15px; font-weight: 600;">{due_date}</span>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td class="stack-column" width="50%" style="padding: 16px 20px; border-right: 1px solid #e2e8f0;">
+                                        <td width="50%" style="padding: 16px 20px; border-right: 1px solid #e2e8f0;">
                                             <span style="display: block; color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Total Amount</span>
                                             <span style="color: #0f172a; font-size: 15px; font-weight: 600;">₦{total:,.2f}</span>
                                         </td>
-                                        <td class="stack-column" width="50%" style="padding: 16px 20px;">
+                                        <td width="50%" style="padding: 16px 20px;">
                                             <span style="display: block; color: #64748b; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 4px;">Balance Due</span>
-                                            <span style="color: {'#10b981' if balance <= 0 else '#dc2626'}; font-size: 15px; font-weight: 700;">₦{balance:,.2f}</span>
+                                            <span style="color: {balance_color}; font-size: 15px; font-weight: 700;">₦{balance:,.2f}</span>
                                         </td>
                                     </tr>
                                 </table>
@@ -1422,30 +1419,18 @@ def send_pro_plan_invoice_email(
                                             <span style="color: #64748b; font-size: 14px;">Amount Paid</span>
                                             <span style="float: right; color: #334155; font-size: 14px;">₦{amount_paid:,.2f}</span>
                                         </td>
-                                        </tr>
+                                    </tr>
                                     <tr>
                                         <td width="60%"></td>
                                         <td width="40%" style="padding: 16px 0;">
                                             <span style="color: #0f172a; font-size: 16px; font-weight: 800;">Balance Due</span>
-                                            <span style="float: right; color: {'#10b981' if balance <= 0 else '#dc2626'}; font-size: 16px; font-weight: 800;">₦{balance:,.2f}</span>
+                                            <span style="float: right; color: {balance_color}; font-size: 16px; font-weight: 800;">₦{balance:,.2f}</span>
                                         </td>
                                     </tr>
                                 </table>
 
-                                {f'<p style="margin: 0 0 30px 0; font-size: 14px; color: #475569; background: #f8fafc; padding: 16px; border-radius: 8px; border-left: 4px solid {brand_primary}; line-height: 1.5;"><strong style="color: #0f172a;">Notes:</strong><br>{notes}</p>' if notes else ''}
-
-                                <!-- Premium CTA Button -->
-                                {f'''
-                                <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 30px;">
-                                    <tr>
-                                        <td align="center">
-                                            <a href="{pay_link}" style="display: inline-block; background: linear-gradient(90deg, {brand_primary}, {brand_accent}); color: #ffffff !important; padding: 16px 40px; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 16px; box-shadow: 0 4px 12px rgba(21, 88, 176, 0.25);">
-                                                Pay Securely Online
-                                            </a>
-                                        </td>
-                                    </tr>
-                                </table>
-                                ''' if balance > 0 else ''}
+                                {notes_html}
+                                {cta_button_html}
 
                                 <p style="margin: 0; font-size: 15px; color: #475569; line-height: 1.6;">
                                     Thank you for powering your business with us.<br>
@@ -1479,7 +1464,7 @@ def send_pro_plan_invoice_email(
         html=True,
         attachments=[pdf_path]
     )
-
+    
 from contextlib import contextmanager
 
 
