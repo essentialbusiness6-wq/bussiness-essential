@@ -26,5 +26,7 @@ scheduler.add_job(
     minutes=1
 )
 
-print("Started")
-# scheduler.start()
+
+def start_scheduler():
+    print("Started")
+    scheduler.start()
