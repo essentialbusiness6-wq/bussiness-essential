@@ -1,6 +1,6 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 # from app import app
-from backend.utils import auto_check_overdue_invoices,process_expired_subscriptions,process_invoice_due_notifications
+from backend.utils import auto_check_overdue_invoices,process_expired_subscriptions,process_invoice_due_notifications,process_subscription_notifications
 import os 
 
 scheduler = BackgroundScheduler()
@@ -16,6 +16,9 @@ def scheduled_job():
 
     print("Checking Invoice Due Notifications...")
     process_invoice_due_notifications()
+
+    print("Checking Due Subscription notifications...")
+    process_subscription_notifications()
         
     print("Scheduled Job Finished...")
 
