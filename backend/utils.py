@@ -2057,7 +2057,7 @@ def auto_check_overdue_invoices():
             """)
             invoices = cursor.fetchall()
 
-        now = datetime.now()
+        now = datetime.now().date()
 
 
         for invoice in invoices:
