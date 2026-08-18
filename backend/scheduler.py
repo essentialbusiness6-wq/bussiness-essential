@@ -1,5 +1,5 @@
 from apscheduler.schedulers.background import BackgroundScheduler
-from app import app
+# from app import app
 from backend.utils import auto_check_overdue_invoices,process_expired_subscriptions,process_invoice_due_notifications
 import os 
 
@@ -27,4 +27,4 @@ scheduler.add_job(
 )
 
 print("Started")
-scheduler.start()
+# scheduler.start()
