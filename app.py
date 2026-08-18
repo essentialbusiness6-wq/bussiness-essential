@@ -4691,6 +4691,7 @@ def update_draft(current_user_id, current_user_role):
     subtotal = float(data.get("subtotal", 0))
     tax = float(data.get("tax", 0))
     total = float(data.get("total", 0))
+    amount_paid= float(data.get("amount_paid",0))
 
     if not all([invoice_id, client_name, client_email, invoice_date, due_date]):
         return jsonify({"status": "error", "message": "Missing required fields"}), 400
@@ -4732,7 +4733,8 @@ def update_draft(current_user_id, current_user_role):
                 note=%s,
                 subtotal=%s,
                 tax=%s,
-                total=%s
+                total=%s,
+                amount_paid=%s
             WHERE id=%s AND user_id=%s
             """,
             (
@@ -4743,6 +4745,7 @@ def update_draft(current_user_id, current_user_role):
                 subtotal,
                 tax,
                 total,
+                amount_paid,
                 invoice_id,
                 current_user_id
             )
