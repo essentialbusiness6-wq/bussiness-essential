@@ -603,7 +603,6 @@ function showDeleteConfirmation(invoiceId) {
 
 // Function to handle delete invoice
 async function deleteInvoice(invoiceId) {
-    e.preventDefault();
     const deleteBtn = document.getElementById('confirmDelete');
 
     setLoading(deleteBtn, "Deleting...");
