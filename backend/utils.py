@@ -44,7 +44,7 @@ APP_LOGO="https://res.cloudinary.com/dkb987i8w/image/upload/v1772108684/app_logo
 
 db_pool = MySQLConnectionPool(
     pool_name="business_pool",
-    pool_size=20,
+    pool_size=5,
     pool_reset_session=True,
     host= os.getenv("DBHOST"),
     user= os.getenv("DBUSER"),
