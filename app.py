@@ -2558,107 +2558,124 @@ def create_profile():
         first_name = data['profile_name']
         year = datetime.now().year
         welcome_html = f"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Business Essentials Prime</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #334155; -webkit-font-smoothing: antialiased;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; padding: 40px 0;">
+        <tr>
+            <td align="center">
+                <!-- Main Card -->
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);">
+                    
+                    <!-- Top Accent Bar -->
+                    <tr>
+                        <td style="height: 6px; background: linear-gradient(90deg, #1558B0, #2563eb);"></td>
+                    </tr>
 
-<body style="margin:0; padding:0; background-color:#f4f6f8; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+                    <!-- Header -->
+                    <tr>
+                        <td style="padding: 40px 40px 20px; text-align: center; border-bottom: 1px solid #f1f5f9;">
+                            <img src="{APP_LOGO_URL}" alt="Business Essentials Prime" style="height: 48px; margin-bottom: 16px; max-width: 100%;">
+                            <h1 style="margin: 0; font-size: 24px; color: #0f172a; font-weight: 800; letter-spacing: -0.5px;">Welcome to Business Essentials Prime</h1>
+                            <p style="margin: 8px 0 0; font-size: 15px; color: #64748b;">Simple, secure, and professional invoicing made easy.</p>
+                        </td>
+                    </tr>
 
-  <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;">
-    <tr>
-      <td align="center">
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding: 32px 40px;">
+                            <h2 style="margin: 0 0 16px 0; font-size: 18px; color: #0f172a; font-weight: 700;">
+                                Hi {first_name},
+                            </h2>
 
+                            <p style="margin: 0 0 24px 0; font-size: 15px; line-height: 1.6; color: #475569;">
+                                Welcome aboard! We’re thrilled to have you join <strong>Business Essentials Prime</strong>. Your account has been successfully created, and you are now ready to streamline your billing, manage clients, and get paid faster.
+                            </p>
 
-    <!-- Card -->
-    <table width="100%" cellpadding="0" cellspacing="0"
-      style="max-width:600px; background:#ffffff; border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,0.08); overflow:hidden;">
+                            <!-- Features List -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="margin: 24px 0; background-color: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                                <tr>
+                                    <td style="padding: 20px 24px;">
+                                        <table width="100%" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td style="padding: 8px 0; font-size: 14px; color: #334155; line-height: 1.6;">
+                                                    <span style="color: #1558B0; font-weight: bold; margin-right: 8px;">✓</span> Create and send professional invoices in seconds
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0; font-size: 14px; color: #334155; line-height: 1.6;">
+                                                    <span style="color: #1558B0; font-weight: bold; margin-right: 8px;">✓</span> Track payments and monitor outstanding balances
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0; font-size: 14px; color: #334155; line-height: 1.6;">
+                                                    <span style="color: #1558B0; font-weight: bold; margin-right: 8px;">✓</span> Secure your data with enterprise-grade encryption
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0; font-size: 14px; color: #334155; line-height: 1.6;">
+                                                    <span style="color: #1558B0; font-weight: bold; margin-right: 8px;">✓</span> Access your business dashboard from any device
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
 
-      <!-- Header -->
-      <tr>
-        <td style="background:linear-gradient(135deg, #2563eb, #1e40af); padding:28px; text-align:center;">
-          <img src="{APP_LOGO_URL}" alt="Business Essential Logo" width="56" height="56"
-            style="display:block; margin:0 auto 10px;" />
-          <h1 style="margin:0; font-size:22px; color:#ffffff;">Welcome to Business Essential 🎉</h1>
-          <p style="margin:6px 0 0; font-size:14px; color:#dbeafe;">
-            Simple • Secure • Professional Invoicing
-          </p>
-        </td>
-      </tr>
+                            <!-- CTA Button -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="margin: 32px 0 24px;">
+                                <tr>
+                                    <td align="center">
+                                        <a href="https://www.businessessentia.net/login" style="display: inline-block; background: linear-gradient(90deg, #1558B0, #2563eb); color: #ffffff !important; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-size: 15px; font-weight: 700; box-shadow: 0 4px 12px rgba(21, 88, 176, 0.25);">
+                                            Go to Dashboard
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
 
-      <!-- Body -->
-      <tr>
-        <td style="padding:36px; color:#111827;">
-          <h2 style="margin-top:0; font-size:24px;">
-            Hi {first_name},
-          </h2>
+                            <p style="margin: 0 0 16px 0; font-size: 15px; line-height: 1.6; color: #475569;">
+                                <strong>Recommended Next Step:</strong> Complete your company profile and create your first invoice to get started.
+                            </p>
 
-          <p style="font-size:15px; line-height:1.7;">
-            Welcome aboard! We’re excited to have you join <strong>Business Essential</strong>.
-            Your account has been successfully created, and you’re now ready to start managing
-            invoices, customers, and payments with ease.
-          </p>
+                            <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #475569;">
+                                If you have any questions, our priority support team is always here to help. We’re glad you’re here — let’s build something great together.
+                            </p>
 
-          <!-- Feature List -->
-          <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0;">
-            <tr>
-              <td style="font-size:15px; line-height:1.8;">
-                ✅ Create and manage professional invoices<br />
-                ✅ Track payments and customer activity<br />
-                ✅ Secure your account with built-in protections<br />
-                ✅ Access your data anytime, anywhere
-              </td>
-            </tr>
-          </table>
+                            <p style="margin: 32px 0 0 0; font-size: 15px; color: #0f172a;">
+                                Warm regards,<br>
+                                <strong style="font-weight: 700;">The Business Essentials Prime Team</strong>
+                            </p>
+                        </td>
+                    </tr>
 
-          <!-- CTA -->
-          <table width="100%" cellpadding="0" cellspacing="0" style="margin:32px 0;">
-            <tr>
-              <td align="center">
-                <a href="https://www.businessessentia.net/login"
-                  style="background:#2563eb; color:#ffffff; text-decoration:none;
-                         padding:14px 26px; border-radius:10px;
-                         font-size:15px; font-weight:600; display:inline-block;">
-                  Go to Dashboard
-                </a>
-              </td>
-            </tr>
-          </table>
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f8fafc; padding: 24px 40px; text-align: center; border-top: 1px solid #e2e8f0;">
+                            <p style="margin: 0 0 8px 0; font-size: 12px; color: #64748b; line-height: 1.5;">
+                                You are receiving this email because you recently created a Business Essentials Prime account.
+                            </p>
+                            <p style="margin: 0; font-size: 12px; color: #94a3b8;">
+                                © {year} Business Essentials Prime. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
 
-          <p style="font-size:15px; line-height:1.7;">
-            If you ever need help, our support team is always here to assist you.
-            We recommend starting by completing your profile and creating your first invoice.
-          </p>
-
-          <p style="font-size:15px; line-height:1.7;">
-            We’re glad you’re here — let’s build something great together 🚀
-          </p>
-
-          <p style="margin-top:32px; font-size:14px; color:#374151;">
-            Warm regards,<br />
-            <strong>The Business Essential Team</strong>
-          </p>
-        </td>
-      </tr>
-
-      <!-- Footer -->
-      <tr>
-        <td style="background:#f9fafb; padding:18px; text-align:center; font-size:12px; color:#6b7280;">
-          You’re receiving this email because you created an Business Essential account.<br />
-          © {year} Business Essential. All rights reserved.
-        </td>
-      </tr>
-
+                </table>
+            </td>
+        </tr>
     </table>
-
-  </td>
-</tr>
-
-
-  </table>
-
 </body>
-
+</html>
 """
+
         send_email(
             recipient=data["email"],
-            subject="Welcome to Business Essentials prime 🎉",
+            subject="Welcome to Business Essentials Prime",
             body=welcome_html,
             html=True
         )
@@ -2748,227 +2765,88 @@ def create_user():
         existing = cursor.fetchone()
         verification_code_html = f"""
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Email</title>
 </head>
+<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #334155; -webkit-font-smoothing: antialiased;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; padding: 40px 0;">
+        <tr>
+            <td align="center">
+                <!-- Main Card -->
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);">
+                    
+                    <!-- Top Accent Bar -->
+                    <tr>
+                        <td style="height: 6px; background: linear-gradient(90deg, #1558B0, #2563eb);"></td>
+                    </tr>
 
-<body style="
-margin:0;
-padding:0;
-background:#f5f7fb;
-font-family:Arial,sans-serif;
-">
+                    <!-- Header -->
+                    <tr>
+                        <td style="padding: 40px 40px 20px; text-align: center;">
+                            <img src="{APP_LOGO_URL}" alt="Business Essentials Prime" style="height: 48px; margin-bottom: 16px; max-width: 100%;">
+                            <h1 style="margin: 0; font-size: 24px; color: #0f172a; font-weight: 800; letter-spacing: -0.5px;">Verify Your Email Address</h1>
+                        </td>
+                    </tr>
 
-<table width="100%" cellpadding="0" cellspacing="0"
-style="
-background:#f5f7fb;
-padding:40px 20px;
-">
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding: 10px 40px 40px;">
+                            <p style="margin: 0 0 24px 0; font-size: 15px; line-height: 1.6; color: #475569;">
+                                Hello,
+                            </p>
+                            <p style="margin: 0 0 24px 0; font-size: 15px; line-height: 1.6; color: #475569;">
+                                Thank you for signing up for <strong>Business Essentials Prime</strong>. To complete your registration and secure your account, please use the verification code below:
+                            </p>
 
-<tr>
-<td align="center">
+                            <!-- Verification Code Box -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="margin: 32px 0;">
+                                <tr>
+                                    <td align="center">
+                                        <div style="background-color: #f1f5f9; border: 2px dashed #1558B0; border-radius: 10px; padding: 24px 32px; display: inline-block;">
+                                            <span style="font-family: 'Courier New', Courier, monospace; font-size: 36px; font-weight: 800; color: #1558B0; letter-spacing: 8px;">{data['verification_code']}</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
 
-<table width="600"
-style="
-max-width:600px;
-background:#ffffff;
-border-radius:18px;
-overflow:hidden;
-box-shadow:0 12px 40px rgba(0,0,0,.08);
-">
+                            <p style="margin: 0 0 16px 0; font-size: 14px; line-height: 1.6; color: #64748b; text-align: center;">
+                                <strong>Note:</strong> This code will expire in 15 minutes for your security.
+                            </p>
 
-<!-- HEADER -->
-<tr>
-<td
-style="
-background:linear-gradient(
-135deg,
-#0f172a,
-#1e293b
-);
+                            <p style="margin: 32px 0 0 0; font-size: 14px; line-height: 1.6; color: #64748b;">
+                                If you did not create an account with us, please disregard this email. Your account security is our top priority.
+                            </p>
 
-padding:40px;
-text-align:center;
-"
->
+                            <p style="margin: 32px 0 0 0; font-size: 15px; color: #0f172a;">
+                                Best regards,<br>
+                                <strong style="font-weight: 700;">The Business Essentials Prime Team</strong>
+                            </p>
+                        </td>
+                    </tr>
 
-<img
-src="{APP_LOGO_URL}"
-alt="Business Essential"
-style="
-width:90px;
-height:auto;
-margin-bottom:20px;
-"
-/>
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f8fafc; padding: 24px 40px; text-align: center; border-top: 1px solid #e2e8f0;">
+                            <p style="margin: 0 0 8px 0; font-size: 12px; color: #64748b;">
+                                © {year} Business Essentials Prime. All rights reserved.
+                            </p>
+                            <p style="margin: 0; font-size: 12px; color: #94a3b8;">
+                                This is an automated security message. Please do not reply.
+                            </p>
+                        </td>
+                    </tr>
 
-<h1
-style="
-margin:0;
-color:#fff;
-font-size:28px;
-font-weight:700;
-"
->
-Business Essential
-</h1>
-
-<p
-style="
-color:#cbd5e1;
-margin-top:10px;
-font-size:15px;
-"
->
-Account Verification
-</p>
-
-</td>
-</tr>
-
-
-<!-- BODY -->
-<tr>
-
-<td
-style="
-padding:50px 45px;
-"
->
-
-<h2
-style="
-margin:0;
-font-size:24px;
-color:#111827;
-"
->
-Verify Your Email
-</h2>
-
-<p
-style="
-color:#6b7280;
-font-size:16px;
-line-height:1.8;
-margin-top:18px;
-"
->
-Thanks for creating your Business Essential account.
-
-Use the verification code below to continue.
-</p>
-
-
-<!-- CODE -->
-<div
-style="
-text-align:center;
-margin:45px 0;
-"
->
-
-<div
-style="
-display:inline-block;
-
-background:#f8fafc;
-
-border:2px dashed #2563eb;
-
-padding:20px 40px;
-
-border-radius:14px;
-
-font-size:38px;
-
-font-weight:800;
-
-letter-spacing:12px;
-
-color:#2563eb;
-"
->
-{data['verification_code']}
-</div>
-
-</div>
-
-
-<p
-style="
-color:#6b7280;
-font-size:15px;
-line-height:1.7;
-"
->
-This code expires shortly for security purposes.
-</p>
-
-<p
-style="
-color:#6b7280;
-font-size:15px;
-line-height:1.7;
-"
->
-If you didn’t create this account, you can ignore this email.
-</p>
-
-</td>
-
-</tr>
-
-
-<!-- FOOTER -->
-<tr>
-
-<td
-style="
-background:#f8fafc;
-padding:35px;
-text-align:center;
-"
->
-
-<p
-style="
-margin:0;
-font-size:14px;
-color:#64748b;
-"
->
-© Business Essential
-</p>
-
-<p
-style="
-margin-top:10px;
-font-size:13px;
-color:#94a3b8;
-"
->
-This is an automated email.
-Please do not reply.
-</p>
-
-</td>
-
-</tr>
-
-</table>
-
-</td>
-</tr>
-
-</table>
-
+                </table>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>
 """
+
 
 
         # USER EXISTS
@@ -2977,11 +2855,12 @@ Please do not reply.
             if not existing["is_email_verified"]:
 
                 send_email(
-                    recipient=existing["email"],
-                    subject="Verification of Account Creation",
+                    recipient=data["email"],
+                    subject="Verify your email for Business Essentials Prime",
                     body=verification_code_html,
                     html=True
                 )
+
 
                 return jsonify({
                     "status": "success",
@@ -3102,10 +2981,11 @@ Please do not reply.
 
         send_email(
             recipient=data["email"],
-            subject="Verification of Account Creation",
+            subject="Verify your email for Business Essentials Prime",
             body=verification_code_html,
             html=True
         )
+
 
 
         return jsonify({
@@ -3587,108 +3467,141 @@ def verifylogin():
         year = datetime.now().year
 
         login_html = f"""
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Sign-In Detected</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #334155; -webkit-font-smoothing: antialiased;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8fafc; padding: 40px 0;">
+        <tr>
+            <td align="center">
+                <!-- Main Card -->
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);">
+                    
+                    <!-- Top Accent Bar -->
+                    <tr>
+                        <td style="height: 6px; background: linear-gradient(90deg, #1558B0, #2563eb);"></td>
+                    </tr>
 
-<body style="margin:0; padding:0; background-color:#f4f6f8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;">
+                    <!-- Header -->
+                    <tr>
+                        <td style="padding: 40px 40px 20px; text-align: center;">
+                            <img src="{APP_LOGO_URL}" alt="Business Essentials Prime" style="height: 48px; margin-bottom: 16px; max-width: 100%;">
+                            <h1 style="margin: 0; font-size: 24px; color: #0f172a; font-weight: 800; letter-spacing: -0.5px;">New Sign-In Detected</h1>
+                            <p style="margin: 8px 0 0; font-size: 15px; color: #64748b;">Security Notification</p>
+                        </td>
+                    </tr>
 
-  <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;">
-    <tr>
-      <td align="center">
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding: 10px 40px 40px;">
+                            <p style="margin: 0 0 24px 0; font-size: 15px; line-height: 1.6; color: #475569;">
+                                Hello,
+                            </p>
+                            <p style="margin: 0 0 24px 0; font-size: 15px; line-height: 1.6; color: #475569;">
+                                We noticed a new sign-in to your <strong>Business Essentials Prime</strong> account. For your security, we’re letting you know whenever your account is accessed from a new device or location.
+                            </p>
 
+                            <!-- Details Box -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="margin: 24px 0; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+                                <tr>
+                                    <td style="padding: 20px 24px;">
+                                        <p style="margin: 0 0 12px 0; font-size: 13px; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px;">Login Details</p>
+                                        <table width="100%" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td style="padding: 6px 0; font-size: 14px; color: #64748b; width: 120px;"><strong>IP Address:</strong></td>
+                                                <td style="padding: 6px 0; font-size: 14px; color: #0f172a; font-weight: 600;">{login_ip}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 6px 0; font-size: 14px; color: #64748b;"><strong>Location:</strong></td>
+                                                <td style="padding: 6px 0; font-size: 14px; color: #0f172a; font-weight: 600;">{citys}, {state}, {counts}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 6px 0; font-size: 14px; color: #64748b;"><strong>Date & Time:</strong></td>
+                                                <td style="padding: 6px 0; font-size: 14px; color: #0f172a; font-weight: 600;">{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 6px 0; font-size: 14px; color: #64748b;"><strong>Device:</strong></td>
+                                                <td style="padding: 6px 0; font-size: 14px; color: #0f172a; font-weight: 600;">New or unrecognized device</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
 
-    <!-- Main Card -->
-    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; background:#ffffff; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,0.08); overflow:hidden;">
+                            <p style="margin: 0 0 16px 0; font-size: 15px; line-height: 1.6; color: #475569;">
+                                <strong style="color: #0f172a;">Was this you?</strong><br>
+                                If you recognize this activity, no action is required. You can safely ignore this message.
+                            </p>
 
-      <!-- Header -->
-      <tr>
-        <td style="background:#111827; padding:24px; text-align:center;">
-          <img src="{APP_LOGO_URL}" alt="Business Essential Logo" width="48" height="48" style="display:block; margin:0 auto 8px;" />
-          <h1 style="color:#ffffff; font-size:20px; margin:0;">Business Essential</h1>
-          <p style="color:#9ca3af; margin:4px 0 0; font-size:14px;">Security Notification</p>
-        </td>
-      </tr>
+                            <p style="margin: 0 0 16px 0; font-size: 15px; line-height: 1.6; color: #475569;">
+                                <strong style="color: #dc2626;">Was this not you?</strong><br>
+                                If you do not recognize this sign-in, we strongly recommend taking action immediately to protect your account:
+                            </p>
 
-      <!-- Content -->
-      <tr>
-        <td style="padding:32px; color:#111827;">
-          <h2 style="margin-top:0; font-size:22px;">New Sign-In Detected</h2>
+                            <!-- Action List -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="margin: 16px 0 24px;">
+                                <tr>
+                                    <td style="padding: 8px 0; font-size: 14px; color: #334155; line-height: 1.6;">
+                                        <span style="color: #dc2626; font-weight: bold; margin-right: 8px;">•</span> Change your account password immediately
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 0; font-size: 14px; color: #334155; line-height: 1.6;">
+                                        <span style="color: #dc2626; font-weight: bold; margin-right: 8px;">•</span> Review your recent account activity
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 0; font-size: 14px; color: #334155; line-height: 1.6;">
+                                        <span style="color: #dc2626; font-weight: bold; margin-right: 8px;">•</span> Update your security questions or recovery details
+                                    </td>
+                                </tr>
+                            </table>
 
-          <p style="font-size:15px; line-height:1.6;">
-            We noticed a new sign-in to your Business Essentials Prime account.  
-            For your security, we’re letting you know whenever your account is accessed from a new device or location.
-          </p>
+                            <!-- CTA Button -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="margin: 32px 0 24px;">
+                                <tr>
+                                    <td align="center">
+                                        <a href="{SECURITY_URL}" style="display: inline-block; background: linear-gradient(90deg, #dc2626, #b91c1c); color: #ffffff !important; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-size: 15px; font-weight: 700; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);">
+                                            Secure My Account
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
 
-          <!-- Details Box -->
-          <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0; background:#f9fafb; border-radius:8px; padding:16px;">
-            <tr>
-              <td style="font-size:14px; line-height:1.8;">
-                <strong>Login details</strong><br />
-                <strong>IP Address:</strong> {login_ip}<br />
-                <strong>Location:</strong> {citys}, {state}, {counts}<br />
-                <strong>Date & Time:</strong> {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}<br />
-                <strong>Device:</strong> New or unrecognized device
-              </td>
-            </tr>
-          </table>
+                            <p style="margin: 0 0 32px 0; font-size: 14px; line-height: 1.6; color: #64748b;">
+                                If you believe your account has been compromised or need assistance, please contact our support team immediately.
+                            </p>
 
-          <p style="font-size:15px; line-height:1.6;">
-            <strong>Was this you?</strong><br />
-            If you recognize this activity, no action is required. You can safely ignore this message.
-          </p>
+                            <p style="margin: 0; font-size: 15px; color: #0f172a;">
+                                Thank you for helping us keep your account secure,<br>
+                                <strong style="font-weight: 700;">The Business Essentials Prime Security Team</strong>
+                            </p>
+                        </td>
+                    </tr>
 
-          <p style="font-size:15px; line-height:1.6;">
-            <strong>Was this not you?</strong><br />
-            If you do not recognize this sign-in, we strongly recommend taking action immediately to protect your account:
-          </p>
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f8fafc; padding: 24px 40px; text-align: center; border-top: 1px solid #e2e8f0;">
+                            <p style="margin: 0 0 8px 0; font-size: 12px; color: #64748b;">
+                                This is an automated security message. Please do not reply.
+                            </p>
+                            <p style="margin: 0; font-size: 12px; color: #94a3b8;">
+                                © {year} Business Essentials Prime. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
 
-          <ul style="font-size:15px; line-height:1.6; padding-left:20px;">
-            <li>Change your account password</li>
-            <li>Review recent account activity</li>
-            <li>Update your security questions or recovery details</li>
-          </ul>
-
-          <!-- CTA Button -->
-          <table cellpadding="0" cellspacing="0" style="margin:28px 0;">
-            <tr>
-              <td align="center">
-                <a href="{SECURITY_URL}" style="background:#2563eb; color:#ffffff; text-decoration:none; padding:12px 20px; border-radius:8px; font-weight:600; display:inline-block;">
-                  Secure My Account
-                </a>
-              </td>
-            </tr>
-          </table>
-
-          <p style="font-size:14px; color:#374151; line-height:1.6;">
-            If you believe your account has been compromised or need assistance, please contact our support team immediately.
-          </p>
-
-          <p style="font-size:14px; color:#6b7280; margin-top:32px;">
-            Thank you for helping us keep your account secure,<br />
-            <strong>The Business Essentials Prime Security Team</strong>
-          </p>
-        </td>
-      </tr>
-
-      <!-- Footer -->
-      <tr>
-        <td style="background:#f9fafb; padding:16px; text-align:center; font-size:12px; color:#6b7280;">
-          This is an automated security message. Please do not reply.<br />
-          © {year} Business Essentials Prime. All rights reserved.
-        </td>
-      </tr>
-
+                </table>
+            </td>
+        </tr>
     </table>
-
-  </td>
-</tr>
-```
-
-  </table>
-
 </body>
-
-
-        """
-        
+</html>
+"""
 
         send_email(
             recipient=email,
