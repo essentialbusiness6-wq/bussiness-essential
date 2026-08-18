@@ -1771,7 +1771,7 @@ function buildInvoicePDFDocument(invoiceData) {
         pdf.setFont("helvetica", "bold");
         pdf.setTextColor(...darkColor);
         pdf.setFontSize(20);
-        pdf.text(invoiceData.companyName || "Your Company", marginX, 30);
+        pdf.text("Business Essentials Prime", marginX, 30);
 
         pdf.setFont("helvetica", "normal");
         pdf.setFontSize(9.5);
@@ -1779,10 +1779,10 @@ function buildInvoicePDFDocument(invoiceData) {
 
         let companyY = 37;
         [
-            invoiceData.companyAddress,
-            invoiceData.companyEmail,
-            invoiceData.companyPhone,
-            invoiceData.companyWebsite
+            'Ibadan, Nigeria.',
+            "support@businessessentia.net",
+            "+234 802-604-8215",
+            "www.businessessentia.net/"
         ].forEach(line => {
             if (line) {
                 const wrapped = pdf.splitTextToSize(String(line), 85);
