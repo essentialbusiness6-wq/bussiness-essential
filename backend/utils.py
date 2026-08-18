@@ -2038,8 +2038,21 @@ def auto_check_overdue_invoices():
 
         with db_cursor(dictionary=True) as (conn, cursor):
             cursor.execute("""
-                SELECT id, user_id, client_email, client_name, due_date, total_amount
-                FROM invoices
+                SELECT 
+                    i.id,
+                    i.user_id, 
+                    i.client_id,
+                    c.client_email, 
+                    c.client_name, 
+                    i.due_date, 
+                    i.total_amount
+                    
+                FROM invoices i
+
+                
+                LEFT JOIN clients c
+                ON c.id=i.client_id
+                
                 WHERE status = 'unpaid'
             """)
             invoices = cursor.fetchall()
