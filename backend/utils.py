@@ -40,7 +40,7 @@ import os
 load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY")
-
+APP_LOGO="https://res.cloudinary.com/dkb987i8w/image/upload/v1772108684/app_logo_ky1yis.png" 
 
 db_pool = MySQLConnectionPool(
     pool_name="business_pool",
