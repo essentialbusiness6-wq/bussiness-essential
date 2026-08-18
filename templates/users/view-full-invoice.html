@@ -262,6 +262,8 @@ const invoiceData = {
     taxAmount: {{ taxAmount|default(0) }},
     totalAmount: {{ totalAmount|default(0) }},
 
+    amountPaid= {{ amountPaid|default(0) }},
+
     items: {{ items|tojson }}
 };
 </script>
