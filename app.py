@@ -60,7 +60,7 @@ import io
 import base64
 from flask_compress import Compress
 from whitenoise import WhiteNoise
-
+from backend.scheduler import scheduled_job
 load_dotenv()
 
 
@@ -156,7 +156,11 @@ def refresh_activity():
         update_session_activity(token)
 
 VERIFY_TOKEN = os.getenv("WHATSAPP_VERIFY_TOKEN")
-
+@app.route("/test-scheduler", methods=["POST"])
+def test_scheduler():
+    scheduled_job()
+    return {"message":"Scheduler Job Executed"}
+    
 @app.route("/webhooks/whatsapp", methods=["GET", "POST"])
 def whatsapp_webhook():
 
