@@ -1215,6 +1215,7 @@ function renderAdvancedAnalytics(data) {
 function populateAnalytics(data) {
     console.log("📊 Populating analytics UI...");
     const companyData = data.company_data || {};
+    console.log(companyData);
     const currency = data.currency_symbol || '$';
     
     // Revenue Growth
@@ -1306,6 +1307,7 @@ function renderMonthlyChart(monthlyData, currency) {
 function renderTopClients(clients) {
     const container = document.getElementById('topClientsList');
     if (!container) return;
+    console.log(clients);
     
     if (clients.length === 0) {
         container.innerHTML = '<div class="analytics-empty"><p>No client data available</p></div>';
