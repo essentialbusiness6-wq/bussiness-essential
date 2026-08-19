@@ -1408,7 +1408,7 @@ def get_dashboard_data(user_id, user_role):
                 title,
                 description,
                 amount,
-                DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') AS created_at
+                created_at
             FROM log_activity
             WHERE user_id = %s
             ORDER BY created_at DESC
@@ -1427,16 +1427,17 @@ def get_dashboard_data(user_id, user_role):
         # ==========================================
         
         # 7a. Monthly Revenue (Last 6 months)
+        # NOTE: %% is used to escape the % sign for mysql-connector-python
         cursor.execute("""
             SELECT 
-                DATE_FORMAT(created_at, '%b') AS month,
+                DATE_FORMAT(created_at, '%%b') AS month,
                 SUM(CASE WHEN status = 'paid' THEN total ELSE 0 END) AS paid,
                 SUM(CASE WHEN status IN ('pending', 'overdue') THEN total ELSE 0 END) AS pending
             FROM invoices
             WHERE user_id = %s 
               AND created_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
-            GROUP BY DATE_FORMAT(created_at, '%Y-%m')
-            ORDER BY DATE_FORMAT(created_at, '%Y-%m') ASC
+            GROUP BY DATE_FORMAT(created_at, '%%Y-%%m')
+            ORDER BY DATE_FORMAT(created_at, '%%Y-%%m') ASC
         """, (user_id,))
         monthly_revenue_raw = cursor.fetchall()
         
@@ -1479,7 +1480,6 @@ def get_dashboard_data(user_id, user_role):
         payment_stats = cursor.fetchone()
 
         # 7d. Monthly Income & Expenses
-        # Note: If you don't have an 'expenses' table yet, the try/except will safely default to 0.0
         try:
             cursor.execute("""
                 SELECT COALESCE(SUM(amount), 0) AS monthly_expenses 
@@ -1491,6 +1491,7 @@ def get_dashboard_data(user_id, user_role):
             exp_res = cursor.fetchone()
             monthly_expenses = float(exp_res["monthly_expenses"] or 0)
         except Exception:
+            # If the expenses table doesn't exist yet, default to 0.0
             monthly_expenses = 0.0
 
         monthly_income = current_rev # Income this month is the paid invoices this month
@@ -1553,14 +1554,14 @@ def get_dashboard_data(user_id, user_role):
         "activities": activities,
 
         "account": has_payment_account,
-        "company_data": company_data, # Now a rich object instead of a boolean
+        "company_data": company_data,
         
         "user": {
             "id": user_id,
             "role": user_role
         }
     }
-
+    
 @app.route("/dashboard/data")
 @token_required
 def dashboard_data(current_user_id, current_user_role):
