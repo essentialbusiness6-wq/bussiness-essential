@@ -1340,10 +1340,9 @@ def profile_page(current_user_id,current_user_role):
 # ========================= DATA ROUTES =========================
 @cache.memoize(timeout=300)
 def get_dashboard_data(user_id, user_role):
-
     with db_cursor(dictionary=True) as (_, cursor):
-
-        # User
+        
+        # 1. User Data
         cursor.execute("""
             SELECT
                 ub.username,
@@ -1351,150 +1350,211 @@ def get_dashboard_data(user_id, user_role):
                 cb.profilepicurl,
                 cb.profilename
             FROM user_base ub
-            LEFT JOIN cust_base cb
-                ON cb.user_id = ub.user_id
-            WHERE ub.user_id=%s
+            LEFT JOIN cust_base cb ON cb.user_id = ub.user_id
+            WHERE ub.user_id = %s
             LIMIT 1
         """, (user_id,))
         user_data = cursor.fetchone()
-
         if not user_data:
             return None
 
-        # Invoice Stats
+        # 2. Overall Invoice Stats
         cursor.execute("""
             SELECT
                 COUNT(*) AS total_invoices,
-                SUM(CASE WHEN status='paid' THEN 1 ELSE 0 END) AS paid_invoices,
-                SUM(CASE WHEN status='pending' THEN 1 ELSE 0 END) AS pending_invoices,
-                COALESCE(
-                    SUM(
-                        CASE
-                            WHEN status='paid'
-                            THEN total
-                            ELSE 0
-                        END
-                    ),
-                    0
-                ) AS total_revenue
+                SUM(CASE WHEN status = 'paid' THEN 1 ELSE 0 END) AS paid_invoices,
+                SUM(CASE WHEN status IN ('pending', 'overdue') THEN 1 ELSE 0 END) AS pending_invoices,
+                COALESCE(SUM(CASE WHEN status = 'paid' THEN total ELSE 0 END), 0) AS total_revenue
             FROM invoices
-            WHERE user_id=%s
+            WHERE user_id = %s
         """, (user_id,))
         invoice_stats = cursor.fetchone()
 
-        # Settings
+        # 3. Account Settings & Wallet
         cursor.execute("""
             SELECT
                 us.currency,
                 us.currency_symbol,
                 us.theme,
-                wb.wallet_balance
+                COALESCE(wb.wallet_balance, 0) AS wallet_balance
             FROM user_settings us
-            LEFT JOIN wallet_base wb
-                ON wb.user_id = us.user_id
-            WHERE us.user_id=%s
+            LEFT JOIN wallet_base wb ON wb.user_id = us.user_id
+            WHERE us.user_id = %s
             LIMIT 1
         """, (user_id,))
         account_data = cursor.fetchone()
-
+        
+        # Fallback defaults if settings row doesn't exist yet
         if not account_data:
-            return None
+            account_data = {
+                "currency": "USD",
+                "currency_symbol": "$",
+                "theme": "light",
+                "wallet_balance": 0.0
+            }
 
-        # Notifications
+        # 4. Notifications
         cursor.execute("""
             SELECT COUNT(*) AS unread_count
             FROM log_activity
-            WHERE user_id=%s
-            AND is_read=FALSE
+            WHERE user_id = %s AND is_read = FALSE
         """, (user_id,))
         unread_count = cursor.fetchone()["unread_count"]
 
-        # Activities
+        # 5. Recent Activities
         cursor.execute("""
             SELECT
                 type,
                 title,
                 description,
                 amount,
-                created_at
+                DATE_FORMAT(created_at, '%Y-%m-%d %H:%i:%s') AS created_at
             FROM log_activity
-            WHERE user_id=%s
+            WHERE user_id = %s
             ORDER BY created_at DESC
             LIMIT 10
         """, (user_id,))
         activities = cursor.fetchall()
+
+        # 6. Account Completion Status
         cursor.execute("""
-            SELECT id 
-            FROM payment_subaccounts
-            WHERE user_id=%s
+            SELECT id FROM payment_subaccounts WHERE user_id = %s LIMIT 1
         """, (user_id,))
-        if cursor.fetchone():
-            account = True
+        has_payment_account = cursor.fetchone() is not None
+
+        # ==========================================
+        # 7. ADVANCED ANALYTICS (Company Data)
+        # ==========================================
+        
+        # 7a. Monthly Revenue (Last 6 months)
+        cursor.execute("""
+            SELECT 
+                DATE_FORMAT(created_at, '%b') AS month,
+                SUM(CASE WHEN status = 'paid' THEN total ELSE 0 END) AS paid,
+                SUM(CASE WHEN status IN ('pending', 'overdue') THEN total ELSE 0 END) AS pending
+            FROM invoices
+            WHERE user_id = %s 
+              AND created_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+            GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+            ORDER BY DATE_FORMAT(created_at, '%Y-%m') ASC
+        """, (user_id,))
+        monthly_revenue_raw = cursor.fetchall()
+        
+        monthly_revenue = []
+        for row in monthly_revenue_raw:
+            monthly_revenue.append({
+                "month": row["month"],
+                "paid": float(row["paid"] or 0),
+                "pending": float(row["pending"] or 0)
+            })
+
+        # 7b. Revenue Growth (Current Month vs Last Month)
+        cursor.execute("""
+            SELECT 
+                SUM(CASE WHEN MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE()) AND status = 'paid' THEN total ELSE 0 END) AS current_month,
+                SUM(CASE WHEN MONTH(created_at) = MONTH(DATE_SUB(CURDATE(), INTERVAL 1 MONTH)) AND YEAR(created_at) = YEAR(DATE_SUB(CURDATE(), INTERVAL 1 MONTH)) AND status = 'paid' THEN total ELSE 0 END) AS last_month
+            FROM invoices
+            WHERE user_id = %s
+        """, (user_id,))
+        growth_data = cursor.fetchone()
+        
+        current_rev = float(growth_data["current_month"] or 0)
+        last_rev = float(growth_data["last_month"] or 0)
+        
+        if last_rev > 0:
+            revenue_growth = round(((current_rev - last_rev) / last_rev) * 100, 1)
+        elif current_rev > 0:
+            revenue_growth = 100.0
         else:
-            account = False
-        cursor.execute(
-           """
-            SELECT id
-            FROM organizations_data
-            WHERE owner_id=%s
-            """,(user_id,)
-        )
-        if cursor.fetchone():
-            company_data = True
-        else:
-            company_data = False
-        cursor.execute(
-            """
-            SELECT
-                clients.id,
-                clients.client_name,
-                COUNT(invoices.id) AS total_invoices
+            revenue_growth = 0.0
 
-            FROM clients
+        # 7c. Payment Stats
+        cursor.execute("""
+            SELECT 
+                COUNT(*) AS total_payments,
+                SUM(CASE WHEN status = 'paid' THEN 1 ELSE 0 END) AS successful_payments
+            FROM invoices
+            WHERE user_id = %s
+        """, (user_id,))
+        payment_stats = cursor.fetchone()
 
-            LEFT JOIN invoices ON invoices.client_id = clients.id
+        # 7d. Monthly Income & Expenses
+        # Note: If you don't have an 'expenses' table yet, the try/except will safely default to 0.0
+        try:
+            cursor.execute("""
+                SELECT COALESCE(SUM(amount), 0) AS monthly_expenses 
+                FROM expenses 
+                WHERE user_id = %s 
+                  AND MONTH(created_at) = MONTH(CURDATE()) 
+                  AND YEAR(created_at) = YEAR(CURDATE())
+            """, (user_id,))
+            exp_res = cursor.fetchone()
+            monthly_expenses = float(exp_res["monthly_expenses"] or 0)
+        except Exception:
+            monthly_expenses = 0.0
 
-            WHERE clients.user_id = %s
+        monthly_income = current_rev # Income this month is the paid invoices this month
 
-            GROUP BY
-                clients.id,
-                clients.client_name
-            """,(user_id,)
-        )
-        clients = cursor.fetchall()
-   
+        # 7e. Top Clients (by revenue)
+        cursor.execute("""
+            SELECT 
+                c.client_name AS name,
+                COUNT(i.id) AS invoice_count,
+                COALESCE(SUM(CASE WHEN i.status = 'paid' THEN i.total ELSE 0 END), 0) AS revenue
+            FROM clients c
+            LEFT JOIN invoices i ON i.client_id = c.id
+            WHERE c.user_id = %s
+            GROUP BY c.id, c.client_name
+            ORDER BY revenue DESC
+            LIMIT 5
+        """, (user_id,))
+        top_clients = cursor.fetchall()
+        
+        # Ensure types are correct for frontend
+        for client in top_clients:
+            client["revenue"] = float(client["revenue"] or 0)
+            client["invoice_count"] = int(client["invoice_count"] or 0)
 
+        # Construct the final company_data object
+        company_data = {
+            "revenue_growth": revenue_growth,
+            "total_payments": int(payment_stats["total_payments"] or 0),
+            "successful_payments": int(payment_stats["successful_payments"] or 0),
+            "total_revenue": float(invoice_stats["total_revenue"] or 0),
+            "total_invoices": int(invoice_stats["total_invoices"] or 0),
+            "monthly_income": float(monthly_income),
+            "monthly_expenses": float(monthly_expenses),
+            "monthly_revenue": monthly_revenue,
+            "top_clients": top_clients
+        }
+
+    # ==========================================
+    # FINAL RESPONSE
+    # ==========================================
     return {
         "status": "success",
-
+        
         "username": user_data["username"],
-        "plan": (user_data["plan"] or "").capitalize(),
+        "plan": (user_data["plan"] or "Trial").capitalize(),
         "profilepicurl": user_data["profilepicurl"],
         "profilename": user_data["profilename"],
 
-        "total_invoices": invoice_stats["total_invoices"] or 0,
-        "paid_invoices": invoice_stats["paid_invoices"] or 0,
-        "pending_invoices": invoice_stats["pending_invoices"] or 0,
-
-        "total_revenue": float(
-            invoice_stats["total_revenue"] or 0
-        ),
+        "total_invoices": int(invoice_stats["total_invoices"] or 0),
+        "paid_invoices": int(invoice_stats["paid_invoices"] or 0),
+        "pending_invoices": int(invoice_stats["pending_invoices"] or 0),
+        "total_revenue": float(invoice_stats["total_revenue"] or 0),
 
         "currency": account_data["currency"],
         "currency_symbol": account_data["currency_symbol"],
         "theme": account_data["theme"],
+        "balance": float(account_data["wallet_balance"] or 0),
 
-        "balance": float(
-            account_data["wallet_balance"] or 0
-        ),
-
-        "unread_count": unread_count,
-
+        "unread_count": int(unread_count or 0),
         "activities": activities,
 
-        "account":account,
-        "company_data":company_data,
-        "clients":clients,
+        "account": has_payment_account,
+        "company_data": company_data, # Now a rich object instead of a boolean
+        
         "user": {
             "id": user_id,
             "role": user_role
