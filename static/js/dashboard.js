@@ -1172,8 +1172,10 @@ function checkAccountSetupBanner(data) {
 
 // ================= ADVANCED ANALYTICS =================
 function renderAdvancedAnalytics(data) {
+    console.log("Hit Advanced");
     const analyticsSection = document.getElementById('analyticsSection');
     if (!analyticsSection) return;
+    console.log("Checking if users has pro");
     
     // Check if user has Pro plan AND company data
     const isProPlan = data.plan && (data.plan.toLowerCase() === 'pro' || data.plan.toLowerCase() === 'professional');
