@@ -1171,26 +1171,50 @@ function checkAccountSetupBanner(data) {
 }
 
 // ================= ADVANCED ANALYTICS =================
+// ================= ADVANCED ANALYTICS =================
 function renderAdvancedAnalytics(data) {
-    console.log("Hit Advanced");
+    console.log("=== RENDERING ADVANCED ANALYTICS ===");
     const analyticsSection = document.getElementById('analyticsSection');
-    if (!analyticsSection) return;
-    console.log("Checking if users has pro");
+    
+    if (!analyticsSection) {
+        console.warn("❌ analyticsSection element not found in DOM!");
+        return;
+    }
+    
+    console.log("📦 Backend Data Received:");
+    console.log("  - Plan:", data.plan);
+    console.log("  - Company Data:", data.company_data);
     
     // Check if user has Pro plan AND company data
-    const isProPlan = data.plan && (data.plan.toLowerCase() === 'pro' || data.plan.toLowerCase() === 'professional');
-    const hasCompanyData = data.company_data && Object.keys(data.company_data).length > 0;
+    const planStr = (data.plan || "").toLowerCase();
+    const isProPlan = planStr === 'pro' || planStr === 'professional';
+    
+    const hasCompanyData = data.company_data && 
+                           typeof data.company_data === 'object' && 
+                           Object.keys(data.company_data).length > 0;
+    
+    console.log("🔍 Checks:");
+    console.log("  - Is Pro Plan?", isProPlan);
+    console.log("  - Has Company Data?", hasCompanyData);
     
     if (isProPlan && hasCompanyData) {
+        console.log("✅ Showing Advanced Analytics");
         analyticsSection.classList.remove('hidden');
+        analyticsSection.style.display = 'block'; // Force display just in case
         populateAnalytics(data);
     } else {
+        console.log("❌ Hiding Advanced Analytics. Reason(s):");
+        if (!isProPlan) console.log("  ➔ User plan is '" + data.plan + "' (Expected 'Pro' or 'Professional')");
+        if (!hasCompanyData) console.log("  ➔ company_data is missing, null, or an empty object");
+        
         analyticsSection.classList.add('hidden');
+        analyticsSection.style.display = 'none';
     }
 }
 
 function populateAnalytics(data) {
-    const companyData = data.company_data;
+    console.log("📊 Populating analytics UI...");
+    const companyData = data.company_data || {};
     const currency = data.currency_symbol || '$';
     
     // Revenue Growth
@@ -1199,12 +1223,10 @@ function populateAnalytics(data) {
     const growthTrendEl = document.getElementById('revenueGrowthTrend');
     if (growthEl) {
         growthEl.textContent = `${revenueGrowth >= 0 ? '+' : ''}${revenueGrowth}%`;
-        growthEl.parentElement.querySelector('.analytics-stat-card')?.classList.toggle('positive', revenueGrowth >= 0);
     }
     if (growthTrendEl) {
         growthTrendEl.innerHTML = `<span>${revenueGrowth >= 0 ? '↑' : '↓'} vs last month</span>`;
-        growthTrendEl.classList.toggle('positive', revenueGrowth >= 0);
-        growthTrendEl.classList.toggle('negative', revenueGrowth < 0);
+        growthTrendEl.className = `analytics-stat-trend ${revenueGrowth >= 0 ? 'positive' : 'negative'}`;
     }
     
     // Payment Success Rate
@@ -1245,6 +1267,8 @@ function populateAnalytics(data) {
     
     // Cash Flow Breakdown
     renderCashFlowBreakdown(income, expenses, netCashFlow, currency);
+    
+    console.log("✅ Analytics UI populated successfully!");
 }
 
 function renderMonthlyChart(monthlyData, currency) {
