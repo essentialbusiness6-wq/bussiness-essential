@@ -1197,7 +1197,7 @@ function renderAdvancedAnalytics(data) {
     console.log("  - Is Pro Plan?", isProPlan);
     console.log("  - Has Company Data?", hasCompanyData);
     
-    if (isProPlan && hasCompanyData) {
+    if (isProPlan) {
         console.log("✅ Showing Advanced Analytics");
         analyticsSection.classList.remove('hidden');
         analyticsSection.style.display = 'block'; // Force display just in case
