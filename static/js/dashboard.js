@@ -1087,7 +1087,7 @@ async function fetchDashboardData(forceRefresh = false) {
         renderDashboard(data);
        localStorage.setItem("theme", data.theme);
         checkAccountCompletion(data);
-        checkAccoutSetupBanner(data);
+        // checkAccoutSetupBanner(data);
         renderAdvancedAnalytics(data);
 
     } catch (err) {
