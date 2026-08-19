@@ -423,10 +423,19 @@ def pay_invoice_page(invoiceId):
             """,
             (invoice['user_id'],)
         )
-        if cursor.fetchone():
-            profile = cursor.fetchone()
-        else:
-            profile = {}
+        
+        profile = cursor.fetchone()
+        if not profile:
+            return render_template(
+                "users/data-not-found.html",
+                title="Profile Not Found",
+                message="Failed To Load Profile, Profile Not Completed yet.",
+                link="/profile",
+                link_text="Update Profile",
+                support_link="/support",
+                support_text="Contact Support"
+            )
+
 
         cursor.execute(
             """
