@@ -1384,7 +1384,6 @@ def get_dashboard_data(user_id, user_role):
         """, (user_id,))
         account_data = cursor.fetchone()
         
-        # Fallback defaults if settings row doesn't exist yet
         if not account_data:
             account_data = {
                 "currency": "USD",
@@ -1426,18 +1425,18 @@ def get_dashboard_data(user_id, user_role):
         # 7. ADVANCED ANALYTICS (Company Data)
         # ==========================================
         
-        # 7a. Monthly Revenue (Last 6 months)
-        # NOTE: %% is used to escape the % sign for mysql-connector-python
+        # 7a. Monthly Revenue (Last 6 months) - FIXED
         cursor.execute("""
             SELECT 
+                DATE_FORMAT(created_at, '%%Y-%%m') AS month_key,
                 DATE_FORMAT(created_at, '%%b') AS month,
                 SUM(CASE WHEN status = 'paid' THEN total ELSE 0 END) AS paid,
                 SUM(CASE WHEN status IN ('pending', 'overdue') THEN total ELSE 0 END) AS pending
             FROM invoices
             WHERE user_id = %s 
               AND created_at >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
-            GROUP BY DATE_FORMAT(created_at, '%%Y-%%m')
-            ORDER BY DATE_FORMAT(created_at, '%%Y-%%m') ASC
+            GROUP BY DATE_FORMAT(created_at, '%%Y-%%m'), DATE_FORMAT(created_at, '%%b')
+            ORDER BY month_key ASC
         """, (user_id,))
         monthly_revenue_raw = cursor.fetchall()
         
@@ -1491,10 +1490,9 @@ def get_dashboard_data(user_id, user_role):
             exp_res = cursor.fetchone()
             monthly_expenses = float(exp_res["monthly_expenses"] or 0)
         except Exception:
-            # If the expenses table doesn't exist yet, default to 0.0
             monthly_expenses = 0.0
 
-        monthly_income = current_rev # Income this month is the paid invoices this month
+        monthly_income = current_rev
 
         # 7e. Top Clients (by revenue)
         cursor.execute("""
@@ -1511,12 +1509,10 @@ def get_dashboard_data(user_id, user_role):
         """, (user_id,))
         top_clients = cursor.fetchall()
         
-        # Ensure types are correct for frontend
         for client in top_clients:
             client["revenue"] = float(client["revenue"] or 0)
             client["invoice_count"] = int(client["invoice_count"] or 0)
 
-        # Construct the final company_data object
         company_data = {
             "revenue_growth": revenue_growth,
             "total_payments": int(payment_stats["total_payments"] or 0),
@@ -1529,9 +1525,6 @@ def get_dashboard_data(user_id, user_role):
             "top_clients": top_clients
         }
 
-    # ==========================================
-    # FINAL RESPONSE
-    # ==========================================
     return {
         "status": "success",
         
