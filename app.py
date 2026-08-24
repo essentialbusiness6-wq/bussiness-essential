@@ -4669,6 +4669,15 @@ def update_draft(current_user_id, current_user_role):
     total = float(data.get("total", 0))
     amount_paid= float(data.get("amount_paid",0))
 
+    balance = max(total - amount_paid, 0)
+
+    if balance <= 0:
+        status = "paid"
+    elif amount_paid > 0:
+        status = "pending"
+    else:
+        status = "unpaid"
+
     if not all([invoice_id, client_name, client_email, invoice_date, due_date]):
         return jsonify({"status": "error", "message": "Missing required fields"}), 400
     
@@ -4710,7 +4719,8 @@ def update_draft(current_user_id, current_user_role):
                 subtotal=%s,
                 tax=%s,
                 total=%s,
-                amount_paid=%s
+                amount_paid=%s,
+                status=%s
             WHERE id=%s AND user_id=%s
             """,
             (
@@ -4722,6 +4732,7 @@ def update_draft(current_user_id, current_user_role):
                 tax,
                 total,
                 amount_paid,
+                status,
                 invoice_id,
                 current_user_id
             )
