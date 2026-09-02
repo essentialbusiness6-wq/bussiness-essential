@@ -295,3 +295,80 @@ def dashboard_data(current_user_id, current_user_role):
             "status": "error",
             "message": str(e)
         }), 500
+
+@cache.memosize(timeout=300)
+def get_profile_data(current_user_id, current_user_role):
+    
+    with db_cursor(dictionary=True) as (_, cursor):
+        cursor.execute("""
+            SELECT
+                user_base.username, 
+                cust_base.fullname,
+                cust_base.profilename, 
+                cust_base.profilepicurl AS profile_pic, 
+                cust_base.address, 
+                cust_base.alternateemail, 
+                cust_base.phone, 
+                cust_base.website,
+                cust_base.bio,
+                cust_base.country
+            FROM cust_base
+            JOIN user_base ON user_base.user_id = cust_base.user_id
+            WHERE cust_base.user_id=%s
+        """, (current_user_id,))
+        profile_data = cursor.fetchone()
+
+  
+        cursor.execute(
+            "SELECT theme FROM user_settings WHERE user_id=%s",
+            (current_user_id,)
+        )
+        settings = cursor.fetchone()
+    
+        theme = settings["theme"] if settings and settings.get("theme") else "light"
+
+        cursor.execute(
+            """
+            SELECT bank_name, account_number, account_name, bank_code
+            FROM payment_subaccounts 
+            WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+        bank_data = cursor.fetchone()
+
+    return {
+        "status": "success",
+        "profile":profile_data,
+        "theme":theme,
+        "bank":bank_data
+    }
+
+@api_bp.route("/profile/data")
+@token_required
+def profile_data(current_user_id, current_user_role):
+
+    try:
+
+        data = get_profile_data(
+            current_user_id,
+            current_user_role
+        )
+
+        if not data:
+            return jsonify({
+                "status": "error",
+                "message": "User data not found"
+            }), 404
+
+        return jsonify(data)
+
+    except Exception as e:
+
+        print("Profile error:", e)
+
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+
