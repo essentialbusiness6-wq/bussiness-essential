@@ -296,7 +296,7 @@ def dashboard_data(current_user_id, current_user_role):
             "message": str(e)
         }), 500
 
-@cache.memosize(timeout=300)
+@cache.memoize(timeout=300)
 def get_profile_data(current_user_id, current_user_role):
     
     with db_cursor(dictionary=True) as (_, cursor):
