@@ -298,8 +298,8 @@ def dashboard_data(current_user_id, current_user_role):
         }), 500
 
 @cache.memoize(timeout=300)
-def get_profile_data(current_user_id, current_user_role):
-    
+def get_profile_data(current_user_id, current_user_role)
+
     with db_cursor(dictionary=True) as (_, cursor):
         cursor.execute("""
             SELECT
@@ -375,7 +375,7 @@ def profile_data(current_user_id, current_user_role):
 
 @cache.memoize(timeout=300)
 def get_billing_data(current_user_id,current_user_role):
-        with db_cursor(dictionary=True) as (_, cursor):
+    with db_cursor(dictionary=True) as (_, cursor):
 
         cursor.execute("""
             SELECT *
