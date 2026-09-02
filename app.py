@@ -4379,7 +4379,7 @@ def create_invoice(current_user_id, current_user_role):
         conn.commit()
 
         if user_info[1] == "trial":
-            if total_invoices >= 30:
+            if total_invoices >= 3:
                 return jsonify({
                     "status": "error",
                     "message": "Trial period has ended. Please upgrade your plan."
