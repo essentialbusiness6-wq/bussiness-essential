@@ -162,6 +162,16 @@ VERIFY_TOKEN = os.getenv("WHATSAPP_VERIFY_TOKEN")
 def test_scheduler():
     scheduled_job()
     return {"message":"Scheduler Job Executed"}
+
+@app.route("/api/validate-token", methods=["POST"])
+@token_required
+def validate_token(current_user_id, current_user_role):
+    """Validates if the provided JWT token is still valid."""
+    return jsonify({
+        "status": "success",
+        "message": "Token is valid",
+        "user_id": current_user_id
+    }), 200
     
 @app.route("/webhooks/whatsapp", methods=["GET", "POST"])
 def whatsapp_webhook():
