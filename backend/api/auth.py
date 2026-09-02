@@ -454,7 +454,7 @@ def create_profile():
         <td style="background:linear-gradient(135deg, #2563eb, #1e40af); padding:28px; text-align:center;">
           <img src="{APP_LOGO_URL}" alt="Business Essential Logo" width="56" height="56"
             style="display:block; margin:0 auto 10px;" />
-          <h1 style="margin:0; font-size:22px; color:#ffffff;">Welcome to Business Essential 🎉</h1>
+          <h1 style="margin:0; font-size:22px; color:#ffffff;">Welcome to Business Essentials Prime 🎉</h1>
           <p style="margin:6px 0 0; font-size:14px; color:#dbeafe;">
             Simple • Secure • Professional Invoicing
           </p>
@@ -469,7 +469,7 @@ def create_profile():
           </h2>
 
           <p style="font-size:15px; line-height:1.7;">
-            Welcome aboard! We’re excited to have you join <strong>Business Essential</strong>.
+            Welcome aboard! We’re excited to have you join <strong>Business Essentials Prime</strong>.
             Your account has been successfully created, and you’re now ready to start managing
             invoices, customers, and payments with ease.
           </p>
@@ -511,7 +511,7 @@ def create_profile():
 
           <p style="margin-top:32px; font-size:14px; color:#374151;">
             Warm regards,<br />
-            <strong>The Business Essential Team</strong>
+            <strong>The Business Essentials Prime Team</strong>
           </p>
         </td>
       </tr>
@@ -519,8 +519,8 @@ def create_profile():
       <!-- Footer -->
       <tr>
         <td style="background:#f9fafb; padding:18px; text-align:center; font-size:12px; color:#6b7280;">
-          You’re receiving this email because you created an Business Essential account.<br />
-          © {year} Business Essential. All rights reserved.
+          You’re receiving this email because you created an Business Essentials Prime account.<br />
+          © {year} Business Essentials Prime. All rights reserved.
         </td>
       </tr>
 
@@ -537,7 +537,7 @@ def create_profile():
 """
         send_email(
             recipient=data["email"],
-            subject="Welcome to Business Essential 🎉",
+            subject="Welcome to Business Essentials Prime 🎉",
             body=welcome_html,
             html=True
         )
@@ -737,7 +737,7 @@ def verifylogin():
    
         if hashed != current_password:
             # Failed attempt
-            new_attempts = user[2] + 1  
+            new_attempts = user[2] + 0  
             cursor.execute(
                 "UPDATE user_base SET failed_attempts=%s, last_failed_login=NOW() WHERE username=%s",
                 (new_attempts, data['username']),
@@ -904,7 +904,7 @@ def verifylogin():
       <tr>
         <td style="background:#111827; padding:24px; text-align:center;">
           <img src="{APP_LOGO_URL}" alt="Business Essential Logo" width="48" height="48" style="display:block; margin:0 auto 8px;" />
-          <h1 style="color:#ffffff; font-size:20px; margin:0;">Business Essential</h1>
+          <h1 style="color:#ffffff; font-size:20px; margin:0;">Business Essentials Prime</h1>
           <p style="color:#9ca3af; margin:4px 0 0; font-size:14px;">Security Notification</p>
         </td>
       </tr>
@@ -965,7 +965,7 @@ def verifylogin():
 
           <p style="font-size:14px; color:#6b7280; margin-top:32px;">
             Thank you for helping us keep your account secure,<br />
-            <strong>The Business Essential Security Team</strong>
+            <strong>The Business Essentials Prime Security Team</strong>
           </p>
         </td>
       </tr>
@@ -974,7 +974,7 @@ def verifylogin():
       <tr>
         <td style="background:#f9fafb; padding:16px; text-align:center; font-size:12px; color:#6b7280;">
           This is an automated security message. Please do not reply.<br />
-          © {year} Business Essential. All rights reserved.
+          © {year} Business Essentials Prime. All rights reserved.
         </td>
       </tr>
 
@@ -994,7 +994,7 @@ def verifylogin():
 
         send_email(
             recipient=email,
-            subject="New Sign-In Detected — Business Essential",
+            subject="New Sign-In Detected — Business Essentials Prime",
             body=login_html,
             html=True
         )
