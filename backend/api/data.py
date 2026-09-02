@@ -50,6 +50,7 @@ def _humanize(dt):
     if days < 7:
         return f"{days} days ago"
     return dt.strftime("%b %d")
+    
 @cache.memoize(timeout=300)
 def get_dashboard_data(user_id, user_role):
     with db_cursor(dictionary=True) as (_, cursor):
@@ -372,3 +373,108 @@ def profile_data(current_user_id, current_user_role):
             "message": str(e)
         }), 500
 
+@cache.memoize(timeout=300)
+def get_billing_data(current_user_id,current_user_role):
+        with db_cursor(dictionary=True) as (_, cursor):
+
+        cursor.execute("""
+            SELECT *
+            FROM user_subscriptions
+            WHERE user_id = %s AND status in ('active','Active')
+            ORDER BY id DESC
+            LIMIT 1
+        """, (current_user_id,))
+
+        subscription = cursor.fetchone()
+
+        cursor.execute(
+                "SELECT theme FROM user_settings WHERE user_id=%s",
+                (current_user_id,)
+            )
+
+        
+        settings = cursor.fetchone()
+
+        theme = "light"
+        if settings and settings.get("theme"):
+            theme = settings["theme"]
+        
+
+
+        # Default trial if user has no subscription yet
+        if not subscription:
+
+            trial_days = 7
+
+            subscription = {
+                "plan": "trial",
+                "billing_cycle": "monthly",
+                "status": "active",
+                "expires_at": None
+            }
+
+            days_left = trial_days
+            hours_left = 0
+            minutes_left = 0
+    
+        else:
+
+            days_left = 0
+            hours_left = 0
+            minutes_left = 0
+
+            expires_at = subscription.get("expires_at")
+
+            if expires_at:
+
+                now = datetime.utcnow()
+
+                remaining = expires_at - now
+
+                total_seconds = int(remaining.total_seconds())
+
+                if total_seconds > 0:
+
+                    days_left = total_seconds // 86400
+                    hours_left = (total_seconds % 86400) // 3600
+                    minutes_left = (total_seconds % 3600) // 60
+
+    return {
+        "status":"success",
+        
+        "subscription": subscription,
+        "days_left" : days_left,
+        "hours_left" : hours_left,
+        "minutes_left" : minutes_left,
+        "user_id": current_user_id,
+        "theme": theme
+    }
+
+
+@api_bp.route("/billing/data")
+@token_required
+def billing_data(current_user_id, current_user_role):
+
+    try:
+
+        data = get_billing_data(
+            current_user_id,
+            current_user_role
+        )
+
+        if not data:
+            return jsonify({
+                "status": "error",
+                "message": "User data not found"
+            }), 404
+
+        return jsonify(data)
+
+    except Exception as e:
+
+        print("Billing error:", e)
+
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
