@@ -255,7 +255,7 @@ def send_email(
         api_key = os.getenv("RESEND_API_KEY")
 
         sender = (
-            "Business Essential "
+            "Business Essentials Prime"
             "<no-reply@businessessentia.net>"
         )
 
