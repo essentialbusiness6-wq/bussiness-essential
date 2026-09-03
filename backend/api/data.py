@@ -750,4 +750,72 @@ def edit_invoice_data(current_user_id, current_user_role,invoiceId):
             "status": "error",
             "message": str(e)
         }), 500
+        
+@cache.memoize(timeout=300)
+def get_share_page_data(current_user_id, current_user_role):
 
+    with db_cursor(dictionary=True) as (_, cursor):
+
+        cursor.execute(
+            """
+            SELECT referral_code,invite_sent, signups, earned
+            FROM referrals
+            WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+        referral = cursor.fetchone()
+        if not referral:
+            return jsonify({
+                "status":"error",
+                "message":"Referral not found."
+            }), 400
+            
+        cursor.execute(
+                "SELECT theme FROM user_settings WHERE user_id=%s",
+                (current_user_id,)
+            )
+
+        
+        settings = cursor.fetchone()
+
+        theme = "light"
+        if settings and settings.get("theme"):
+            theme = settings["theme"]
+    return {
+        "status": "success",
+        "theme": theme,
+        "referralCode": referral['referral_code'], 
+        "inviteSent": referral['invite_sent'], 
+        "signups": referral['signups'], 
+        "earned": referral['earned'])
+    }
+
+@api_bp.route("/share/data")
+@token_required
+def share_page_data(current_user_id, current_user_role):
+
+    try:
+
+        data = get_share_page_data(
+            current_user_id,
+            current_user_role 
+        )
+
+        if not data:
+            return jsonify({
+                "status": "error",
+                "message": "User data not found"
+            }), 404
+
+        return jsonify(data)
+
+    except Exception as e:
+
+        print("Share error:", e)
+
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+        
