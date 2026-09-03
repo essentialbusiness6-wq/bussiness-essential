@@ -116,88 +116,79 @@ import jwt
 from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 
 
+def get_authenticated_user():
+    """
+    Extract and verify the existing Business Essential JWT.
+
+    Supports:
+    1. Web authentication through the access_token cookie
+    2. React Native/mobile authentication through
+       Authorization: Bearer <token>
+
+    Returns:
+        {
+            "user_id": ...,
+            "role": ...
+        }
+
+    Returns None if no valid authentication exists.
+    """
+
+    token = request.cookies.get("access_token")
+
+    # React Native uses Authorization header
+    if not token:
+        auth_header = request.headers.get("Authorization")
+
+        if auth_header:
+            parts = auth_header.split(" ", 1)
+
+            if len(parts) != 2:
+                return None
+
+            scheme, token = parts
+
+            if scheme.lower() != "bearer":
+                return None
+
+    if not token:
+        return None
+
+    try:
+        payload = jwt.decode(
+            token,
+            SECRET_KEY,
+            algorithms=["HS256"]
+        )
+
+        current_user_id = payload["user_id"]
+        current_user_role = payload["role"]
+
+        return {
+            "user_id": current_user_id,
+            "role": current_user_role,
+        }
+
+    except (ExpiredSignatureError, InvalidTokenError, KeyError):
+        return None
+        
 def token_required(f):
 
     @wraps(f)
     def decorated(*args, **kwargs):
 
-        print("TOKEN 1")
+        user = get_authenticated_user()
 
-        token = request.cookies.get("access_token")
-
-        print("TOKEN 2", token is not None)
-
-        if not token:
-
-            auth_header = request.headers.get("Authorization")
-
-            print("TOKEN 3")
-
-            if auth_header:
-
-                parts = auth_header.split(" ", 1)
-
-                if len(parts) != 2:
-                    return jsonify({
-                        "message": "Invalid Authorization header"
-                    }), 401
-
-                scheme, token = parts
-
-                print("TOKEN 4")
-
-                if scheme.lower() != "bearer":
-                    return jsonify({
-                        "message": "Authorization scheme must be Bearer"
-                    }), 401
-
-        if not token:
-
-            print("TOKEN 5")
-
-            return jsonify({
-                "message": "Authentication required"
-            }), 401
-
-        try:
-
-            print("TOKEN 6")
-            print(type(token))
-
-            payload = jwt.decode(
-                token,
-                SECRET_KEY,
-                algorithms=["HS256"]
-            )
-
-            print("TOKEN 7")
-
-            current_user_id = payload["user_id"]
-            current_user_role = payload["role"]
-
-            print("TOKEN 8")
-
-        except ExpiredSignatureError:
-
-            print("JWT EXPIRED")
+        if not user:
 
             return jsonify({
                 "status": "error",
-                "message": "Session expired. Please log in again.",
-                "code": "TOKEN_EXPIRED"
-            }), 401
-
-        except InvalidTokenError as e:
-
-            print("JWT INVALID:", type(e), e)
-
-            return jsonify({
-                "status": "error",
-                "message": "Invalid authentication token.",
+                "message": "Authentication required.",
                 "code": "INVALID_TOKEN"
             }), 401
 
-        print("TOKEN 9")
+        current_user_id = user["user_id"]
+        current_user_role = user["role"]
 
         return f(
             current_user_id,
@@ -208,8 +199,40 @@ def token_required(f):
 
     return decorated
 
+def get_current_user_id():
+    user = get_authenticated_user()
 
+    if not user:
+        return None
 
+    return user["user_id"]
+
+def get_current_user_role():
+    user = get_authenticated_user()
+
+    if not user:
+        return None
+
+    return user["role"]
+
+def issue_frontend_ai_token(user_id, permissions, tenant_id=None):
+
+    now = int(time.time())
+
+    payload = {
+        "sub": str(user_id),
+        "tenant_id": tenant_id,
+        "permissions": permissions,
+        "roles": [],
+        "iat": now,
+        "exp": now + 300,
+    }
+
+    return jwt.encode(
+        payload,
+        AI_ENGINE_JWT_SECRET,
+        algorithm="HS256"
+    )
 class TLSAdapter(HTTPAdapter):
 
     def init_poolmanager(
