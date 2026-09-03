@@ -14,13 +14,14 @@ import threading
 
 import jwt
 import requests
-import dotenv
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 
-
-AI_ENGINE_URL = os.environ["AI_ENGINE_URL"].rstrip("/")
-AI_ENGINE_JWT_SECRET = os.environ["AI_ENGINE_JWT_SECRET"]
+AI_ENGINE_URL = os.getenv("AI_ENGINE_URL").rstrip("/")
+AI_ENGINE_JWT_SECRET = os.getenv("AI_ENGINE_JWT_SECRET")
 
 AFFIRMATIVE_WORDS = {"yes", "yeah", "yep", "y", "confirm", "correct", "ok", "okay", "do it", "go ahead", "sure"}
 
