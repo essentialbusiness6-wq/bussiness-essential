@@ -319,7 +319,7 @@ def _process_ai_reply(room_id: str, text: str, user_id: str, permissions: list[s
         result = ask_ai_engine(room_id=room_id, text=text, user_id=user_id, permissions=permissions)
         socketio.emit(
             "receive_support_message",
-            {"sender": "ai", "message": result["message"]},
+            {"sender": "ai", "message": result["message"],"requires_confirmation": result.get("status") == "pending_confirmation",},
             room=room_id,
         )
     except requests.RequestException:
