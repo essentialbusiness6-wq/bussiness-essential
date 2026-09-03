@@ -61,6 +61,7 @@ import base64
 from flask_compress import Compress
 from whitenoise import WhiteNoise
 from backend.scheduler import scheduled_job,start_scheduler
+from ai_bridge import ask_ai_engine, issue_frontend_ai_token
 load_dotenv()
 
 
@@ -257,6 +258,59 @@ def handle_connect():
     join_room(f"user_{current_user_id}")
 
     print(f"User {current_user_id} connected")
+
+
+# @socketio.on("join_support_room")
+# def handle_join(data):
+#     from flask_socketio import join_room
+#     join_room(data["room_id"])
+ 
+ 
+# @socketio.on("send_support_message")
+# def handle_support_message(data):
+#     room_id = data["room_id"]
+#     text = data["message"]
+#     user_id = get_current_user_id()
+#     permissions = get_current_user_permissions()
+ 
+#     # Run the actual HTTP call in the background so this handler returns
+#     # immediately and other connected clients aren't blocked waiting on it.
+#     socketio.start_background_task(_process_ai_reply, room_id, text, user_id, permissions)
+ 
+ 
+# def _process_ai_reply(room_id: str, text: str, user_id: str, permissions: list[str]) -> None:
+#     try:
+#         result = ask_ai_engine(room_id=room_id, text=text, user_id=user_id, permissions=permissions)
+#         socketio.emit(
+#             "receive_support_message",
+#             {"sender": "ai", "message": result["message"]},
+#             room=room_id,
+#         )
+#     except requests.RequestException:
+#         socketio.emit(
+#             "receive_support_message",
+#             {"sender": "ai", "message": "Sorry, I'm having trouble right now — please try again shortly."},
+#             room=room_id,
+#         )
+ 
+ 
+# # ---------------------------------------------------------------------
+# # 2. Token endpoint -- for screens that call the AI Engine DIRECTLY from
+# #    the RN app (not through the chat socket), e.g. a "Create Invoice"
+# #    button elsewhere in the app.
+# # ---------------------------------------------------------------------
+ 
+# @app.route("/api/ai-token", methods=["GET"])
+# def ai_token():
+#     # Protect this with your existing auth check (e.g. @login_required).
+#     user_id = get_current_user_id()
+#     if user_id == "anonymous":
+#         return jsonify({"error": "not authenticated"}), 401
+ 
+#     token = issue_frontend_ai_token(user_id, get_current_user_permissions())
+#     return jsonify({"token": token, "expires_in": 300})
+ 
+
 
 
 
