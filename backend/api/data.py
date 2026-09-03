@@ -860,7 +860,7 @@ def get_settings_page_data(current_user_id, current_user_role):
         "language": settings['language'],
         "auto_logout_minutes": settings['auto_logout_minutes'],
         "require_pin_for_delete": settings['require_pin_for_delete'],
-        "auto_logout_on_inactivity': settings['auto_logout_on_inactivity']
+        "auto_logout_on_inactivity": settings['auto_logout_on_inactivity']
     }
 
 @api_bp.route("/settings/data")
