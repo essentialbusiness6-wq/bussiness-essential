@@ -590,7 +590,7 @@ def get_full_invoice_data(current_user_id,current_user_role,invoiceId):
         taxAmount = float(invoice['subtotal']) * float(invoice['tax']) / 100
 
     return {
-        "status":"success".
+        "status":"success",
         "invoiceId": invoiceId,
         "invoiceNumber": invoice['invoice_number'],
         "invoiceDate": invoice['invoice_date'].strftime("%Y-%m-%d"),
