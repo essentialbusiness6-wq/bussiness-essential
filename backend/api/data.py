@@ -597,7 +597,7 @@ def get_full_invoice_data(current_user_id,current_user_role,invoiceId):
         "dueDate": invoice['due_date'].strftime("%Y-%m-%d"),
         "totalAmount": float(invoice['amount']),
         "status": invoice['status'],
-        "note" invoice['note'],
+        "note": invoice['note'],
         "subtotal": float(invoice['subtotal']), 
         "theme": settings['theme'] if settings else 'light',
         "tax": float(invoice['tax']),
@@ -614,6 +614,121 @@ def full_invoice_data(current_user_id, current_user_role,invoiceId):
     try:
 
         data = get_full_invoice_data(
+            current_user_id,
+            current_user_role,
+            invoiceId 
+        )
+
+        if not data:
+            return jsonify({
+                "status": "error",
+                "message": "User data not found"
+            }), 404
+
+        return jsonify(data)
+
+    except Exception as e:
+
+        print("Invoice error:", e)
+
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+
+@cache.memoize(timeout=300)
+def get_edit_invoice_data(current_user_id,current_user_role,invoiceId):
+    with db_cursor(dictionary=True) as (_, cursor):
+
+        cursor.execute(
+            "SELECT role FROM user_base WHERE user_id=%s",
+            (current_user_id,)
+        )
+
+        user = cursor.fetchone()
+
+        if not user:
+            return jsonify({
+            "status": "error",
+            "message": "User not found"
+        }), 401
+
+        cursor.execute(
+            """
+            SELECT 
+                invoices.id,
+                invoices.client_id,
+                invoices.invoice_number,
+                invoices.invoice_date,
+                invoices.due_date,
+                invoices.total AS amount,
+                invoices.status,
+                invoices.subtotal,
+                invoices.tax,
+                invoices.amount_paid,
+                invoices.balance,
+                invoices.note,
+                clients.client_name AS clientName,
+                clients.client_email AS clientEmail
+            FROM invoices
+            JOIN clients ON clients.id = invoices.client_id
+            WHERE invoices.user_id=%s AND invoices.id=%s
+            """,
+            (current_user_id,invoiceId)
+        )
+        invoice = cursor.fetchone()
+        if not invoice:
+            return {
+                "status":"error",
+                "message":"Invoice not found."
+            }
+            
+        cursor.execute("""
+            SELECT description, quantity, price
+            FROM invoice_items
+            WHERE invoice_id=%s
+        """, (invoiceId,))
+        items = cursor.fetchall()
+        items_list = [{"desc": i['description'], "qty": i['quantity'], "price": i['price']} for i in items]
+        cursor.execute(
+            """
+            SELECT currency_symbol, theme
+            FROM user_settings
+            WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+        settings = cursor.fetchone()
+        theme = settings['theme'] if settings else "light"
+
+    return {
+        "status": "success", 
+        "invoiceId": invoiceId,
+        "invoiceNumber": invoice['invoice_number'],
+        "invoiceDate": invoice['invoice_date'].strftime("%Y-%m-%d"),
+        "dueDate": invoice['due_date'].strftime("%Y-%m-%d"),
+        "amount": float(invoice['amount']),
+        "status": invoice['status'],
+        "note": invoice['note'],
+        "subtotal": float(invoice['subtotal']),
+        "tax": float(invoice['tax']),
+        "amountPaid": float(invoice['amount_paid']),
+        "balance": float(invoice['balance']),
+        "clientId": invoice['client_id'],
+        "clientName": invoice['clientName'],
+        "clientEmail": invoice['clientEmail'],
+        "items": items_list,
+        "theme": theme
+    }
+
+
+@api_bp.route("/invoice/edit/<int:invoiceId>")
+@token_required
+def edit_invoice_data(current_user_id, current_user_role,invoiceId):
+
+    try:
+
+        data = get_edit_invoice_data(
             current_user_id,
             current_user_role,
             invoiceId 
