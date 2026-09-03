@@ -788,7 +788,7 @@ def get_share_page_data(current_user_id, current_user_role):
         "referralCode": referral['referral_code'], 
         "inviteSent": referral['invite_sent'], 
         "signups": referral['signups'], 
-        "earned": referral['earned'])
+        "earned": referral['earned']
     }
 
 @api_bp.route("/share/data")
