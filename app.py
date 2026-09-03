@@ -39,7 +39,10 @@ from backend.utils import (
     parse_user_agent1,
     get_user_from_token_cookie,
     send_notification,
-    db_cursor
+    db_cursor,
+    get_current_user_id,
+    get_authenticated_user,
+    issue_frontend_ai_token
 )
 from backend.admin import admin_bp
 import hashlib
@@ -239,59 +242,64 @@ def test_notification():
 
 register_socket_events(socketio)
 
-@socketio.on("connect")
-def handle_connect():
+# @socketio.on("connect")
+# def handle_connect():
 
-    auth_data = get_user_from_token_cookie(request)
+#     auth_data = get_user_from_token_cookie(request)
 
-    if not auth_data["success"]:
-        return False
+#     if not auth_data["success"]:
+#         return False
      
         
      
-    current_user_id = auth_data["user_id"]
-    current_user_role = auth_data["role"]
+#     current_user_id = auth_data["user_id"]
+#     current_user_role = auth_data["role"]
 
-    if not current_user_id:
-        return False
+#     if not current_user_id:
+#         return False
 
-    join_room(f"user_{current_user_id}")
+#     join_room(f"user_{current_user_id}")
 
-    print(f"User {current_user_id} connected")
+#     print(f"User {current_user_id} connected")
 
 
-# @socketio.on("join_support_room")
-# def handle_join(data):
-#     from flask_socketio import join_room
-#     join_room(data["room_id"])
+@socketio.on("join_support_room")
+def handle_join(data):
+    from flask_socketio import join_room
+    join_room(data["room_id"])
  
  
-# @socketio.on("send_support_message")
-# def handle_support_message(data):
-#     room_id = data["room_id"]
-#     text = data["message"]
-#     user_id = get_current_user_id()
-#     permissions = get_current_user_permissions()
+@socketio.on("send_support_message")
+def handle_support_message(data):
+
+    room_id = data["room_id"]
+    text = data["message"]
+
+    user_id = get_current_user_id()
+    permissions = get_current_user_permissions()
+
+    socketio.start_background_task(
+        _process_ai_reply,
+        room_id,
+        text,
+        user_id,
+        permissions
+    ) 
  
-#     # Run the actual HTTP call in the background so this handler returns
-#     # immediately and other connected clients aren't blocked waiting on it.
-#     socketio.start_background_task(_process_ai_reply, room_id, text, user_id, permissions)
- 
- 
-# def _process_ai_reply(room_id: str, text: str, user_id: str, permissions: list[str]) -> None:
-#     try:
-#         result = ask_ai_engine(room_id=room_id, text=text, user_id=user_id, permissions=permissions)
-#         socketio.emit(
-#             "receive_support_message",
-#             {"sender": "ai", "message": result["message"]},
-#             room=room_id,
-#         )
-#     except requests.RequestException:
-#         socketio.emit(
-#             "receive_support_message",
-#             {"sender": "ai", "message": "Sorry, I'm having trouble right now — please try again shortly."},
-#             room=room_id,
-#         )
+def _process_ai_reply(room_id: str, text: str, user_id: str, permissions: list[str]) -> None:
+    try:
+        result = ask_ai_engine(room_id=room_id, text=text, user_id=user_id, permissions=permissions)
+        socketio.emit(
+            "receive_support_message",
+            {"sender": "ai", "message": result["message"]},
+            room=room_id,
+        )
+    except requests.RequestException:
+        socketio.emit(
+            "receive_support_message",
+            {"sender": "ai", "message": "Sorry, I'm having trouble right now — please try again shortly."},
+            room=room_id,
+        )
  
  
 # # ---------------------------------------------------------------------
@@ -299,17 +307,22 @@ def handle_connect():
 # #    the RN app (not through the chat socket), e.g. a "Create Invoice"
 # #    button elsewhere in the app.
 # # ---------------------------------------------------------------------
- 
-# @app.route("/api/ai-token", methods=["GET"])
-# def ai_token():
-#     # Protect this with your existing auth check (e.g. @login_required).
-#     user_id = get_current_user_id()
-#     if user_id == "anonymous":
-#         return jsonify({"error": "not authenticated"}), 401
- 
-#     token = issue_frontend_ai_token(user_id, get_current_user_permissions())
-#     return jsonify({"token": token, "expires_in": 300})
- 
+
+@app.route("/api/ai-token", methods=["GET"])
+@token_required
+def ai_token(current_user_id, current_user_role):
+
+    permissions = get_current_user_permissions()
+
+    token = issue_frontend_ai_token(
+        user_id=current_user_id,
+        permissions=permissions
+    )
+
+    return jsonify({
+        "token": token,
+        "expires_in": 300
+    })
 
 
 
