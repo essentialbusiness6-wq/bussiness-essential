@@ -609,7 +609,7 @@ def get_full_invoice_data(current_user_id,current_user_role,invoiceId):
 
 @api_bp.route("/invoice/full/<int:invoiceId>")
 @token_required
-def billing_data(current_user_id, current_user_role,invoiceId):
+def full_invoice_data(current_user_id, current_user_role,invoiceId):
 
     try:
 
