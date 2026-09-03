@@ -819,3 +819,76 @@ def share_page_data(current_user_id, current_user_role):
             "message": str(e)
         }), 500
         
+@cache.memoize(timeout=300)
+def get_settings_page_data(current_user_id, current_user_role):
+    with db_cursor(dictionary=True) as (_, cursor):
+        cursor.execute(
+            """
+            SELECT 
+                invoice_prefix, next_invoice_number, default_due_date, default_tax_rate, show_tax, show_discount, footer_note,
+                currency, currency_symbol, timezone, date_format, email_notifications, due_date_reminder, reminder_days_before,
+                theme, language, auto_logout_minutes, require_pin_for_delete, auto_logout_on_inactivity
+            FROM user_settings
+            WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+        settings = cursor.fetchone()
+        if not settings:
+            return jsonify({
+                "status": "error",
+                "message": "An error occured while trying to fetch settings"
+            }), 400
+
+    return {
+        "status": "success",
+        "invoice_prefix": settings['invoice_prefix'],
+        "next_invoice_number": settings['next_invoice_number'],
+        "default_due_date": settings['default_due_date'],
+        "default_tax_rate": settings['default_tax_rate'],
+        "show_tax": settings['show_tax'],
+        "show_discount": settings['show_discount'],
+        "footer_note": settings['footer_note'],
+        "currency": settings['currency'],
+        "currency_symbol": settings['currency_symbol'],
+        "timezone": settings['timezone'],
+        "date_format": settings['date_format'],
+        "email_notifications": settings['email_notifications'],
+        "due_date_reminder": settings['due_date_reminder'],
+        "reminder_days_before": settings['reminder_days_before'],
+        "theme": settings['theme'],
+        "language": settings['language'],
+        "auto_logout_minutes": settings['auto_logout_minutes'],
+        "require_pin_for_delete": settings['require_pin_for_delete'],
+        "auto_logout_on_inactivity': settings['auto_logout_on_inactivity']
+    }
+
+@api_bp.route("/settings/data")
+@token_required
+def settings_page_data(current_user_id, current_user_role):
+
+    try:
+
+        data = get_settings_page_data(
+            current_user_id,
+            current_user_role 
+        )
+
+        if not data:
+            return jsonify({
+                "status": "error",
+                "message": "User data not found"
+            }), 404
+
+        return jsonify(data)
+
+    except Exception as e:
+
+        print("Settings error:", e)
+
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+
+
