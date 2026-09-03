@@ -478,3 +478,161 @@ def billing_data(current_user_id, current_user_role):
             "status": "error",
             "message": str(e)
         }), 500
+
+@cache.memoize(timeout=300)
+def get_full_invoice_data(current_user_id,current_user_role,invoiceId):
+    with db_cursor(dictionary=True) as (_, cursor):
+
+        cursor.execute(
+            "SELECT role FROM user_base WHERE user_id=%s",
+            (current_user_id,)
+        )
+
+        user = cursor.fetchone()
+
+        if not user:
+            return jsonify({
+            "status": "error",
+            "message": "User not found"
+        }), 401
+
+        cursor.execute(
+            """
+            SELECT 
+                invoices.id,
+                invoices.client_id,
+                invoices.invoice_number,
+                invoices.invoice_date,
+                invoices.due_date,
+                invoices.total AS amount,
+                invoices.status,
+                invoices.subtotal,
+                invoices.tax,
+                invoices.amount_paid,
+                invoices.balance,
+                invoices.note
+            FROM invoices
+            WHERE invoices.user_id=%s AND invoices.id=%s
+            """,
+            (current_user_id,invoiceId)
+        )
+
+        invoice = cursor.fetchone()
+        if not invoice:
+            return {
+                "status":"error",
+                "message":"Invoice Not found"
+            }
+                
+        cursor.execute("""
+            SELECT description, quantity, price
+            FROM invoice_items
+            WHERE invoice_id=%s
+        """, (invoiceId,))
+        items = cursor.fetchall()
+        items_list = [{"desc": i['description'], "qty": i['quantity'], "price": i['price'], "total": i['quantity'] * i['price']} for i in items]
+
+        cursor.execute(
+            """
+            SELECT client_name, client_email, client_address
+            FROM clients
+            WHERE user_id=%s AND id=%s
+            """,
+            (current_user_id, invoice['client_id'])
+        )
+        client = cursor.fetchone()
+     
+    
+        cursor.execute(
+            """
+            SELECT currency, currency_symbol, theme
+            FROM user_settings
+            WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+        settings = cursor.fetchone()
+        if not settings:
+            return jsonify({"error": "Settings not found"}), 404
+
+        cursor.execute(
+            """
+            SELECT profilename, address, alternateemail, phone, website
+            FROM cust_base
+            WHERE user_id=%s
+            """,
+            (current_user_id,)
+        )
+
+        profile = cursor.fetchone()
+
+
+        invoice_date =invoice["invoice_date"]
+        due_date = invoice["due_date"]
+
+        days = (due_date - invoice_date).days
+
+        if days <= 0:
+            payment_term = "Due on Receipt"
+        elif days == 7:
+            payment_term = "Net 7"
+        elif days == 15:
+            payment_term = "Net 15"
+        elif days == 30:
+            payment_term = "Net 30"
+        elif days == 60:
+            payment_term = "Net 60"
+        elif days == 90:
+            payment_term = "Net 90"
+        else:
+            payment_term = f"Net {days}"
+
+        taxAmount = float(invoice['subtotal']) * float(invoice['tax']) / 100
+
+    return {
+        "status":"success".
+        "invoiceId": invoiceId,
+        "invoiceNumber": invoice['invoice_number'],
+        "invoiceDate": invoice['invoice_date'].strftime("%Y-%m-%d"),
+        "dueDate": invoice['due_date'].strftime("%Y-%m-%d"),
+        "totalAmount": float(invoice['amount']),
+        "status": invoice['status'],
+        "note" invoice['note'],
+        "subtotal": float(invoice['subtotal']), 
+        "theme": settings['theme'] if settings else 'light',
+        "tax": float(invoice['tax']),
+        "taxAmount": taxAmount,
+        "paymentTerm": payment_term,
+        "balance": float(invoice['balance']) ,
+        "amountPaid": float(invoice["amount_paid"])
+    }
+
+@api_bp.route("/invoice/full/<int:invoiceId>")
+@token_required
+def billing_data(current_user_id, current_user_role,invoiceId):
+
+    try:
+
+        data = get_full_invoice_data(
+            current_user_id,
+            current_user_role,
+            invoiceId 
+        )
+
+        if not data:
+            return jsonify({
+                "status": "error",
+                "message": "User data not found"
+            }), 404
+
+        return jsonify(data)
+
+    except Exception as e:
+
+        print("Invoice error:", e)
+
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+
