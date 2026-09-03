@@ -262,6 +262,34 @@ register_socket_events(socketio)
 
 #     print(f"User {current_user_id} connected")
 
+AI_ROLE_PERMISSIONS = {
+    "user": [
+        "support:read",
+        "support:write",
+    ],
+
+    "admin": [
+        "support:read",
+        "support:write",
+        "invoices:read",
+        "invoices:write",
+    ],
+
+    "superadmin": [
+        "support:read",
+        "support:write",
+        "invoices:read",
+        "invoices:write",
+        "users:read",
+        "users:write",
+        "admin:read",
+        "admin:write",
+    ],
+}
+
+def get_permissions_for_role(role):
+    return AI_ROLE_PERMISSIONS.get(role, [])
+
 
 @socketio.on("join_support_room")
 def handle_join(data):
@@ -312,7 +340,7 @@ def _process_ai_reply(room_id: str, text: str, user_id: str, permissions: list[s
 @token_required
 def ai_token(current_user_id, current_user_role):
 
-    permissions = get_current_user_permissions()
+    permissions = get_current_user_permissions(current_user_role)
 
     token = issue_frontend_ai_token(
         user_id=current_user_id,
