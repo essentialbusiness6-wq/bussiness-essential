@@ -6436,7 +6436,7 @@ def payment_callback(current_user_id, current_user_role):
         return redirect("/billing")
 
     return redirect(
-        f"/payment/success?ref={reference}"
+        f"/payment/success/{reference}"
     )
 
 import requests
@@ -6820,26 +6820,48 @@ reference
             bool(row)
         }) , 200
 
-@app.route("/payment/success")
-def payment_success():
+@app.route("/payment/success/<reference>")
+def payment_success(reference):
 
-    ref = request.args.get("ref")
+    ref = reference
+
+    if not ref:
+        return render_template(
+            "users/payment-success.html",
+            reference=None,
+            plan=None,
+            amount=None,
+            error="Payment reference is missing."
+        ), 400
+
     with db_cursor(dictionary=True) as (_, cursor):
         cursor.execute(
             """
             SELECT plan, amount
             FROM user_subscriptions
             WHERE reference=%s
+            LIMIT 1
             """,
             (ref,)
         )
+
         sub = cursor.fetchone()
+
+    if not sub:
+        return render_template(
+            "users/payment-success.html",
+            reference=ref,
+            plan=None,
+            amount=None,
+            error="We could not find a subscription for this payment reference."
+        ), 404
 
     return render_template(
         "users/payment-success.html",
         reference=ref,
-        plan= sub['plan'],
-        amount = sub['amount']
+        plan=sub["plan"],
+        amount=sub["amount"],
+        error=None
     )
 
 @app.route("/contact-business", methods=["POST"])
