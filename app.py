@@ -6754,14 +6754,7 @@ def payment_webhook():
                 expires
 
             ))
-            save_log_activity(
-                user_id,
-                "payment",
-                f"Account Subscribtion Successfull",
-                f"Updraged plan to {plan}",
-                amount,
-                "paid"
-            )
+        
               
             cursor.execute(
                 """
@@ -6775,6 +6768,15 @@ def payment_webhook():
   
 
             conn.commit()
+
+            save_log_activity(
+                user_id,
+                "payment",
+                f"Account Subscribtion Successfull",
+                f"Updraged plan to {plan}",
+                amount,
+                "paid"
+            )
 
             print(
                 "WEBHOOK → Success"
