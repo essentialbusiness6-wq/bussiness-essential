@@ -6427,8 +6427,7 @@ def login_verify_2fa():
         }), 500
 
 @app.route("/payment/callback")
-@token_required
-def payment_callback(current_user_id, current_user_role):
+def payment_callback():
 
     reference = request.args.get("reference")
 
@@ -6615,12 +6614,17 @@ def payment_webhook():
 
     try:
 
-        # --------------------------------
-        # Verify webhook signature
-        # --------------------------------
+        # ==========================================
+        # 1. VERIFY PAYSTACK SIGNATURE
+        # ==========================================
+
         signature = request.headers.get(
             "x-paystack-signature"
         )
+
+        if not signature:
+            print("WEBHOOK → Missing signature")
+            return "", 401
 
         raw_body = request.get_data()
 
@@ -6630,37 +6634,61 @@ def payment_webhook():
             hashlib.sha512
         ).hexdigest()
 
-        if signature != expected:
-
+        if not hmac.compare_digest(
+            signature,
+            expected
+        ):
             print("WEBHOOK → Invalid signature")
-
-            return jsonify({
-                "status": "error",
-                "message": "Invalid signature"
-            }), 401
+            return "", 401
 
 
-        payload = request.get_json()
+        # ==========================================
+        # 2. READ PAYLOAD
+        # ==========================================
+
+        payload = request.get_json(
+            silent=True
+        )
 
         if not payload:
+            print("WEBHOOK → Empty payload")
             return "", 400
 
 
         event = payload.get("event")
 
-        if event != "charge.success":
+        print(
+            "WEBHOOK → Event:",
+            event
+        )
 
+
+        # ==========================================
+        # 3. ONLY PROCESS SUCCESSFUL CHARGES
+        # ==========================================
+
+        if event != "charge.success":
             return "", 200
 
 
-        payment = payload.get("data", {})
+        payment = payload.get(
+            "data",
+            {}
+        )
 
-        reference = payment.get("reference")
+
+        # ==========================================
+        # 4. GET PAYMENT INFORMATION
+        # ==========================================
+
+        reference = payment.get(
+            "reference"
+        )
 
         metadata = payment.get(
             "metadata",
             {}
-        )
+        ) or {}
 
         user_id = metadata.get(
             "user_id"
@@ -6676,13 +6704,53 @@ def payment_webhook():
         ) / 100
 
 
+        print(
+            "WEBHOOK → Reference:",
+            reference
+        )
+
+        print(
+            "WEBHOOK → User:",
+            user_id
+        )
+
+        print(
+            "WEBHOOK → Plan:",
+            plan
+        )
+
+        print(
+            "WEBHOOK → Amount:",
+            amount
+        )
+
+
+        # ==========================================
+        # 5. VALIDATE REQUIRED DATA
+        # ==========================================
+
         if not reference:
+            print(
+                "WEBHOOK → Reference missing"
+            )
+            return "", 400
 
-            return jsonify({
-                "status": "error",
-                "message": "Reference missing"
-            }), 400
+        if not user_id:
+            print(
+                "WEBHOOK → User ID missing"
+            )
+            return "", 400
 
+        if not plan:
+            print(
+                "WEBHOOK → Plan missing"
+            )
+            return "", 400
+
+
+        # ==========================================
+        # 6. CALCULATE EXPIRATION
+        # ==========================================
 
         expires = (
             datetime.utcnow()
@@ -6691,95 +6759,160 @@ def payment_webhook():
         )
 
 
+        # ==========================================
+        # 7. DATABASE
+        # ==========================================
+
         with db_cursor(dictionary=True) as (
             conn,
             cursor
         ):
 
-            cursor.execute("""
+            # --------------------------------------
+            # Check duplicate webhook
+            # --------------------------------------
+
+            cursor.execute(
+                """
                 SELECT id
                 FROM user_subscriptions
                 WHERE reference=%s
-            """, (
-                reference,
-            ))
+                LIMIT 1
+                """,
+                (reference,)
+            )
 
             existing = cursor.fetchone()
 
             if existing:
 
+                print(
+                    "WEBHOOK → Already processed:",
+                    reference
+                )
+
                 return "", 200
-                
-            cursor.execute("""
+
+
+            # --------------------------------------
+            # Update user's plan
+            # --------------------------------------
+
+            cursor.execute(
+                """
                 UPDATE user_base
                 SET
                     plan=%s,
                     plan_expiration=%s
                 WHERE user_id=%s
-            """, (
-                plan,
-                expires,
-                user_id
-            ))
+                """,
+                (
+                    plan,
+                    expires,
+                    user_id
+                )
+            )
 
-            cursor.execute("""
-                INSERT INTO user_subscriptions(
 
+            # --------------------------------------
+            # Create subscription
+            # --------------------------------------
+
+            cursor.execute(
+                """
+                INSERT INTO user_subscriptions
+                (
                     user_id,
                     plan,
                     reference,
                     amount,
                     status,
                     expires_at
-
                 )
-
-                VALUES(
-
+                VALUES
+                (
                     %s,
                     %s,
                     %s,
                     %s,
                     %s,
                     %s
-
                 )
-            """, (
+                """,
+                (
+                    user_id,
+                    plan,
+                    reference,
+                    amount,
+                    "active",
+                    expires
+                )
+            )
 
-                user_id,
-                plan,
-                reference,
-                amount,
-                "active",
-                expires
 
-            ))
-        
-              
+            # --------------------------------------
+            # Create transaction
+            # --------------------------------------
+
             cursor.execute(
                 """
                 INSERT INTO transactions
-                (user_id,invoice_id,amount,reference,status,paid_at,transaction_type)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
+                (
+                    user_id,
+                    invoice_id,
+                    amount,
+                    reference,
+                    status,
+                    paid_at,
+                    transaction_type
+                )
+                VALUES
+                (
+                    %s,
+                    %s,
+                    %s,
+                    %s,
+                    %s,
+                    %s,
+                    %s
+                )
                 """,
-                (current_user_id,0,amount,reference,"paid",datetime.now(),"subscription")
+                (
+                    user_id,       # IMPORTANT
+                    0,
+                    amount,
+                    reference,
+                    "paid",
+                    datetime.now(),
+                    "subscription"
+                )
             )
 
-  
+
+            # --------------------------------------
+            # COMMIT EVERYTHING
+            # --------------------------------------
 
             conn.commit()
+
+
+            # --------------------------------------
+            # Log activity
+            # --------------------------------------
 
             save_log_activity(
                 user_id,
                 "payment",
-                f"Account Subscribtion Successfull",
-                f"Updraged plan to {plan}",
+                "Account Subscription Successful",
+                f"Upgraded plan to {plan}",
                 amount,
                 "paid"
             )
 
+
             print(
-                "WEBHOOK → Success"
+                "WEBHOOK → Success:",
+                reference
             )
 
 
@@ -6789,38 +6922,61 @@ def payment_webhook():
     except Exception as e:
 
         print(
-            "WEBHOOK ERROR:",
-            type(e),
+            "======================================"
+        )
+
+        print(
+            "PAYSTACK WEBHOOK ERROR"
+        )
+
+        print(
+            "TYPE:",
+            type(e)
+        )
+
+        print(
+            "ERROR:",
             str(e)
         )
 
-        return jsonify({
-            "status": "error",
-            "message": str(e)
-        }), 500
+        traceback.print_exc()
 
-@app.route(
-"/payment/status/<reference>"
-)
-def payment_status(
-reference
-):
+        print(
+            "======================================"
+        )
+
+        return "", 500
+
+        
+@app.route("/payment/status/<reference>")
+def payment_status(reference):
 
     with db_cursor(dictionary=True) as (conn, cursor):
-        cursor.execute("""
-            SELECT status
+
+        cursor.execute(
+            """
+            SELECT status, plan, amount
             FROM user_subscriptions
             WHERE reference=%s
-        """,
+            LIMIT 1
+            """,
             (reference,)
         )
 
-        row= cursor.fetchone()
+        row = cursor.fetchone()
 
+    if not row:
         return jsonify({
-            "active":
-            bool(row)
-        }) , 200
+            "active": False,
+            "status": "not_found"
+        }), 200
+
+    return jsonify({
+        "active": row["status"] == "active",
+        "status": row["status"],
+        "plan": row["plan"],
+        "amount": float(row["amount"])
+    }), 200
 
 @app.route("/payment/success/<reference>")
 def payment_success(reference):
